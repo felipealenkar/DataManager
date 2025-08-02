@@ -495,6 +495,7 @@ object FormDataManager: TFormDataManager
       Height = 23
       Style = csDropDownList
       TabOrder = 6
+      OnChange = CboxDriverBDChange
       Items.Strings = (
         'Firebird 5.0'
         'PostgreSQL 9.6'

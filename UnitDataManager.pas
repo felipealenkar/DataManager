@@ -102,6 +102,7 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure DBRadioGroupTipoBackupChange(Sender: TObject);
+    procedure CboxDriverBDChange(Sender: TObject);
 
   private
     { Private declarations }
@@ -231,6 +232,17 @@ begin
     end;
   until (not PDigitou) or (PNomeDoDatabase <> '');
   Result:= PNomeDoDatabase;
+end;
+
+procedure TFormDataManager.CboxDriverBDChange(Sender: TObject);
+//Mensagem de recurso não implementado e em seguida limpa o CboxDriverBDChange
+begin
+  if CboxDriverBD.Text = 'Firebird 5.0' then
+    begin
+      Showmessage('Recurso não implementado');
+      CboxDriverBD.ItemIndex := -1;
+    end;
+
 end;
 
 procedure TFormDataManager.CriarDroparRoles(PNomeDoDatabase: string; PAcao: TEnumAcao);
@@ -396,9 +408,14 @@ end;
 procedure TFormDataManager.BtnConectaBDClick(Sender: TObject);
 // Botão Conectar
 begin
-  ConectarDesconectarDriverDoDatabase('postgres', Conectar);
-  HabilitarDesabilitarElementos(True, False);
-  AtualizaListaBancos(True);
+  if CboxDriverBD.ItemIndex = -1 then
+  showmessage('Selecione um driver de Bando de dados para continuar.')
+  else
+  begin
+    ConectarDesconectarDriverDoDatabase('postgres', Conectar);
+    HabilitarDesabilitarElementos(True, False);
+    AtualizaListaBancos(True);
+  end;
 end;
 
 procedure TFormDataManager.BtnDesconectarClick(Sender: TObject);
