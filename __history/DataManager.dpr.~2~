@@ -1,0 +1,17 @@
+program DataManager;
+
+uses
+  Vcl.Forms,
+  Vcl.Themes,
+  vcl.Styles,
+
+{$R *.res}
+
+begin
+  TStyleManager.LoadFromFile('PersonalizadoAzul.vsf');
+  TStyleManager.TrySetStyle('PersonalizadoAzul');
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TFormDataManager, FormDataManager);
+  Application.Run;
+end.
