@@ -380,7 +380,7 @@ object FormDataManager: TFormDataManager
     Left = 8
     Top = 8
     Width = 241
-    Height = 273
+    Height = 305
     TabOrder = 5
     object LblHost: TLabel
       Left = 105
@@ -416,6 +416,22 @@ object FormDataManager: TFormDataManager
       Width = 15
       Height = 15
       Caption = 'BD'
+    end
+    object LblDriverConectado: TLabel
+      Left = 8
+      Top = 269
+      Width = 225
+      Height = 32
+      AutoSize = False
+      Caption = 'Nenhum banco de dados conectado'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clRed
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+      WordWrap = True
+      StyleElements = [seClient, seBorder]
     end
     object EdtHost: TEdit
       Left = 105
@@ -498,7 +514,6 @@ object FormDataManager: TFormDataManager
       OnChange = CboxDriverBDChange
       Items.Strings = (
         'Firebird 5.0'
-        'PostgreSQL 9.6'
         'PostgreSQL 17')
     end
     object BtnAtualizar: TButton
@@ -524,7 +539,7 @@ object FormDataManager: TFormDataManager
     Left = 255
     Top = 8
     Width = 278
-    Height = 273
+    Height = 345
     TabOrder = 6
     object BtnNovoDataBase: TButton
       Left = 11
@@ -588,7 +603,7 @@ object FormDataManager: TFormDataManager
     Left = 544
     Top = 8
     Width = 260
-    Height = 273
+    Height = 345
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clHighlight
     Font.Height = -12
@@ -7470,10 +7485,10 @@ object FormDataManager: TFormDataManager
   end
   object SaveDialogBackup: TSaveDialog
     Left = 728
-    Top = 224
+    Top = 296
   end
   object OpenDialogRestore: TOpenDialog
     Left = 616
-    Top = 224
+    Top = 296
   end
 end

@@ -18,7 +18,7 @@ uses
   Vcl.ExtCtrls, FireDAC.Phys.FBDef, FireDAC.Phys.IBBase, FireDAC.Phys.FB,
   System.UITypes, Vcl.ComCtrls, StrUtils, System.SyncObjs, Vcl.DBCtrls,
   FireDAC.Comp.UI,
-  Vcl.Buttons, FireDAC.Phys.IBWrapper, FireDAC.Phys.IB;
+  Vcl.Buttons, FireDAC.Phys.IBWrapper, FireDAC.Phys.IB, System.RegularExpressions;
 
 type
   TDriverBDConexao = class
@@ -27,7 +27,6 @@ type
     Driver: string;
     Host: string;
     Porta: string;
-    Versao: string;
     Biblioteca: string;
     Dump: string;
     Restore: string;
@@ -38,6 +37,7 @@ type
     Formato: Char;
     Extensao: string;
     TipoQueryDlg: string;
+    Versao: currency;
   End;
 
 type
@@ -82,6 +82,7 @@ type
     LbxDatabases: TListBox;
     SaveDialogBackup: TSaveDialog;
     OpenDialogRestore: TOpenDialog;
+    LblDriverConectado: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure BtnConectaBDClick(Sender: TObject);
     procedure DeleteClick(Sender: TObject);
@@ -105,30 +106,29 @@ type
     procedure CboxDriverBDChange(Sender: TObject);
 
   private
-    { Private declarations }
-  type
-    TEnumAcao = (Conectar, Desconectar, Criar, Dropar, Adicionar, Remover, Renomear, Backup, Restore);
-    TEnumModoQuery = (Open, ExecSQL);
+    function VerificaVersaoPostgres(out PVersaoCompleta:string): Currency;
 
-  procedure ConectarDesconectarDriverDoDatabase(PNomeDoDatabase: string; PAcao: TEnumAcao);
-  procedure HabilitarDesabilitarElementos(PStatusConexao, PBancoSelecionado: Boolean);
-  procedure AtualizaListaBancos(PStatusConexao: Boolean);
-  function CapturarNomeDoDatabase(PNomeDoDatabase: string; PAcao: TEnumAcao; OUT PDigitou: boolean):string;
-  procedure CriarDroparRoles(PNomeDoDatabase: string; PAcao: TEnumAcao);
-  procedure CriarDroparDataBase(PNomeDoDatabase: string; PAcao: TEnumAcao);
-  procedure AdicionarOuRemoverPermissoesNosRoles(PNomeDoDatabase: string; PAcao: TEnumAcao);
-  procedure RenomearDatabase(PNomeDoDatabaseAntigo, PNomeDoDatabaseNovo: string);
-  function ValidaDatabaseExistente(PNomeDoDatabase: String): boolean;
-  procedure RegistrarLogs(PAcao: string);
-  function CriaComando(PAcao: TEnumAcao; POutputFile: string;
-    PDumpPath, PRestorePath, PPsqlPath, PHost, PPorta, PNomeDoDatabase,
-    PSenha: string; PFormato: Char): string;
-  function ValidaOwnerDatabase(PNomeDoDatabase, POwnerPadrao: string; out POwnerBD: string): Boolean;
+    type
+      TEnumAcao = (Conectar, Desconectar, Criar, Dropar, Adicionar, Remover, Renomear, Backup, Restore);
+      TEnumModoQuery = (Open, ExecSQL);
+
+    procedure ConectarDesconectarDriverDoDatabase(PNomeDoDatabase: string; PAcao: TEnumAcao);
+    procedure HabilitarDesabilitarElementos(PStatusConexao, PBancoSelecionado: Boolean);
+    procedure AtualizaListaBancos(PStatusConexao: Boolean);
+    function CapturarNomeDoDatabase(PNomeDoDatabase: string; PAcao: TEnumAcao; OUT PDigitou: boolean):string;
+    procedure CriarDroparRoles(PNomeDoDatabase: string; PAcao: TEnumAcao);
+    procedure CriarDroparDataBase(PNomeDoDatabase: string; PAcao: TEnumAcao);
+    procedure AdicionarOuRemoverPermissoesNosRoles(PNomeDoDatabase: string; PAcao: TEnumAcao);
+    procedure RenomearDatabase(PNomeDoDatabaseAntigo, PNomeDoDatabaseNovo: string);
+    function ValidaDatabaseExistente(PNomeDoDatabase: String): boolean;
+    procedure RegistrarLogs(PAcao: string);
+    function CriaComando(PAcao: TEnumAcao; POutputFile, PDumpPath, PRestorePath,
+                         PPsqlPath, PHost, PPorta, PNomeDoDatabase, PSenha: string; PFormato: Char): string;
+    function ValidaOwnerDatabase(PNomeDoDatabase, POwnerPadrao: string; out POwnerBD: string): Boolean;
 
   public
-    { Public declarations }
 
-  end;
+end;
 
 var
   FormDataManager: TFormDataManager;
@@ -145,7 +145,7 @@ uses
 // Implementação das Funções Auxiliares do processo de backup/Restore
 // ===========================================================================
 
-function TFormDataManager.CriaComando(PAcao: TEnumAcao ; POutputFile: string; PDumpPath, PRestorePath, PPsqlPath,
+function TFormDataManager.CriaComando(PAcao: TEnumAcao ; POutputFile, PDumpPath, PRestorePath, PPsqlPath,
                                         PHost, PPorta, PNomeDoDatabase, PSenha: string; PFormato: char): string;
 var
   DumpRestorePsqlPath: string;
@@ -162,16 +162,17 @@ begin
     Restore:
       begin
         if PFormato = 'c' then
-          DumpRestorePsqlPath := PRestorePath
-        else
-          DumpRestorePsqlPath := PPsqlPath;
-
-        if PFormato = 'c' then
-          Result := Format('"%s" -U postgres -h %s -p %s -d %s -v --no-owner --no-acl --no-comments "%s"',
-                           [DumpRestorePsqlPath, PHost, PPorta, PNomeDoDatabase, POutputFile])
+        begin
+          DumpRestorePsqlPath := PRestorePath;
+          Result := Format('"%s" -U postgres -h %s -p %s -d %s -v --no-owner --no-acl "%s"',
+                           [DumpRestorePsqlPath, PHost, PPorta, PNomeDoDatabase, POutputFile]);
+        end
         else if PFormato = 'p' then
+        begin
+          DumpRestorePsqlPath := PPsqlPath;
           Result := Format('"%s" -U postgres -h %s -p %s -d %s -f "%s"',
                            [DumpRestorePsqlPath, PHost, PPorta, PNomeDoDatabase, POutputFile]);
+        end;
       end;
   end;
 end;
@@ -184,7 +185,7 @@ procedure TFormDataManager.ConectarDesconectarDriverDoDatabase(PNomeDoDatabase: 
 // Inicia ou encerra a conexão com o BD Selecionado
 // PostgreSQL password #abc123#
 Var
-  TipoLog1: string;
+  TipoLog1, VersaoCompleta: string;
 begin
   case PAcao of
     Conectar:
@@ -202,12 +203,17 @@ begin
         FDConnectionDB.Params.Values['CharacterSet'] := 'UTF8';
         FDConnectionDB.LoginPrompt := False;
         FDConnectionDB.Open;
+        VerificaVersaoPostgres(VersaoCompleta);
+        LblDriverConectado.Caption := VersaoCompleta;
+        LblDriverConectado.font.Color := ClBlue;
         TipoLog1 := 'iniciada com sucesso.';
       end;
     Desconectar:
       begin
         FDConnectionDB.close;
         TipoLog1 := 'encerrada com sucesso.';
+        LblDriverConectado.Caption := 'Nenhum banco de dados conectado';
+        LblDriverConectado.font.Color := ClRed;
       end;
   end;
 
@@ -415,6 +421,8 @@ begin
     ConectarDesconectarDriverDoDatabase('postgres', Conectar);
     HabilitarDesabilitarElementos(True, False);
     AtualizaListaBancos(True);
+
+
   end;
 end;
 
@@ -587,30 +595,46 @@ begin
 end;
 
 procedure TFormDataManager.BtnFazerRestoreDatabaseClick(Sender: TObject);
-//Boatão fazer Backup
 var
-  FormBackupRestore : TFormBackupRestore; // Declara uma variável para o seu formulário de progresso
-  NomeDoDatabase: string;
+  FormBackupRestore : TFormBackupRestore;
+  NomeDoDatabase, InputFile, Comando, Versao: string;
+  OpenDialogRestore: TOpenDialog;
 begin
   HabilitarDesabilitarElementos(True, False);
   NomeDoDatabase := LbxDatabases.Items[LbxDatabases.ItemIndex];
   ConectarDesconectarDriverDoDatabase(NomeDoDatabase, Conectar);
-  FormBackupRestore := TFormBackupRestore.Create(Self);
-  try
-    FormBackupRestore.PGDumpPath := DriverBDConexao.dump;
-    FormBackupRestore.PGRestorePath := DriverBDConexao.restore;
-    FormBackupRestore.PQPsqlPath := DriverBDConexao.PSql;
-    FormBackupRestore.PGHost := DriverBDConexao.Host;
-    FormBackupRestore.PGPorta := DriverBDConexao.porta;
-    FormBackupRestore.PGNomeDoDatabase := NomeDoDatabase;
-    FormBackupRestore.PGSenha := DriverBDConexao.senha;
-    FormBackupRestore.PGFormato := DriverBDConexao.Formato;
-    FormBackupRestore.PGAcao := TEnumAcaoBackup.Restore;
-    FormBackupRestore.Connection := FDConnectionDB;
-    FormBackupRestore.ShowModal;
 
-  finally
-    FormBackupRestore.Free;
+  if VerificaVersaoPostgres(Versao) < 17 then
+  MessageDlg('O DataManager não faz restauração de backup em banco de dados com versão inferior a 17', TMsgDlgType.mtWarning, [mbOK], 0)
+  else
+  begin
+       OpenDialogRestore := TOpenDialog.Create(Self);
+    try
+      OpenDialogRestore.Filter := 'PostgreSQL Custom Backup Files (*.' + DriverBDConexao.Extensao + ')|*.' + DriverBDConexao.Extensao + '|Todos os arquivos (*.*)|*.*';
+      SaveDialogBackup.DefaultExt := DriverBDConexao.Extensao;
+      OpenDialogRestore.Options := [ofFileMustExist, ofPathMustExist, ofEnableSizing];
+      OpenDialogRestore.Title := 'Selecionar Arquivo de Backup para Restaurar';
+
+      if not OpenDialogRestore.Execute then
+        Exit;
+      InputFile := OpenDialogRestore.FileName;
+
+      Comando := CriaComando(Restore, InputFile, DriverBDConexao.Dump, DriverBDConexao.Restore, DriverBDConexao.Psql, DriverBDConexao.Host,
+                             DriverBDConexao.Porta, NomeDoDatabase, DriverBDConexao.Senha, DriverBDConexao.Formato);
+
+      FormBackupRestore := TFormBackupRestore.Create(Self);
+      try
+        FormBackupRestore.IniciarOperacao(Comando, InputFile, DriverBDConexao.Dump, DriverBDConexao.Restore, DriverBDConexao.Psql, DriverBDConexao.Host,
+                                          DriverBDConexao.Porta, NomeDoDatabase, DriverBDConexao.Senha, DriverBDConexao.Formato, TEnumAcaoBackup.Restore, FDConnectionDB);
+
+        FormBackupRestore.ShowModal;
+      finally
+        FormBackupRestore.Free;
+        ConectarDesconectarDriverDoDatabase('postgres', Conectar);
+      end;
+    finally
+      OpenDialogRestore.Free;
+    end;
   end;
 end;
 
@@ -679,6 +703,50 @@ begin
   Result := True
   else
   Result := False;
+end;
+
+function TFormDataManager.VerificaVersaoPostgres(out PVersaoCompleta:string): Currency;
+//Função que retorna a versão do Postgres conectada no momento
+Var
+  VersaoResumida, VersaoMaiorOuMenor: string;
+  PosicaoPonto: Integer;
+begin
+  FDQueryBD.Close;
+  FDQueryBD.sql.Clear;
+  FDQueryBD.sql.add('SELECT version()');
+  FDQueryBD.Open;
+  if not FDQueryBD.IsEmpty then
+    PVersaoCompleta := FDQueryBD.Fields[0].AsString
+  else
+    PVersaoCompleta := '';
+
+  FDQueryBD.Close;
+  FDQueryBD.sql.Clear;
+  FDQueryBD.sql.add('SHOW server_version');
+  FDQueryBD.Open;
+  if not FDQueryBD.IsEmpty then
+    VersaoResumida := FDQueryBD.Fields[0].AsString
+  else
+    VersaoResumida := '';
+
+  VersaoMaiorOuMenor := VersaoResumida; // Inicializa com a VersaoResumida
+
+  PosicaoPonto := Pos('.', VersaoResumida); // Encontra o primeiro ponto
+  if PosicaoPonto > 0 then
+  begin
+    PosicaoPonto := Pos('.', VersaoResumida, PosicaoPonto + 1); // Encontra o segundo ponto, começando a busca APÓS o primeiro ponto
+    if PosicaoPonto > 0 then
+      VersaoMaiorOuMenor := Copy(VersaoResumida, 1, PosicaoPonto - 1) // Se encontrou o segundo ponto, copia a string até ele
+    else
+      VersaoMaiorOuMenor := VersaoResumida; // Se só tem um ponto ou nenhum, já foi inicializado acima
+  end
+  else
+  begin
+    VersaoMaiorOuMenor := VersaoResumida; // Se não há nenhum ponto (ex: "17"), a versão é a string completa
+  end;
+  VersaoMaiorOuMenor := StringReplace(VersaoMaiorOuMenor, '.', ',', [rfReplaceAll]); //Substitui o ponto pela vírgula
+
+  Result := StrToCurrDef(VersaoMaiorOuMenor , 0); // Converte a string "Major.Minor" para o tipo Currency e retorna na função
 end;
 
 procedure TFormDataManager.HabilitarDesabilitarElementos(PStatusConexao, PBancoSelecionado: Boolean);
@@ -797,23 +865,12 @@ begin
   if PNomeDoDriverBD = 'Firebird 5.0' then
     begin
        Driver := 'FB';
-       Versao := '5.0';
        Biblioteca := 'C:\Program Files\Firebird\Firebird_5_0\fbclient.dll';
        Dump := '';
-    end
-  else if (PNomeDoDriverBD = 'PostgreSQL 9.6') then
-    begin
-      Driver := 'PG';
-      Versao := '9.6';
-      Biblioteca := 'C:\Program Files\PostgreSQL\9.6\bin\libpq.dll';
-      Dump := 'C:\Program Files\PostgreSQL\9.6\bin\pg_dump.exe';
-      Restore := 'C:\Program Files\PostgreSQL\9.6\bin\pg_restore.exe';
-      Psql := 'C:\Program Files\PostgreSQL\9.6\bin\psql.exe';
     end
   else if (PNomeDoDriverBD = 'PostgreSQL 17') then
     begin
       Driver := 'PG';
-      Versao := '17';
       Biblioteca := 'C:\Program Files\PostgreSQL\17\bin\libpq.dll';
       Dump := 'C:\Program Files\PostgreSQL\17\bin\pg_dump.exe';
       Restore := 'C:\Program Files\PostgreSQL\17\bin\pg_restore.exe';
@@ -822,7 +879,6 @@ begin
   else
     begin
       Driver := '';
-      Versao := '';
       Biblioteca := '';
       Dump := '';
       Restore := '';

@@ -1,0 +1,694 @@
+unit UnitBackupRestore;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
+  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
+  Vcl.ComCtrls,
+  Vcl.StdCtrls,
+  System.Threading,
+  System.SyncObjs,
+  Data.DB, FireDAC.Comp.Client, FireDAC.Stan.Intf,
+  System.IOUtils,
+  TypInfo, System.UITypes;
+
+type
+  TEnumAcaoBackup = (Backup, Restore);
+
+  // ===========================================================================
+  // TPostgreSQLWorkerThread - Classe da Thread de Trabalho
+  // ===========================================================================
+  TPostgreSQLWorkerThread = class(TThread)
+  private
+    FCommand: string;
+    FPassword: string;
+    FOutputFilePath: string; // NOVO: Armazena o caminho do arquivo de backup/restore
+    FLogFilePath: string;
+    FIsDumpOperation: Boolean; // True para backup, False para restore
+    FProgressBar: TProgressBar; // Referência aos componentes do FormBackupRestore
+    FLblStatus: TLabel;        // Referência aos componentes do FormBackupRestore
+    FRichEditLog: TRichEdit;    // Referência aos componentes do FormBackupRestore
+    FConnection: TFDConnection; // Conexão para contar tabelas (Dump)
+    FDumpRestorePsqlPath: string; // Caminho completo do executável (pg_dump, pg_restore, psql)
+
+    FTotalItemsToProcess: Integer;
+    FProcessedItems: Integer;
+    FCurrentPhase: (ppEstimating, ppPreData, ppData, ppPostData); // Enum para as fases do progresso
+    FExitCode: Cardinal; // CÓDIGO 1: Alterado de LongWord para Cardinal para consistência e compatibilidade
+    FLastProgressMessageTick: Cardinal; // Para evitar updates de UI muito rápidos
+
+    // Constantes para reconhecimento de log (PT e EN)
+    const
+      // --- pg_dump ---
+      DUMP_READING_DEFINITIONS_PT = 'pg_dump: lendo definições';
+      DUMP_READING_DEFINITIONS_EN = 'pg_dump: reading definitions';
+      DUMP_PROCESSING_TABLE_DATA_PT = 'pg_dump: copiando conteúdo da tabela ';
+      DUMP_PROCESSING_TABLE_DATA_EN = 'pg_dump: dumping contents of table ';
+      DUMP_FINISHED_PT = 'pg_dump: finalizado o despejo da base de dados';
+      DUMP_FINISHED_EN = 'pg_dump: finished dumping database';
+
+      // --- pg_restore ---
+      RESTORE_CONNECTING_EN = 'pg_restore: connecting to database for restore';
+      RESTORE_CONNECTING_PT = 'pg_restore: conectando ao banco de dados para restauração';
+      RESTORE_CREATING_SCHEMA_EN = 'pg_restore: creating SCHEMA ';
+      RESTORE_CREATING_SCHEMA_PT = 'pg_restore: criando SCHEMA ';
+      RESTORE_PROCESSING_TABLE_DATA_EN = 'pg_restore: processing data for table ';
+      RESTORE_PROCESSING_TABLE_DATA_PT = 'pg_restore: processando dados da tabela ';
+      RESTORE_CREATING_INDEX_EN = 'pg_restore: creating INDEX ';
+      RESTORE_CREATING_INDEX_PT = 'pg_restore: criando INDEX ';
+      RESTORE_FINISHED_EN = 'pg_restore: restore complete';
+      RESTORE_FINISHED_PT = 'pg_restore: restauração concluída';
+
+    // Métodos internos que serão sincronizados com a UI
+    procedure UpdateUI(NewPosition: Cardinal; const StatusText: string; const LogLine: string); // CÓDIGO 2: Alterado de Integer para Cardinal
+    procedure ProcessOutputLine(const Line: string);
+    function ExtractTableNameFromLog(const LogLine: string): string;
+
+    // Métodos de Contagem para a Estimativa de Progresso (executados na thread)
+    function CountTablesInDatabase(AConnection: TFDConnection): Integer;
+    function CountObjectsInDumpFile(const ADumpFile: string; const PgRestorePath: string; const Password: string): Integer;
+
+  protected
+    procedure Execute; override; // Onde a lógica principal do processo externo rodará
+  public
+    // Construtor da Thread
+    constructor Create(const Cmd, Pwd, AOutputFilePathParam, LogPath: string; IsDump: Boolean;
+                       ProgressBar: TProgressBar; LblStatus: TLabel; RichEditLog: TRichEdit;
+                       Connection: TFDConnection; DumpRestorePsqlPath: string);
+
+    property ExitCode: Cardinal read FExitCode; // CÓDIGO 3: Alterado de LongWord para Cardinal
+  end;
+
+  // ===========================================================================
+  // TFormBackupRestore - Seu formulário de Progresso
+  // ===========================================================================
+  TFormBackupRestore = class(TForm)
+    LblProgresso: TLabel;
+    ProgressBarBackupRestore: TProgressBar;
+    RichEditLog: TRichEdit;
+    procedure FormShow(Sender: TObject); // Este evento inicia a operação!
+  private
+    FWorkerThread: TPostgreSQLWorkerThread; // Referência à thread de trabalho
+    FIsOperationSuccessful: Boolean; // Indica se a operação terminou com sucesso
+    FCommandString: string; // Armazena o comando completo para a thread
+    FOutputFilePath: string; // Caminho do arquivo de backup/restore (para logs, etc.)
+
+    // Campos privados para armazenar os parâmetros.
+    FPDump_Path: string;
+    FPRestore_Path: string;
+    FPPsql_Path: string;
+    FPHost_Addr: string;
+    FPPorta_Num: string;
+    FPNomeDoDatabase_Name: string;
+    FPSenha_User: string;
+    FPFormato_Char: char;
+    FPAcao_Type: TEnumAcaoBackup;
+    FConnection_Ref: TFDConnection; // Referência para a conexão FireDAC
+
+    procedure ThreadTerminated(Sender: TObject); // Manipulador de evento de término da thread
+  public
+    // Método que de fato inicia a operação (thread).
+    procedure IniciarOperacao(const ACommand: string; const AOutputFilePath: string;
+                              const ADumpPath, ARestorePath, APsqlPath, AHost, APorta,
+                              ANomeDoDatabase, ASenha: string; AFormato: char; AAcao: TEnumAcaoBackup;
+                              AConnection: TFDConnection);
+
+    // =======================================================================
+    // PROPRIEDADES PÚBLICAS (usadas para configurar o formulário DE FORA)
+    // =======================================================================
+    property PGDumpPath: string read FPDump_Path write FPDump_Path;
+    property PGRestorePath: string read FPRestore_Path write FPRestore_Path;
+    property PQPsqlPath: string read FPPsql_Path write FPPsql_Path;
+    property PGHost: string read FPHost_Addr write FPHost_Addr;
+    property PGPorta: string read FPPorta_Num write FPPorta_Num;
+    property PGNomeDoDatabase: string read FPNomeDoDatabase_Name write FPNomeDoDatabase_Name;
+    property PGSenha: string read FPSenha_User write FPSenha_User;
+    property PGFormato: char read FPFormato_Char write FPFormato_Char;
+    property PGAcao: TEnumAcaoBackup read FPAcao_Type write FPAcao_Type;
+    property Connection: TFDConnection read FConnection_Ref write FConnection_Ref;
+  end;
+
+var
+  FormBackupRestore: TFormBackupRestore;
+
+implementation
+
+{$R *.dfm}
+
+// ==============================================================================
+// TFormBackupRestore - Implementação
+// ==============================================================================
+
+procedure TFormBackupRestore.FormShow(Sender: TObject);
+var
+  DumpRestorePsqlPath: string;
+  LogSuffix: string;
+  LogFilePath: string;
+begin
+  // Inicializações da UI
+  RichEditLog.Clear;
+  LblProgresso.Caption := 'Iniciando...';
+  ProgressBarBackupRestore.Position := 0;
+  ProgressBarBackupRestore.Min := 0;
+  ProgressBarBackupRestore.Max := 100;
+
+  // Determinar o caminho do executável e o sufixo do log com base na ação
+  case PGAcao of
+    Backup:
+      begin
+        DumpRestorePsqlPath := PGDumpPath; // pg_dump.exe
+        LogSuffix := '_backup';
+      end;
+    Restore:
+      begin
+        if PGFormato = 'c' then
+          DumpRestorePsqlPath := PGRestorePath // pg_restore.exe (formato custom)
+        else
+          DumpRestorePsqlPath := PQPsqlPath; // psql.exe (formato plain)
+        LogSuffix := '_restore';
+      end;
+  end;
+
+  // O LogFilePath depende do FOutputFilePath (que veio da chamada do Form principal)
+  LogFilePath := TPath.ChangeExtension(FOutputFilePath, LogSuffix + '.log');
+
+  // Agora, de fato, cria e inicia a thread.
+  FWorkerThread := TPostgreSQLWorkerThread.Create(
+    FCommandString,
+    PGSenha,
+    FOutputFilePath, // NOVO: Passando o OutputFilePath para a thread
+    LogFilePath,
+    PGAcao = Backup,
+    ProgressBarBackupRestore,
+    LblProgresso,
+    RichEditLog,
+    Connection,
+    DumpRestorePsqlPath // Caminho do executável para a thread
+  );
+  FWorkerThread.OnTerminate := ThreadTerminated;
+  FWorkerThread.Start; // Inicia a thread
+end;
+
+procedure TFormBackupRestore.IniciarOperacao(const ACommand: string; const AOutputFilePath: string;
+                                             const ADumpPath, ARestorePath, APsqlPath, AHost, APorta,
+                                             ANomeDoDatabase, ASenha: string; AFormato: char; AAcao: TEnumAcaoBackup;
+                                             AConnection: TFDConnection);
+begin
+  // Armazena os parâmetros nas propriedades internas do formulário.
+  FCommandString := ACommand;
+  FOutputFilePath := AOutputFilePath; // Armazena o OutputFilePath
+
+  // Armazenar todos os parâmetros passados (nas suas propriedades públicas)
+  PGDumpPath := ADumpPath;
+  PGRestorePath := ARestorePath;
+  PQPsqlPath := APsqlPath;
+  PGHost := AHost;
+  PGPorta := APorta;
+  PGNomeDoDatabase := ANomeDoDatabase;
+  PGSenha := ASenha;
+  PGFormato := AFormato;
+  PGAcao := AAcao;
+  Connection := AConnection;
+end;
+
+
+// ===========================================================================
+// TPostgreSQLWorkerThread Implementação
+// ===========================================================================
+
+constructor TPostgreSQLWorkerThread.Create(const Cmd, Pwd, AOutputFilePathParam, LogPath: string; IsDump: Boolean;
+                                           ProgressBar: TProgressBar; LblStatus: TLabel; RichEditLog: TRichEdit;
+                                           Connection: TFDConnection; DumpRestorePsqlPath: string);
+begin
+  inherited Create(True); // Create suspended initially
+  FCommand := Cmd;
+  FPassword := Pwd;
+  FOutputFilePath := AOutputFilePathParam; // Armazena o caminho do arquivo de backup/restore
+  FLogFilePath := LogPath;
+  FIsDumpOperation := IsDump;
+  FProgressBar := ProgressBar;
+  FLblStatus := LblStatus;
+  FRichEditLog := RichEditLog;
+  FConnection := Connection;
+  FDumpRestorePsqlPath := DumpRestorePsqlPath;
+  FTotalItemsToProcess := 0;
+  FProcessedItems := 0;
+  FCurrentPhase := ppEstimating;
+  FExitCode := 0; // CÓDIGO 4: Inicializando com 0, não -1, para Cardinal
+  FreeOnTerminate := True;
+  FLastProgressMessageTick := 0;
+end;
+
+procedure TPostgreSQLWorkerThread.UpdateUI(NewPosition: Cardinal; const StatusText: string; const LogLine: string); // CÓDIGO 5: Parâmetro NewPosition é Cardinal
+begin
+  if (GetTickCount - FLastProgressMessageTick) < 50 then
+    Exit;
+  FLastProgressMessageTick := GetTickCount;
+
+  // CÓDIGO 6: Alterado TThread.Synchronize(nil, ...) para TThread.Queue(...)
+  TThread.Queue(
+    procedure
+    begin
+      if Assigned(FProgressBar) then
+      begin
+        // A validação de NewPosition em relação a Min/Max é mantida
+        // mas o tipo Cardinal deve resolver o E1012 anterior
+        if NewPosition >= FProgressBar.Min then
+        begin
+          if NewPosition <= FProgressBar.Max then
+            FProgressBar.Position := NewPosition
+          else
+            FProgressBar.Position := FProgressBar.Max;
+        end;
+      end;
+      if Assigned(FLblStatus) then
+        FLblStatus.Caption := StatusText;
+      if Assigned(FRichEditLog) then
+      begin
+        if FRichEditLog.Lines.Count > 1000 then
+          FRichEditLog.Lines.Delete(0);
+        if LogLine <> '' then
+        begin
+          FRichEditLog.Lines.Add(LogLine);
+          FRichEditLog.SelStart := FRichEditLog.GetTextLen;
+          FRichEditLog.SelLength := 0;
+          FRichEditLog.Perform(EM_SCROLLCARET, 0, 0);
+        end;
+      end;
+    end;
+end;
+
+procedure TPostgreSQLWorkerThread.ProcessOutputLine(const Line: string);
+var
+  CurrentPosition: Cardinal; // CÓDIGO 7: Alterado de Integer para Cardinal
+  StatusMessage: string;
+begin
+  UpdateUI(FProgressBar.Position, FLblStatus.Caption, Line); // FProgressBar.Position é Integer, mas UpdateUI espera Cardinal, conversão implícita OK.
+
+  if FIsDumpOperation then // Lógica para pg_dump
+  begin
+    if (Pos(DUMP_READING_DEFINITIONS_EN, Line) > 0) or (Pos(DUMP_READING_DEFINITIONS_PT, Line) > 0) then
+    begin
+      FCurrentPhase := ppPreData;
+      UpdateUI(5, 'Lendo definições do banco...', ''); // CÓDIGO 8: Valores literais são compatíveis com Cardinal
+    end
+    else if (Pos('pg_dump: reading extensions', Line) > 0) or (Pos('pg_dump: lendo extensões', Line) > 0) then
+      UpdateUI(10, 'Lendo extensões...', '')
+    else if (Pos('pg_dump: reading schemas', Line) > 0) or (Pos('pg_dump: lendo esquemas', Line) > 0) then
+      UpdateUI(15, 'Lendo esquemas...', '');
+
+    if (Pos(DUMP_PROCESSING_TABLE_DATA_EN, Line) > 0) or (Pos(DUMP_PROCESSING_TABLE_DATA_PT, Line) > 0) then
+    begin
+      if FCurrentPhase <> ppData then
+      begin
+        FCurrentPhase := ppData;
+        FProcessedItems := 0;
+      end;
+      Inc(FProcessedItems);
+      CurrentPosition := 30 + Round((FProcessedItems / FTotalItemsToProcess) * 65);
+      StatusMessage := 'Despejando dados da tabela: ' + ExtractTableNameFromLog(Line) + Format(' (%d/%d)', [FProcessedItems, FTotalItemsToProcess]);
+      UpdateUI(CurrentPosition, StatusMessage, '');
+    end
+    else if (Pos(DUMP_FINISHED_EN, Line) > 0) or (Pos(DUMP_FINISHED_PT, Line) > 0) then
+    begin
+      FCurrentPhase := ppPostData;
+      UpdateUI(95, 'Finalizando backup...', '');
+    end;
+  end
+  else // Lógica para pg_restore
+  begin
+    if (Pos(RESTORE_CONNECTING_EN, Line) > 0) or (Pos(RESTORE_CONNECTING_PT, Line) > 0) then
+      UpdateUI(5, 'Conectando ao banco de dados...', '')
+    else if (Pos(RESTORE_CREATING_SCHEMA_EN, Line) > 0) or (Pos(RESTORE_CREATING_SCHEMA_PT, Line) > 0) then
+      UpdateUI(10, 'Criando esquemas...', '');
+
+    if (Pos(RESTORE_PROCESSING_TABLE_DATA_EN, Line) > 0) or (Pos(RESTORE_PROCESSING_TABLE_DATA_PT, Line) > 0) then
+    begin
+      if FCurrentPhase <> ppData then
+      begin
+        FCurrentPhase := ppData;
+        FProcessedItems := 0;
+      end;
+      Inc(FProcessedItems);
+      CurrentPosition := 15 + Round((FProcessedItems / FTotalItemsToProcess) * 80);
+      StatusMessage := 'Restaurando dados da tabela: ' + ExtractTableNameFromLog(Line) + Format(' (%d/%d)', [FProcessedItems, FTotalItemsToProcess]);
+      UpdateUI(CurrentPosition, StatusMessage, '');
+    end
+    else if (Pos(RESTORE_CREATING_INDEX_EN, Line) > 0) or (Pos(RESTORE_CREATING_INDEX_PT, Line) > 0) then
+    begin
+      FCurrentPhase := ppPostData;
+      UpdateUI(90, 'Criando índices e finalizando...', '');
+    end
+    else if (Pos(RESTORE_FINISHED_EN, Line) > 0) or (Pos(RESTORE_FINISHED_PT, Line) > 0) then
+    begin
+      FCurrentPhase := ppPostData;
+      UpdateUI(100, 'Restauração concluída!', '');
+    end;
+  end;
+end;
+
+function TPostgreSQLWorkerThread.ExtractTableNameFromLog(const LogLine: string): string;
+var
+  StartPos: Integer;
+  EndPos: Integer;
+begin
+  Result := 'N/A';
+
+  StartPos := Pos('table "', LogLine);
+  if StartPos = 0 then StartPos := Pos('tabela "', LogLine);
+
+  if StartPos > 0 then
+  begin
+    StartPos := StartPos + Length('table "');
+    EndPos := Pos('"', LogLine, StartPos);
+    if EndPos > 0 then
+      Result := Copy(LogLine, StartPos, EndPos - StartPos)
+    else
+      Result := Copy(LogLine, StartPos, Length(LogLine));
+  end;
+
+  if Result = 'N/A' then
+  begin
+      StartPos := Pos('table ', LogLine);
+      if StartPos > 0 then
+      begin
+        StartPos := StartPos + Length('table ');
+        Result := Trim(Copy(LogLine, StartPos, Length(LogLine)));
+        if Result.EndsWith('...') then
+          Result := Result.Substring(0, Result.Length - 3);
+        if Result.Contains(' (') then
+          Result := Result.Substring(0, Result.IndexOf(' ('));
+      end;
+  end;
+end;
+
+function TPostgreSQLWorkerThread.CountTablesInDatabase(AConnection: TFDConnection): Integer;
+var
+  Q: TFDQuery;
+begin
+  Result := 0;
+  if not Assigned(AConnection) or not AConnection.Connected then
+  begin
+    OutputDebugString(PChar('Thread: Erro: Conexão FDConnection não atribuída ou não conectada para contar tabelas.'));
+    Exit;
+  end;
+
+  Q := TFDQuery.Create(nil);
+  try
+    Q.Connection := AConnection;
+    Q.SQL.Text := 'select count(*) from information_schema.tables ' +
+                  'where table_schema not in (''pg_catalog'', ''information_schema'', ''pg_toast'') ' +
+                  'and table_type = ''BASE TABLE''';
+    Q.Open;
+    Result := Q.Fields[0].AsInteger;
+    OutputDebugString(PChar(Format('Thread: Contou %d tabelas no banco de dados.', [Result])));
+  except
+    on E: Exception do
+    begin
+      OutputDebugString(PChar('Thread: Erro ao contar tabelas: ' + E.Message));
+      Result := 0;
+    end;
+  end;
+  Q.Free;
+end;
+
+function TPostgreSQLWorkerThread.CountObjectsInDumpFile(const ADumpFile: string; const PgRestorePath: string; const Password: string): Integer;
+var
+  SA: TSecurityAttributes;
+  StdOutPipeRead, StdOutPipeWrite: THandle;
+  StartupInfo: TStartupInfo;
+  ProcessInfo: TProcessInformation;
+  Cmd: string;
+  OutputReader: TStreamReader; // NOVO: Para ler a saída do pipe
+  Line: string;
+  Lines: TStringList;
+  I: Integer;
+begin
+  Result := 0;
+  Lines := TStringList.Create;
+  try
+    Cmd := Format('"%s" --list "%s"', [PgRestorePath, ADumpFile]);
+    OutputDebugString(PChar('Thread: CountObjectsInDumpFile - Comando: ' + Cmd));
+
+    SetEnvironmentVariable('PGPASSWORD', PChar(Password));
+    try
+      ZeroMemory(@SA, SizeOf(SA));
+      SA.nLength := SizeOf(SA);
+      SA.bInheritHandle := True;
+
+      if not CreatePipe(StdOutPipeRead, StdOutPipeWrite, @SA, 0) then
+        RaiseLastOSError;
+
+      try
+        ZeroMemory(@StartupInfo, SizeOf(StartupInfo));
+        StartupInfo.cb := SizeOf(StartupInfo);
+        StartupInfo.hStdOutput := StdOutPipeWrite;
+        StartupInfo.hStdError := StdOutPipeWrite;
+        StartupInfo.dwFlags := STARTF_USESTDHANDLES;
+        ZeroMemory(@ProcessInfo, SizeOf(ProcessInfo));
+
+        if not CreateProcess(nil, PChar(Cmd), nil, nil, True, CREATE_NO_WINDOW, nil, nil, StartupInfo, ProcessInfo) then
+        begin
+          OutputDebugString(PChar(Format('Thread: CountObjectsInDumpFile - Erro ao executar CreateProcess: %d', [GetLastError])));
+          RaiseLastOSError;
+        end;
+
+        CloseHandle(StdOutPipeWrite); // Fechar a extremidade de escrita do pipe
+
+        // NOVO: Criar TStreamReader para ler a saída
+        OutputReader := TStreamReader.Create(THandleStream.Create(StdOutPipeRead));
+        OutputReader.BaseStream.Position := 0; // Garante que a leitura comece do início
+
+        try
+          while not OutputReader.EndOfStream do
+          begin
+            Line := OutputReader.ReadLine;
+            Lines.Add(Line); // Adiciona ao TStringList para parsear
+          end;
+
+        finally
+          OutputReader.Free; // Libera o TStreamReader
+        end;
+
+        WaitForSingleObject(ProcessInfo.hProcess, INFINITE);
+        // Não é necessário obter ExitCode aqui, pois o que importa é a lista de objetos.
+        // Se CreateProcess falhar, já levantou exceção.
+
+      finally
+        CloseHandle(ProcessInfo.hProcess);
+        CloseHandle(ProcessInfo.hThread);
+        CloseHandle(StdOutPipeRead);
+      end;
+    finally
+      SetEnvironmentVariable('PGPASSWORD', nil);
+    end;
+
+    // Parse the output to count objects
+    OutputDebugString(PChar('Thread: CountObjectsInDumpFile - Saída do pg_restore --list: ' + Lines.Text));
+
+    for I := 0 to Lines.Count - 1 do
+    begin
+      if Lines[I].StartsWith('; ') then
+      begin
+        if (Pos('SCHEMA ', Lines[I]) > 0) or (Pos('TABLE ', Lines[I]) > 0) or
+           (Pos('SEQUENCE ', Lines[I]) > 0) or (Pos('FUNCTION ', Lines[I]) > 0) or
+           (Pos('INDEX ', Lines[I]) > 0) or (Pos('CONSTRAINT ', Lines[I]) > 0) or
+           (Pos('TYPE ', Lines[I]) > 0) or (Pos('VIEW ', Lines[I]) > 0) or
+           (Pos('TRIGGER ', Lines[I]) > 0) or (Pos('RULE ', Lines[I]) > 0) or
+           (Pos('EXTENSION ', Lines[I]) > 0) or (Pos('DEFAULT ', Lines[I]) > 0) or
+           (Pos('ACL ', Lines[I]) > 0) then
+        begin
+          Inc(Result);
+        end;
+      end;
+    end;
+    OutputDebugString(PChar(Format('Thread: CountObjectsInDumpFile - Total objects counted: %d', [Result])));
+  finally
+    FreeAndNil(Lines);
+  end;
+end;
+
+
+procedure TPostgreSQLWorkerThread.Execute;
+var
+  SA: TSecurityAttributes;
+  StdOutPipeRead, StdOutPipeWrite: THandle;
+  StartupInfo: TStartupInfo;
+  ProcessInfo: TProcessInformation;
+  LogFileStreamWriter: TStreamWriter; // NOVO: Para escrever no arquivo de log de forma robusta
+  OutputReader: TStreamReader;
+  Line: string;
+  // ProcessStatus: LongWord; // REMOVIDO: Usaremos uma variável auxiliar para o GetExitCodeProcess
+  ExitCodeFromProcess: Cardinal; // CÓDIGO 9: Variável auxiliar para GetExitCodeProcess
+begin
+  UpdateUI(0, 'Iniciando operação...', '');
+  FExitCode := 0; // CÓDIGO 10: Inicialização segura para Cardinal
+
+  try
+    // 0. Estimativa de progresso
+    FCurrentPhase := ppEstimating;
+    if FIsDumpOperation then // Backup
+    begin
+      UpdateUI(0, 'Contando tabelas para estimativa de progresso...', '');
+      FTotalItemsToProcess := CountTablesInDatabase(FConnection);
+      if FTotalItemsToProcess = 0 then
+      begin
+          UpdateUI(0, 'Não foi possível contar tabelas ou banco vazio. Progresso será geral.', '');
+          FTotalItemsToProcess := 1;
+      end;
+    end
+    else // Restore
+    begin
+      UpdateUI(0, 'Analisando arquivo de backup para estimativa de progresso...', '');
+      FTotalItemsToProcess := CountObjectsInDumpFile(FOutputFilePath, FDumpRestorePsqlPath, FPassword); // FOutputFilePath AGORA ACESSÍVEL
+      if FTotalItemsToProcess = 0 then
+      begin
+          UpdateUI(0, 'Não foi possível analisar o backup. Progresso será geral.', '');
+          FTotalItemsToProcess := 1;
+      end;
+    end;
+    FCurrentPhase := ppPreData;
+
+    // 1. Abrir ou criar o arquivo de log para escrita (usando TStreamWriter)
+    LogFileStreamWriter := nil;
+    try
+      LogFileStreamWriter := TStreamWriter.Create(FLogFilePath, False, TEncoding.UTF8); // False para sobrescrever, UTF8 para compatibilidade
+    except
+      on E: Exception do
+      begin
+        UpdateUI(0, 'ERRO: ' + E.Message, 'ERRO ao criar arquivo de log: ' + E.Message);
+        Exit;
+      end;
+    end;
+
+    SetEnvironmentVariable('PGPASSWORD', PChar(FPassword));
+    try
+      ZeroMemory(@SA, SizeOf(SA));
+      SA.nLength := SizeOf(SA);
+      SA.bInheritHandle := True;
+
+      if not CreatePipe(StdOutPipeRead, StdOutPipeWrite, @SA, 0) then
+        RaiseLastOSError;
+
+      try
+        ZeroMemory(@StartupInfo, SizeOf(StartupInfo));
+        StartupInfo.cb := SizeOf(StartupInfo);
+        StartupInfo.hStdOutput := StdOutPipeWrite;
+        StartupInfo.hStdError := StdOutPipeWrite;
+        StartupInfo.dwFlags := STARTF_USESTDHANDLES;
+        ZeroMemory(@ProcessInfo, SizeOf(ProcessInfo));
+
+        if not CreateProcess(nil, PChar(FCommand), nil, nil, True, CREATE_NO_WINDOW, nil, nil, StartupInfo, ProcessInfo) then
+          RaiseLastOSError;
+
+        CloseHandle(StdOutPipeWrite); // Importante fechar a extremidade de escrita do pipe
+
+        OutputReader := TStreamReader.Create(THandleStream.Create(StdOutPipeRead));
+        OutputReader.BaseStream.Position := 0;
+
+        try
+          // Loop para ler a saída do pipe linha por linha enquanto o processo estiver ativo OU houver dados no pipe
+          // CÓDIGO 11: Passando a variável auxiliar 'ExitCodeFromProcess' para GetExitCodeProcess
+          while (GetExitCodeProcess(ProcessInfo.hProcess, ExitCodeFromProcess) and (ExitCodeFromProcess = STILL_ACTIVE)) or
+                (OutputReader.Peek <> -1) do // Peek <> -1 indica que ainda há caracteres para ler
+          begin
+            if Terminated then // Permite parar o thread se solicitado externamente
+              Break;
+
+            if not OutputReader.EndOfStream then
+            begin
+              Line := OutputReader.ReadLine;
+              LogFileStreamWriter.WriteLine(Line); // Escreve a linha no arquivo de log
+              ProcessOutputLine(Line); // Envia a linha para processamento da UI
+            end
+            else
+            begin
+              Sleep(10); // Pequena pausa para evitar consumo excessivo de CPU se não houver dados
+            end;
+          end;
+
+          // Processar qualquer linha restante no buffer APÓS o processo ter terminado
+          while not OutputReader.EndOfStream and not Terminated do
+          begin
+            Line := OutputReader.ReadLine;
+            LogFileStreamWriter.WriteLine(Line);
+            ProcessOutputLine(Line);
+          end;
+
+          // Espera o processo terminar (se ainda não terminou)
+          WaitForSingleObject(ProcessInfo.hProcess, INFINITE);
+
+          // Obtém o código de saída final do processo
+          // CÓDIGO 12: Usando a variável auxiliar novamente para garantir a compatibilidade
+          if GetExitCodeProcess(ProcessInfo.hProcess, ExitCodeFromProcess) then
+          begin
+            FExitCode := ExitCodeFromProcess; // Atribuindo o valor final à variável de classe
+            // Mensagem final de status com base no ExitCode
+            if FExitCode <> 0 then
+              UpdateUI(100, Format('Operação finalizada com erros. Código: %d', [FExitCode]), '')
+            else
+              UpdateUI(100, 'Operação concluída com sucesso!', '');
+          end
+          else
+          begin
+            FExitCode := $FFFFFFFF; // CÓDIGO 13: Usando um valor inválido comum para Cardinal se não for possível obter o exit code
+            UpdateUI(100, 'Não foi possível obter código de saída do processo.', '');
+          end;
+
+        finally
+          OutputReader.Free;
+        end;
+
+      finally
+        CloseHandle(ProcessInfo.hProcess);
+        CloseHandle(ProcessInfo.hThread);
+        CloseHandle(StdOutPipeRead);
+      end;
+    finally
+      SetEnvironmentVariable('PGPASSWORD', nil);
+      if Assigned(LogFileStreamWriter) then
+        FreeAndNil(LogFileStreamWriter); // Libera o TStreamWriter
+    end;
+
+  except
+    on E: Exception do
+    begin
+      FExitCode := $FFFFFFFF; // CÓDIGO 14: Valor inválido em caso de exceção para Cardinal
+      UpdateUI(FProgressBar.Position, 'ERRO: ' + E.Message, 'ERRO CRÍTICO NA THREAD: ' + E.Message);
+    end;
+  end;
+
+  // Garante que a barra de progresso chegue a 100% no final, caso não tenha chegado
+  if Assigned(FProgressBar) and (FProgressBar.Position < 100) then
+    UpdateUI(100, FLblStatus.Caption, '');
+end;
+
+procedure TFormBackupRestore.ThreadTerminated(Sender: TObject);
+var
+  ExitCode: Cardinal; // CÓDIGO 15: Alterado para Cardinal
+begin
+  if Assigned(FWorkerThread) then
+  begin
+    ExitCode := FWorkerThread.ExitCode;
+    FIsOperationSuccessful := (ExitCode = 0);
+
+    if FIsOperationSuccessful then
+    begin
+      if PGAcao = Backup then
+        ShowMessage('Backup concluído com sucesso!' + sLineBreak + 'Arquivo salvo em: ' + TPath.GetFileName(FOutputFilePath) + sLineBreak + 'Log salvo em: ' + FWorkerThread.FLogFilePath)
+      else
+        ShowMessage('Restauração concluída com sucesso!' + sLineBreak + 'Database: ' + PGNomeDoDatabase + sLineBreak + 'Dados restaurados com sucesso.' + sLineBreak + 'Log salvo em: ' + FWorkerThread.FLogFilePath);
+    end
+    else
+    begin
+      ShowMessage(Format('Ocorreu um erro durante a operação de %s. Código de saída: %d' + sLineBreak + 'Verifique o arquivo de log para mais detalhes: %s', [GetEnumName(TypeInfo(TEnumAcaoBackup), Ord(PGAcao)), ExitCode, FWorkerThread.FLogFilePath]));
+    end;
+
+    FWorkerThread := nil;
+
+    Close;
+  end;
+end;
+
+end.

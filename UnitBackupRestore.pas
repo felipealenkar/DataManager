@@ -4,7 +4,7 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
-  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
+  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, System.RegularExpressions,
   Vcl.ComCtrls,
   Vcl.StdCtrls,
   System.Threading,
@@ -23,18 +23,19 @@ type
   private
     FCommand: string;
     FPassword: string;
+    FOutputFilePath: string; // Armazena o caminho do arquivo de backup/restore
     FLogFilePath: string;
     FIsDumpOperation: Boolean; // True para backup, False para restore
     FProgressBar: TProgressBar; // Referência aos componentes do FormBackupRestore
-    FLblStatus: TLabel;          // Referência aos componentes do FormBackupRestore
-    FRichEditLog: TRichEdit;     // Referência aos componentes do FormBackupRestore
+    FLblStatus: TLabel;        // Referência aos componentes do FormBackupRestore
+    FRichEditLog: TRichEdit;    // Referência aos componentes do FormBackupRestore
     FConnection: TFDConnection; // Conexão para contar tabelas (Dump)
     FDumpRestorePsqlPath: string; // Caminho completo do executável (pg_dump, pg_restore, psql)
 
     FTotalItemsToProcess: Integer;
     FProcessedItems: Integer;
     FCurrentPhase: (ppEstimating, ppPreData, ppData, ppPostData); // Enum para as fases do progresso
-    FExitCode: Integer; // Código de saída do processo externo
+    FExitCode: LongWord; // Código de saída do processo externo
     FLastProgressMessageTick: Cardinal; // Para evitar updates de UI muito rápidos
 
     // Constantes para reconhecimento de log (PT e EN)
@@ -72,11 +73,11 @@ type
     procedure Execute; override; // Onde a lógica principal do processo externo rodará
   public
     // Construtor da Thread
-    constructor Create(const Cmd, Pwd, LogPath: string; IsDump: Boolean;
+    constructor Create(const Cmd, Pwd, AOutputFilePathParam, LogPath: string; IsDump: Boolean;
                        ProgressBar: TProgressBar; LblStatus: TLabel; RichEditLog: TRichEdit;
                        Connection: TFDConnection; DumpRestorePsqlPath: string);
 
-    property ExitCode: Integer read FExitCode; // Para o formulário saber o resultado
+    property ExitCode: LongWord read FExitCode;
   end;
 
   // ===========================================================================
@@ -86,9 +87,7 @@ type
     LblProgresso: TLabel;
     ProgressBarBackupRestore: TProgressBar;
     RichEditLog: TRichEdit;
-    // SaveDialogBackup e OpenDialogRestore SÃO REMOVIDOS daqui
-    // Eles devem residir no formulário principal
-    procedure FormShow(Sender: TObject); // Este evento inicia a operação!
+    procedure FormShow(Sender: TObject);
   private
     FWorkerThread: TPostgreSQLWorkerThread; // Referência à thread de trabalho
     FIsOperationSuccessful: Boolean; // Indica se a operação terminou com sucesso
@@ -96,7 +95,6 @@ type
     FOutputFilePath: string; // Caminho do arquivo de backup/restore (para logs, etc.)
 
     // Campos privados para armazenar os parâmetros.
-    // Estes serão setados pelas PROPRIEDADES PÚBLICAS antes do ShowModal.
     FPDump_Path: string;
     FPRestore_Path: string;
     FPPsql_Path: string;
@@ -111,8 +109,6 @@ type
     procedure ThreadTerminated(Sender: TObject); // Manipulador de evento de término da thread
   public
     // Método que de fato inicia a operação (thread).
-    // Ele será chamado PELO FormShow, mas SEM diálogos ou validações de saída.
-    // Recebe o comando completo e o caminho do arquivo de saída.
     procedure IniciarOperacao(const ACommand: string; const AOutputFilePath: string;
                               const ADumpPath, ARestorePath, APsqlPath, AHost, APorta,
                               ANomeDoDatabase, ASenha: string; AFormato: char; AAcao: TEnumAcaoBackup;
@@ -120,7 +116,6 @@ type
 
     // =======================================================================
     // PROPRIEDADES PÚBLICAS (usadas para configurar o formulário DE FORA)
-    // Elas já estão ok e você deve continuar usando-as.
     // =======================================================================
     property PGDumpPath: string read FPDump_Path write FPDump_Path;
     property PGRestorePath: string read FPRestore_Path write FPRestore_Path;
@@ -142,16 +137,16 @@ implementation
 {$R *.dfm}
 
 // ==============================================================================
-// TFormBackupRestore - Implementação (AGORA MAIS SIMPLIFICADA)
+// TFormBackupRestore - Implementação
 // ==============================================================================
 
 procedure TFormBackupRestore.FormShow(Sender: TObject);
 var
-  DumpRestorePsqlPath: string; // Para determinar qual executável (pg_dump, pg_restore, psql)
+  DumpRestorePsqlPath: string;
   LogSuffix: string;
   LogFilePath: string;
 begin
-  // Inicializações da UI - MANTENHA AQUI
+  // Inicializações da UI
   RichEditLog.Clear;
   LblProgresso.Caption := 'Iniciando...';
   ProgressBarBackupRestore.Position := 0;
@@ -175,38 +170,42 @@ begin
       end;
   end;
 
-  // O LogFilePath depende do OutputFilePath (que veio da chamada do Form principal)
+  // O LogFilePath depende do FOutputFilePath (que veio da chamada do Form principal)
   LogFilePath := TPath.ChangeExtension(FOutputFilePath, LogSuffix + '.log');
 
+  // DEBUG: Verifique os caminhos antes de criar a thread
+  OutputDebugString(PChar('DEBUG(FormShow): DumpRestorePsqlPath = ' + DumpRestorePsqlPath));
+  OutputDebugString(PChar('DEBUG(FormShow): FOutputFilePath = ' + FOutputFilePath));
+  OutputDebugString(PChar('DEBUG(FormShow): LogFilePath = ' + LogFilePath));
+  OutputDebugString(PChar('DEBUG(FormShow): FCommandString (from IniciarOperacao) = ' + FCommandString)); // O comando completo
+
   // Agora, de fato, cria e inicia a thread.
-  // TODOS os parâmetros necessários já devem ter sido passados via IniciarOperacao().
-  // Não há mais validações ou diálogos de "sair" aqui.
   FWorkerThread := TPostgreSQLWorkerThread.Create(
-    FCommandString, // Comando completo (passado via IniciarOperacao)
+    FCommandString,
     PGSenha,
+    FOutputFilePath,
     LogFilePath,
     PGAcao = Backup,
     ProgressBarBackupRestore,
     LblProgresso,
     RichEditLog,
     Connection,
-    DumpRestorePsqlPath // Caminho do executável para a thread
+    DumpRestorePsqlPath
   );
   FWorkerThread.OnTerminate := ThreadTerminated;
   FWorkerThread.Start; // Inicia a thread
 end;
 
-// Este é o método que o formulário principal vai chamar para configurar
-// e iniciar a operação no FormBackupRestore.
 procedure TFormBackupRestore.IniciarOperacao(const ACommand: string; const AOutputFilePath: string;
-                                            const ADumpPath, ARestorePath, APsqlPath, AHost, APorta,
-                                            ANomeDoDatabase, ASenha: string; AFormato: char; AAcao: TEnumAcaoBackup;
-                                            AConnection: TFDConnection);
+                                             const ADumpPath, ARestorePath, APsqlPath, AHost, APorta,
+                                             ANomeDoDatabase, ASenha: string; AFormato: char; AAcao: TEnumAcaoBackup;
+                                             AConnection: TFDConnection);
 begin
   // Armazena os parâmetros nas propriedades internas do formulário.
-  // O FormShow usará estas propriedades para criar a thread.
+  // IMPORTANTE: Certifique-se de que ACommand já está com os caminhos entre aspas,
+  // usando AnsiQuotedStr ou StringReplace para espaços, etc., no FORMULÁRIO PRINCIPAL.
   FCommandString := ACommand;
-  FOutputFilePath := AOutputFilePath;
+  FOutputFilePath := AOutputFilePath; // Armazena o OutputFilePath
 
   // Armazenar todos os parâmetros passados (nas suas propriedades públicas)
   PGDumpPath := ADumpPath;
@@ -224,65 +223,64 @@ end;
 
 // ===========================================================================
 // TPostgreSQLWorkerThread Implementação
-// (ESTE CÓDIGO PERMANECE O MESMO QUE VOCÊ FORNECEU, SALVO PEQUENAS ADAPTAÇÕES
-// PARA A NOMECLATURA DE PARÂMETROS OU PARA O Warning W1057)
 // ===========================================================================
 
-constructor TPostgreSQLWorkerThread.Create(const Cmd, Pwd, LogPath: string; IsDump: Boolean;
-                                          ProgressBar: TProgressBar; LblStatus: TLabel; RichEditLog: TRichEdit;
-                                          Connection: TFDConnection; DumpRestorePsqlPath: string);
+constructor TPostgreSQLWorkerThread.Create(const Cmd, Pwd, AOutputFilePathParam, LogPath: string; IsDump: Boolean;
+                                           ProgressBar: TProgressBar; LblStatus: TLabel; RichEditLog: TRichEdit;
+                                           Connection: TFDConnection; DumpRestorePsqlPath: string);
 begin
   inherited Create(True); // Create suspended initially
   FCommand := Cmd;
   FPassword := Pwd;
+  FOutputFilePath := AOutputFilePathParam;
   FLogFilePath := LogPath;
   FIsDumpOperation := IsDump;
   FProgressBar := ProgressBar;
   FLblStatus := LblStatus;
   FRichEditLog := RichEditLog;
   FConnection := Connection;
-  FDumpRestorePsqlPath := DumpRestorePsqlPath; // Atribui o caminho completo do executável
+  FDumpRestorePsqlPath := DumpRestorePsqlPath;
   FTotalItemsToProcess := 0;
   FProcessedItems := 0;
-  FCurrentPhase := ppEstimating; // Começa na fase de estimativa
-  FExitCode := -1; // Default error state
-  FreeOnTerminate := True; // Thread se auto-destrói após terminar
+  FCurrentPhase := ppEstimating;
+  FExitCode := 0;
+  FreeOnTerminate := True;
   FLastProgressMessageTick := 0;
 end;
 
-// Atualiza os componentes da UI (executado na Thread Principal via Synchronize)
 procedure TPostgreSQLWorkerThread.UpdateUI(NewPosition: Integer; const StatusText: string; const LogLine: string);
 begin
-  // Evitar updates de UI muito rápidos (opcional, ajuste o 50ms conforme necessário)
-  if (GetTickCount - FLastProgressMessageTick) < 50 then
+  // Limita a frequência de atualização da UI para evitar travamentos
+  if (GetTickCount - FLastProgressMessageTick) < 50 then // 50ms de intervalo
     Exit;
   FLastProgressMessageTick := GetTickCount;
 
-  TThread.Synchronize(nil,
+  // Usa Synchronize para atualizar a UI de forma segura
+  Synchronize(
     procedure
     begin
       if Assigned(FProgressBar) then
       begin
-        // Garante que a posição não exceda o Max
+        // Garante que a posição esteja dentro dos limites da barra
         if NewPosition >= FProgressBar.Min then
         begin
           if NewPosition <= FProgressBar.Max then
             FProgressBar.Position := NewPosition
           else
-            FProgressBar.Position := FProgressBar.Max; // Limita ao máximo
+            FProgressBar.Position := FProgressBar.Max;
         end;
       end;
       if Assigned(FLblStatus) then
         FLblStatus.Caption := StatusText;
       if Assigned(FRichEditLog) then
       begin
-        // Limita o tamanho do log para performance (ex: últimas 1000 linhas)
+        // Limita o número de linhas para evitar estouro de memória
         if FRichEditLog.Lines.Count > 1000 then
-          FRichEditLog.Lines.Delete(0);
-        // Adiciona a linha de log e rola para o final
+          FRichEditLog.Lines.Delete(0); // Remove a linha mais antiga
         if LogLine <> '' then
         begin
           FRichEditLog.Lines.Add(LogLine);
+          // Rola para a última linha
           FRichEditLog.SelStart := FRichEditLog.GetTextLen;
           FRichEditLog.SelLength := 0;
           FRichEditLog.Perform(EM_SCROLLCARET, 0, 0);
@@ -292,19 +290,16 @@ begin
   );
 end;
 
-// Processa cada linha de saída do processo externo
 procedure TPostgreSQLWorkerThread.ProcessOutputLine(const Line: string);
 var
   CurrentPosition: Integer;
   StatusMessage: string;
 begin
-  // Sempre loga a linha na UI (a otimização de tempo já está no UpdateUI)
+  // Atualiza o log da UI com a linha bruta
   UpdateUI(FProgressBar.Position, FLblStatus.Caption, Line);
 
-  // Lógica de progresso baseada em FIsDumpOperation (dump ou restore)
-  if FIsDumpOperation then // Lógica para pg_dump
+  if FIsDumpOperation then // Lógica para pg_dump (Backup)
   begin
-    // Fase de pré-dados (lendo definições)
     if (Pos(DUMP_READING_DEFINITIONS_EN, Line) > 0) or (Pos(DUMP_READING_DEFINITIONS_PT, Line) > 0) then
     begin
       FCurrentPhase := ppPreData;
@@ -314,53 +309,46 @@ begin
       UpdateUI(10, 'Lendo extensões...', '')
     else if (Pos('pg_dump: reading schemas', Line) > 0) or (Pos('pg_dump: lendo esquemas', Line) > 0) then
       UpdateUI(15, 'Lendo esquemas...', '');
-    // ... adicione mais padrões para a fase ppPreData se necessário
 
-    // Fase de dados (copiando conteúdo da tabela)
     if (Pos(DUMP_PROCESSING_TABLE_DATA_EN, Line) > 0) or (Pos(DUMP_PROCESSING_TABLE_DATA_PT, Line) > 0) then
     begin
-      if FCurrentPhase <> ppData then // Transição para fase de dados
+      if FCurrentPhase <> ppData then
       begin
         FCurrentPhase := ppData;
-        FProcessedItems := 0; // Reinicia contador de itens processados
+        FProcessedItems := 0; // Reinicia a contagem de itens para esta fase
       end;
       Inc(FProcessedItems);
-      // Calcula o progresso com base nas tabelas contadas (70% da barra para dados)
+      // Calcula a posição da barra de progresso (exemplo: 30% inicial + 65% para dados)
       CurrentPosition := 30 + Round((FProcessedItems / FTotalItemsToProcess) * 65);
       StatusMessage := 'Despejando dados da tabela: ' + ExtractTableNameFromLog(Line) + Format(' (%d/%d)', [FProcessedItems, FTotalItemsToProcess]);
       UpdateUI(CurrentPosition, StatusMessage, '');
     end
-    // Fase pós-dados (finalizando)
     else if (Pos(DUMP_FINISHED_EN, Line) > 0) or (Pos(DUMP_FINISHED_PT, Line) > 0) then
     begin
       FCurrentPhase := ppPostData;
       UpdateUI(95, 'Finalizando backup...', '');
     end;
   end
-  else // Lógica para pg_restore
+  else // Lógica para pg_restore (Restore)
   begin
-    // Fase de conexão/criação de esquema
     if (Pos(RESTORE_CONNECTING_EN, Line) > 0) or (Pos(RESTORE_CONNECTING_PT, Line) > 0) then
       UpdateUI(5, 'Conectando ao banco de dados...', '')
     else if (Pos(RESTORE_CREATING_SCHEMA_EN, Line) > 0) or (Pos(RESTORE_CREATING_SCHEMA_PT, Line) > 0) then
       UpdateUI(10, 'Criando esquemas...', '');
-    // ... adicione mais padrões para a fase ppPreData se necessário
 
-    // Fase de processamento de dados da tabela
     if (Pos(RESTORE_PROCESSING_TABLE_DATA_EN, Line) > 0) or (Pos(RESTORE_PROCESSING_TABLE_DATA_PT, Line) > 0) then
     begin
-      if FCurrentPhase <> ppData then // Transição para fase de dados
+      if FCurrentPhase <> ppData then
       begin
         FCurrentPhase := ppData;
-        FProcessedItems := 0; // Reinicia contador de itens processados
+        FProcessedItems := 0; // Reinicia a contagem de itens para esta fase
       end;
       Inc(FProcessedItems);
-      // Calcula o progresso com base nos objetos contados (80% da barra para dados)
+      // Calcula a posição da barra de progresso (exemplo: 15% inicial + 80% para dados)
       CurrentPosition := 15 + Round((FProcessedItems / FTotalItemsToProcess) * 80);
       StatusMessage := 'Restaurando dados da tabela: ' + ExtractTableNameFromLog(Line) + Format(' (%d/%d)', [FProcessedItems, FTotalItemsToProcess]);
       UpdateUI(CurrentPosition, StatusMessage, '');
     end
-    // Fase pós-dados (criando índices, finalizando)
     else if (Pos(RESTORE_CREATING_INDEX_EN, Line) > 0) or (Pos(RESTORE_CREATING_INDEX_PT, Line) > 0) then
     begin
       FCurrentPhase := ppPostData;
@@ -374,53 +362,50 @@ begin
   end;
 end;
 
-// Implementação da função auxiliar para extrair nome da tabela de logs
 function TPostgreSQLWorkerThread.ExtractTableNameFromLog(const LogLine: string): string;
 var
   StartPos: Integer;
   EndPos: Integer;
 begin
-  Result := 'N/A'; // Default if not found
+  Result := 'N/A';
 
-  // Try to find common patterns like "table " followed by a name
+  // Tenta extrair entre aspas duplas (formato comum)
   StartPos := Pos('table "', LogLine);
-  if StartPos = 0 then StartPos := Pos('tabela "', LogLine); // Português
+  if StartPos = 0 then StartPos := Pos('tabela "', LogLine); // Para logs em PT
 
   if StartPos > 0 then
   begin
-    StartPos := StartPos + Length('table "'); // Move past the prefix and quote
-    EndPos := Pos('"', LogLine, StartPos); // Find the closing quote
+    StartPos := StartPos + Length('table "'); // Avança para depois de 'table "'
+    EndPos := Pos('"', LogLine, StartPos); // Encontra a próxima aspas
     if EndPos > 0 then
       Result := Copy(LogLine, StartPos, EndPos - StartPos)
-    else // If no closing quote, take rest of line (less ideal but better than nothing)
+    else
+      // Se não encontrou aspas de fechamento, pega o restante da linha
       Result := Copy(LogLine, StartPos, Length(LogLine));
   end;
 
-  // Further refinement for lines like "processing data for table X" (no quotes)
+  // Se não encontrou com aspas, tenta pegar após "table " e fazer um trim
   if Result = 'N/A' then
   begin
-      StartPos := Pos('table ', LogLine); // Note: no quotes
+      StartPos := Pos('table ', LogLine);
       if StartPos > 0 then
       begin
         StartPos := StartPos + Length('table ');
         Result := Trim(Copy(LogLine, StartPos, Length(LogLine)));
-        // Remove trailing "..." or " (rows)" if present
+        // Remove "..." e "(...)" comuns em logs de progresso
         if Result.EndsWith('...') then
           Result := Result.Substring(0, Result.Length - 3);
-        if Result.Contains(' (') then // Remove something like 'tablename (1234 rows)'
+        if Result.Contains(' (') then
           Result := Result.Substring(0, Result.IndexOf(' ('));
       end;
   end;
 end;
 
-
-// Sua função CountTablesInDatabase, agora como método da thread
 function TPostgreSQLWorkerThread.CountTablesInDatabase(AConnection: TFDConnection): Integer;
 var
   Q: TFDQuery;
 begin
   Result := 0;
-  // A conexão já deve estar conectada aqui, mas é bom verificar
   if not Assigned(AConnection) or not AConnection.Connected then
   begin
     OutputDebugString(PChar('Thread: Erro: Conexão FDConnection não atribuída ou não conectada para contar tabelas.'));
@@ -440,35 +425,37 @@ begin
     on E: Exception do
     begin
       OutputDebugString(PChar('Thread: Erro ao contar tabelas: ' + E.Message));
-      Result := 0;
+      Result := 0; // Em caso de erro, retorna 0
     end;
   end;
   Q.Free;
 end;
 
-// Função para contar objetos no arquivo de dump (usando pg_restore --list)
 function TPostgreSQLWorkerThread.CountObjectsInDumpFile(const ADumpFile: string; const PgRestorePath: string; const Password: string): Integer;
 var
   SA: TSecurityAttributes;
   StdOutPipeRead, StdOutPipeWrite: THandle;
   StartupInfo: TStartupInfo;
   ProcessInfo: TProcessInformation;
-  Buffer: array [0 .. 4095] of AnsiChar;
-  BytesRead: DWORD;
   Cmd: string;
-  OutputStr: string;
+  OutputReader: TStreamReader;
+  Line: string;
   Lines: TStringList;
   I: Integer;
+  TocEntriesFound: Boolean; // Nova variável para indicar se o "TOC Entries" foi encontrado
+  Match: TMatch; // Para expressões regulares
 begin
   Result := 0;
   Lines := TStringList.Create;
-  OutputStr := ''; // Initialize empty string
+  TocEntriesFound := False; // Inicializa como falso
   try
-    // Garante que o caminho do pg_restore.exe esteja entre aspas se houver espaços
     Cmd := Format('"%s" --list "%s"', [PgRestorePath, ADumpFile]);
     OutputDebugString(PChar('Thread: CountObjectsInDumpFile - Comando: ' + Cmd));
 
+    // Define a variável de ambiente PGPASSWORD
     SetEnvironmentVariable('PGPASSWORD', PChar(Password));
+    // Define a variável de ambiente PGCLIENTENCODING para UTF8 para compatibilidade de caracteres
+    SetEnvironmentVariable('PGCLIENTENCODING', PChar('UTF8'));
     try
       ZeroMemory(@SA, SizeOf(SA));
       SA.nLength := SizeOf(SA);
@@ -481,7 +468,7 @@ begin
         ZeroMemory(@StartupInfo, SizeOf(StartupInfo));
         StartupInfo.cb := SizeOf(StartupInfo);
         StartupInfo.hStdOutput := StdOutPipeWrite;
-        StartupInfo.hStdError := StdOutPipeWrite; // Captura erros também
+        StartupInfo.hStdError := StdOutPipeWrite; // Redireciona erro também para o pipe
         StartupInfo.dwFlags := STARTF_USESTDHANDLES;
         ZeroMemory(@ProcessInfo, SizeOf(ProcessInfo));
 
@@ -491,54 +478,71 @@ begin
           RaiseLastOSError;
         end;
 
-        CloseHandle(StdOutPipeWrite);
+        CloseHandle(StdOutPipeWrite); // Fechar a extremidade de escrita do pipe
 
-        // Read all output from the pipe
-        while ReadFile(StdOutPipeRead, Buffer, SizeOf(Buffer) - 1, BytesRead, nil) and (BytesRead > 0) do
-        begin
-          Buffer[BytesRead] := #0; // Null-terminate the buffer
-          OutputStr := OutputStr + string(Buffer); // Implicit AnsiChar to string cast (Warning W1057)
+        // Criar TStreamReader para ler a saída do pipe
+        // ATENÇÃO: Alterado para TEncoding.UTF8 para garantir a leitura correta
+        // Mesmo que você tenha configurado a env var, é bom que o reader também use UTF8.
+        OutputReader := TStreamReader.Create(THandleStream.Create(StdOutPipeRead), TEncoding.UTF8);
+        OutputReader.BaseStream.Position := 0; // Garante que a leitura comece do início
+
+        try
+          while not OutputReader.EndOfStream do
+          begin
+            Line := OutputReader.ReadLine;
+            Lines.Add(Line); // Adiciona ao TStringList para parsear
+          end;
+
+        finally
+          OutputReader.Free; // Libera o TStreamReader
         end;
 
-        WaitForSingleObject(ProcessInfo.hProcess, INFINITE); // Wait for process to finish
+        WaitForSingleObject(ProcessInfo.hProcess, INFINITE);
+        // Capturar o código de saída do pg_restore --list. Se for diferente de 0, algo pode estar errado.
+        // GetExitCodeProcess(ProcessInfo.hProcess, ExitCode); // Se precisar capturar o ExitCode
+      finally
         CloseHandle(ProcessInfo.hProcess);
         CloseHandle(ProcessInfo.hThread);
-
-      finally
         CloseHandle(StdOutPipeRead);
       end;
     finally
-      SetEnvironmentVariable('PGPASSWORD', nil); // Clear the environment variable
+      // Limpa as variáveis de ambiente ao sair
+      SetEnvironmentVariable('PGPASSWORD', nil);
+      SetEnvironmentVariable('PGCLIENTENCODING', nil);
     end;
 
-    // Parse the output to count objects
-    Lines.Text := OutputStr;
+    // --- NOVA LÓGICA DE PARSING ---
+    // Procura pela linha "TOC Entries: NNNN"
     OutputDebugString(PChar('Thread: CountObjectsInDumpFile - Saída do pg_restore --list: ' + Lines.Text));
 
     for I := 0 to Lines.Count - 1 do
     begin
-      // Count lines that are restorable objects ("; " prefix usually indicates an object)
-      if Lines[I].StartsWith('; ') then
+      Line := Lines[I].Trim; // Remove espaços em branco extras
+
+      // Usar expressão regular para uma busca mais robusta e extração do número
+      // Você precisará adicionar 'System.RegularExpressions' ao 'uses' da unit
+      Match := TRegEx.Match(Line, 'TOC Entries: (\d+)');
+      if Match.Success then
       begin
-        // Add more object types if needed for better accuracy
-        if (Pos('SCHEMA ', Lines[I]) > 0) or (Pos('TABLE ', Lines[I]) > 0) or
-           (Pos('SEQUENCE ', Lines[I]) > 0) or (Pos('FUNCTION ', Lines[I]) > 0) or
-           (Pos('INDEX ', Lines[I]) > 0) or (Pos('CONSTRAINT ', Lines[I]) > 0) or
-           (Pos('TYPE ', Lines[I]) > 0) or (Pos('VIEW ', Lines[I]) > 0) or
-           (Pos('TRIGGER ', Lines[I]) > 0) or (Pos('RULE ', Lines[I]) > 0) or
-           (Pos('EXTENSION ', Lines[I]) > 0) or (Pos('DEFAULT ', Lines[I]) > 0) or
-           (Pos('ACL ', Lines[I]) > 0) then
-        begin
-          Inc(Result);
-        end;
+        Result := StrToInt(Match.Groups[1].Value);
+        TocEntriesFound := True;
+        Break; // Encontrou o número, pode parar de procurar
       end;
     end;
+
+    if not TocEntriesFound then
+    begin
+      OutputDebugString(PChar('Thread: CountObjectsInDumpFile - "TOC Entries" não encontrado na saída do pg_restore --list.'));
+      // Aqui você pode decidir o que fazer se não encontrar o TOC Entries:
+      // Deixar Result como 0 para que a mensagem "Progresso será geral" apareça
+      // Ou retornar um valor padrão, se fizer sentido.
+    end;
+
     OutputDebugString(PChar(Format('Thread: CountObjectsInDumpFile - Total objects counted: %d', [Result])));
   finally
     FreeAndNil(Lines);
   end;
 end;
-
 
 procedure TPostgreSQLWorkerThread.Execute;
 var
@@ -546,16 +550,16 @@ var
   StdOutPipeRead, StdOutPipeWrite: THandle;
   StartupInfo: TStartupInfo;
   ProcessInfo: TProcessInformation;
-  Buffer: array [0 .. 4095] of AnsiChar;
-  BytesRead: DWORD;
-  ProcessStatus: DWORD;
-  ProcessoAtivo: Boolean;
-  LogFileStream: TFileStream;
-  LineBuffer: string;
-  CurrentChar: AnsiChar;
+  LogFileStreamWriter: TStreamWriter;
+  OutputReader: TStreamReader;
+  Line: string;
+  ProcessStatus: LongWord; // Variável local para GetExitCodeProcess
 begin
+  // --- Adicione esta linha como a PRIMEIRA no método Execute ---
+  OutputDebugString(PChar('DEBUG: TPostgreSQLWorkerThread.Execute started.'));
+
   UpdateUI(0, 'Iniciando operação...', '');
-  FExitCode := -1; // Default error state
+  FExitCode := 0; // Inicializa o código de saída para sucesso
 
   try
     // 0. Estimativa de progresso
@@ -566,163 +570,189 @@ begin
       FTotalItemsToProcess := CountTablesInDatabase(FConnection);
       if FTotalItemsToProcess = 0 then
       begin
+          // Fallback se não conseguir contar tabelas
           UpdateUI(0, 'Não foi possível contar tabelas ou banco vazio. Progresso será geral.', '');
-          FTotalItemsToProcess := 1; // Evita divisão por zero
+          FTotalItemsToProcess := 1; // Garante que a divisão por zero não ocorra
       end;
     end
     else // Restore
     begin
       UpdateUI(0, 'Analisando arquivo de backup para estimativa de progresso...', '');
-      FTotalItemsToProcess := CountObjectsInDumpFile(FLogFilePath, FDumpRestorePsqlPath, FPassword);
+      FTotalItemsToProcess := CountObjectsInDumpFile(FOutputFilePath, FDumpRestorePsqlPath, FPassword);
       if FTotalItemsToProcess = 0 then
       begin
+          // Fallback se não conseguir analisar o dump
           UpdateUI(0, 'Não foi possível analisar o backup. Progresso será geral.', '');
-          FTotalItemsToProcess := 1;
+          FTotalItemsToProcess := 1; // Garante que a divisão por zero não ocorra
       end;
     end;
-    FCurrentPhase := ppPreData; // Transiciona para a próxima fase após a estimativa
+    FCurrentPhase := ppPreData; // Inicia a fase pré-dados
 
-    // 1. Abrir ou criar o arquivo de log para escrita
-    LogFileStream := nil;
+    // 1. Abrir ou criar o arquivo de log para escrita (usando TStreamWriter)
+    LogFileStreamWriter := nil;
     try
-      LogFileStream := TFileStream.Create(FLogFilePath, fmCreate);
+      // Cria o arquivo de log. False para sobrescrever, TEncoding.UTF8 para compatibilidade
+      LogFileStreamWriter := TStreamWriter.Create(FLogFilePath, False, TEncoding.UTF8);
+      // DEBUG: Confirma o caminho do arquivo de log
+      OutputDebugString(PChar('DEBUG: Log File Path = ' + FLogFilePath));
     except
       on E: Exception do
       begin
+        FExitCode := 1; // Marca erro se não puder criar o log
+        OutputDebugString(PChar('DEBUG: Error creating log file: ' + E.Message));
         UpdateUI(0, 'ERRO: ' + E.Message, 'ERRO ao criar arquivo de log: ' + E.Message);
-        Exit;
+        Exit; // Sai da thread
       end;
     end;
 
-    SetEnvironmentVariable('PGPASSWORD', PChar(FPassword)); // Define a senha para o processo externo
+    // Define variáveis de ambiente para o processo externo
+    SetEnvironmentVariable('PGPASSWORD', PChar(FPassword));
+    SetEnvironmentVariable('PGCLIENTENCODING', PChar('UTF8')); // CRUCIAL para evitar erros de codificação
+    // Você pode considerar também LC_ALL ou LANG se ainda houver problemas de locale
+    // SetEnvironmentVariable('LC_ALL', PChar('C'));
+    // SetEnvironmentVariable('LANG', PChar('en_US.UTF-8'));
     try
       ZeroMemory(@SA, SizeOf(SA));
       SA.nLength := SizeOf(SA);
       SA.bInheritHandle := True;
 
       if not CreatePipe(StdOutPipeRead, StdOutPipeWrite, @SA, 0) then
-        RaiseLastOSError; // Será capturado pelo except externo
+        RaiseLastOSError;
 
       try
         ZeroMemory(@StartupInfo, SizeOf(StartupInfo));
         StartupInfo.cb := SizeOf(StartupInfo);
         StartupInfo.hStdOutput := StdOutPipeWrite;
-        StartupInfo.hStdError := StdOutPipeWrite;
+        StartupInfo.hStdError := StdOutPipeWrite; // Redireciona erro também para o pipe
         StartupInfo.dwFlags := STARTF_USESTDHANDLES;
         ZeroMemory(@ProcessInfo, SizeOf(ProcessInfo));
 
-        // Inicia o processo externo (pg_dump, pg_restore ou psql)
-        if not CreateProcess(nil, PChar(FCommand), nil, nil, True, CREATE_NO_WINDOW, nil, nil, StartupInfo, ProcessInfo) then
-          RaiseLastOSError; // Será capturado pelo except externo
+        // DEBUG: Imprime o comando exato antes de executar
+        OutputDebugString(PChar('DEBUG: Executing Command = ' + FCommand));
 
-        CloseHandle(StdOutPipeWrite); // Fechar a extremidade de escrita do pipe
+        if not CreateProcess(nil, PChar(FCommand), nil, nil, True, CREATE_NO_WINDOW, nil, nil, StartupInfo, ProcessInfo) then
+          RaiseLastOSError; // Levanta exceção se o processo não puder ser criado
+
+        CloseHandle(StdOutPipeWrite); // Importante fechar a extremidade de escrita do pipe
+
+        // Cria o TStreamReader para ler a saída do pipe
+        // ATENÇÃO: Alterado para TEncoding.Default para teste de codificação
+        OutputReader := TStreamReader.Create(THandleStream.Create(StdOutPipeRead), TEncoding.Default);
+        OutputReader.BaseStream.Position := 0;
 
         try
-          ProcessoAtivo := True;
-          LineBuffer := '';
-          // Loop para ler a saída do pipe e processar linha por linha
-          while ProcessoAtivo or (PeekNamedPipe(StdOutPipeRead, nil, 0, nil, @BytesRead, nil) and (BytesRead > 0)) do
+          // Loop para ler a saída do pipe linha por linha enquanto o processo estiver ativo OU houver dados no pipe
+          while (GetExitCodeProcess(ProcessInfo.hProcess, ProcessStatus) and (ProcessStatus = STILL_ACTIVE)) or
+                (OutputReader.Peek <> -1) do
           begin
             if Terminated then // Permite parar o thread se solicitado externamente
               Break;
 
-            if GetExitCodeProcess(ProcessInfo.hProcess, ProcessStatus) then
+            if not OutputReader.EndOfStream then
             begin
-              if ProcessStatus <> STILL_ACTIVE then
-                ProcessoAtivo := False;
-            end;
-
-            if ReadFile(StdOutPipeRead, Buffer, SizeOf(Buffer) - 1, BytesRead, nil) and (BytesRead > 0) then
-            begin
-              if Assigned(LogFileStream) then
-                LogFileStream.WriteBuffer(Buffer, BytesRead);
-
-              // Processa o buffer caractere por caractere para formar linhas
-              for var I := 0 to BytesRead - 1 do
-              begin
-                CurrentChar := Buffer[I];
-                if (CurrentChar = #13) or (CurrentChar = #10) then
-                begin
-                  if LineBuffer <> '' then
-                  begin
-                    ProcessOutputLine(LineBuffer); // Envia a linha completa para processamento da UI
-                    LineBuffer := '';
-                  end;
-                end
-                else
-                begin
-                  LineBuffer := LineBuffer + string(CurrentChar); // CORRIGIDO: Explicit AnsiChar to string cast
-                end;
-              end;
-            end
-            else if ProcessoAtivo then
-            begin
-              Sleep(10); // Pequena pausa para não consumir 100% da CPU em loops vazios
+              Line := OutputReader.ReadLine;
+              LogFileStreamWriter.WriteLine(Line); // Escreve a linha no arquivo de log
+              ProcessOutputLine(Line); // Envia a linha para processamento da UI
             end
             else
-              Break; // Sai do loop se o processo não estiver mais ativo e não houver mais dados no pipe
+            begin
+              Sleep(10); // Pequena pausa para evitar consumo excessivo de CPU se não houver dados
+            end;
           end;
 
-          // Processa qualquer linha restante no buffer após o término do processo
-          if (LineBuffer <> '') then
-            ProcessOutputLine(LineBuffer);
+          // Processar qualquer linha restante no buffer APÓS o processo ter terminado
+          while not OutputReader.EndOfStream and not Terminated do
+          begin
+            Line := OutputReader.ReadLine;
+            LogFileStreamWriter.WriteLine(Line);
+            ProcessOutputLine(Line);
+          end;
+
+          // Espera o processo terminar (se ainda não terminou)
+          WaitForSingleObject(ProcessInfo.hProcess, INFINITE);
 
           // Obtém o código de saída final do processo
           if GetExitCodeProcess(ProcessInfo.hProcess, ProcessStatus) then
-            FExitCode := ProcessStatus;
+          begin
+            FExitCode := ProcessStatus; // Atribui o valor final à variável de classe
+            // DEBUG: Imprime o ExitCode final
+            OutputDebugString(PChar(Format('DEBUG: Process exited with ExitCode = %d', [FExitCode])));
+
+            // Mensagem final de status com base no ExitCode
+            if FExitCode <> 0 then
+              UpdateUI(100, Format('Operação finalizada com erros. Código: %d', [FExitCode]), '')
+            else
+              UpdateUI(100, 'Operação concluída com sucesso!', '');
+          end
+          else
+          begin
+            FExitCode := 1; // Erro genérico se não conseguir o código de saída
+            OutputDebugString(PChar('DEBUG: Could not get process exit code. Setting ExitCode to 1.'));
+            UpdateUI(100, 'Não foi possível obter código de saída do processo.', '');
+          end;
 
         finally
-          CloseHandle(ProcessInfo.hProcess);
-          CloseHandle(ProcessInfo.hThread);
+          OutputReader.Free; // Libera o TStreamReader
         end;
+
       finally
+        CloseHandle(ProcessInfo.hProcess);
+        CloseHandle(ProcessInfo.hThread);
         CloseHandle(StdOutPipeRead);
       end;
     finally
-      SetEnvironmentVariable('PGPASSWORD', nil); // Limpa a variável de ambiente
-      if Assigned(LogFileStream) then
-        FreeAndNil(LogFileStream);
+      // Limpa as variáveis de ambiente setadas
+      SetEnvironmentVariable('PGPASSWORD', nil);
+      SetEnvironmentVariable('PGCLIENTENCODING', nil);
+      // Se usou LC_ALL ou LANG, limpe-os aqui também
+      // SetEnvironmentVariable('LC_ALL', nil);
+      // SetEnvironmentVariable('LANG', nil);
+      if Assigned(LogFileStreamWriter) then
+        FreeAndNil(LogFileStreamWriter); // Libera o TStreamWriter
     end;
 
-  except
+  except // Tratamento de exceções gerais na thread
     on E: Exception do
     begin
-      FExitCode := -1; // Indica que houve um erro na execução do processo
+      FExitCode := 1; // Atribui 1 em caso de exceção na thread
+      // DEBUG: Imprime o erro crítico da thread
+      OutputDebugString(PChar('DEBUG: Critical Thread Error: ' + E.Message));
       UpdateUI(FProgressBar.Position, 'ERRO: ' + E.Message, 'ERRO CRÍTICO NA THREAD: ' + E.Message);
     end;
   end;
 
-  // Garante que a barra de progresso chegue a 100% no final
-  UpdateUI(100, FLblStatus.Caption, '');
+  // Garante que a barra de progresso chegue a 100% no final, caso não tenha chegado
+  if Assigned(FProgressBar) and (FProgressBar.Position < 100) then
+    UpdateUI(100, FLblStatus.Caption, '');
 end;
 
-// Este método é o manipulador de evento para quando a thread termina
 procedure TFormBackupRestore.ThreadTerminated(Sender: TObject);
 var
-  ExitCode: Integer;
+  ExitCode: LongWord;
 begin
   if Assigned(FWorkerThread) then
   begin
-    ExitCode := FWorkerThread.ExitCode; // Obtém o código de saída da thread
-    FIsOperationSuccessful := (ExitCode = 0); // Define o sucesso da operação
+    ExitCode := FWorkerThread.ExitCode;
+    FIsOperationSuccessful := (ExitCode = 0); // Sucesso se o código de saída for 0
 
-    // Exibe a mensagem final na thread principal
     if FIsOperationSuccessful then
     begin
-      if PGAcao = Backup then // Usa a propriedade PGAcao armazenada no formulário
+      if PGAcao = Backup then
         ShowMessage('Backup concluído com sucesso!' + sLineBreak + 'Arquivo salvo em: ' + TPath.GetFileName(FOutputFilePath) + sLineBreak + 'Log salvo em: ' + FWorkerThread.FLogFilePath)
-      else // Restore
+      else
         ShowMessage('Restauração concluída com sucesso!' + sLineBreak + 'Database: ' + PGNomeDoDatabase + sLineBreak + 'Dados restaurados com sucesso.' + sLineBreak + 'Log salvo em: ' + FWorkerThread.FLogFilePath);
     end
     else
     begin
+      // A mensagem de erro que você viu na tela vem daqui.
+      // O `ExitCode: 1` indica que a operação falhou.
       ShowMessage(Format('Ocorreu um erro durante a operação de %s. Código de saída: %d' + sLineBreak + 'Verifique o arquivo de log para mais detalhes: %s', [GetEnumName(TypeInfo(TEnumAcaoBackup), Ord(PGAcao)), ExitCode, FWorkerThread.FLogFilePath]));
     end;
 
-    // Limpa a referência à thread
-    FWorkerThread := nil; // A thread já foi liberada por FreeOnTerminate
+    // Libera a thread
+    FWorkerThread := nil;
 
-    // Fecha o formulário
+    // Fecha o formulário de progresso
     Close;
   end;
 end;
