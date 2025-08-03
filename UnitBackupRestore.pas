@@ -3,15 +3,14 @@ unit UnitBackupRestore;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
-  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, System.RegularExpressions,
-  Vcl.ComCtrls,
-  Vcl.StdCtrls,
-  System.Threading,
-  System.SyncObjs,
-  Data.DB, FireDAC.Comp.Client, FireDAC.Stan.Intf,
-  System.IOUtils,
-  TypInfo, System.UITypes, Vcl.ExtCtrls;
+  //Padrão do VCL form
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
+  //Automáticas
+  Vcl.StdCtrls, Vcl.ComCtrls,
+  //Retirei e não deu erro
+  System.Threading, System.SyncObjs, Data.DB, FireDAC.Stan.Intf, System.UITypes,
+  //Adicionadas
+  System.RegularExpressions, FireDAC.Comp.Client, System.IOUtils, TypInfo, Vcl.ExtCtrls;
 
 type
   TEnumAcaoBackup = (Backup, Restore);
@@ -39,9 +38,8 @@ type
 
 
     const
-    //Constantes que definem o movimento da barra de progresso (Pontos percentuais fixos)
-    //Esses valores são baseados na sua estrutura original e podem precisar de ajustes finos.
-    //Backup (pg_dump)
+      //Constantes que definem o movimento da barra de progresso (Pontos percentuais fixos)
+      //Backup (pg_dump)
       TempoAtualizacao = 50;
       DUMP_PHASE_ESTIMATING_END = 1; // Fim da estimativa
       DUMP_PHASE_DEFINITIONS_START = 2;  // Início da leitura de definições
@@ -52,7 +50,7 @@ type
       DUMP_PHASE_FINALIZING = 95;        // Finalizando o processo de backup
       DUMP_PHASE_COMPLETE = 100;         // Backup concluído
 
-      //Restore (pg_restore) - Voltamos aos pesos originais para reavaliar com a nova contagem
+      //Restore (pg_restore)
       RESTORE_PHASE_ESTIMATING_END = 1; // Fim da estimativa
       RESTORE_PHASE_CONNECTING = 3;     // Conectando ao banco de dados
       RESTORE_PHASE_SCHEMAS_START = 5;  // Criando esquemas
@@ -100,9 +98,8 @@ type
     procedure Execute; override; // Onde a lógica principal do processo externo rodará
   public
     // Construtor da Thread
-    constructor Create(const Cmd, Pwd, AOutputFilePathParam, LogPath: string; IsDump: Boolean;
-                        ProgressBar: TProgressBar; LblStatus: TLabel; RichEditLog: TRichEdit;
-                        Connection: TFDConnection; DumpRestorePath: string);
+    constructor Create(const Cmd, Pwd, AOutputFilePathParam, LogPath: string; IsDump: Boolean; ProgressBar: TProgressBar; LblStatus: TLabel;
+                       RichEditLog: TRichEdit; Connection: TFDConnection; DumpRestorePath: string);
 
     property ExitCode: LongWord read FExitCode;
   end;

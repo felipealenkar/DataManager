@@ -3,22 +3,20 @@
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, DateUtils,
-  System.IOUtils,
-  System.Classes, Vcl.Graphics, ShellAPI,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, FireDAC.Stan.Intf, Math,
-  FireDAC.Stan.Option,
-  FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Def,
-  FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys, FireDAC.VCLUI.Wait,
-  FireDAC.Phys.PGDef, FireDAC.Phys.PG, Data.DB, FireDAC.Comp.Client,
-  Vcl.StdCtrls, TypInfo,
-  FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.DApt,
-  FireDAC.Comp.DataSet, Vcl.Grids, Vcl.DBGrids, System.ImageList, Vcl.ImgList,
-  Vcl.VirtualImageList, Vcl.BaseImageCollection, Vcl.ImageCollection,
-  Vcl.ExtCtrls, FireDAC.Phys.FBDef, FireDAC.Phys.IBBase, FireDAC.Phys.FB,
-  System.UITypes, Vcl.ComCtrls, StrUtils, System.SyncObjs, Vcl.DBCtrls,
-  FireDAC.Comp.UI,
-  Vcl.Buttons, FireDAC.Phys.IBWrapper, FireDAC.Phys.IB, System.RegularExpressions;
+  //Padrao do VCL Form
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
+  //Automáticas
+  FireDAC.Phys.PG, FireDAC.Phys.PGDef, System.ImageList, FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.UI.Intf,
+  FireDAC.Phys.Intf, FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async, Data.DB, FireDAC.Phys, FireDAC.VCLUI.Wait, FireDAC.Comp.Client,
+  Vcl.StdCtrls, FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.DApt, FireDAC.Comp.DataSet, Vcl.Grids, Vcl.DBGrids, Vcl.ImgList,
+  Vcl.VirtualImageList, Vcl.BaseImageCollection, Vcl.ImageCollection,  Vcl.ExtCtrls,
+  //Adicionadas
+   System.IOUtils, ShellAPI, System.UITypes,
+  //Retirei e não deu erro
+  Math, DateUtils, TypInfo, FireDAC.Phys.FBDef, FireDAC.Phys.IBBase, FireDAC.Phys.FB, Vcl.ComCtrls, StrUtils, System.SyncObjs, Vcl.DBCtrls,
+  FireDAC.Comp.UI, Vcl.Buttons, FireDAC.Phys.IBWrapper, FireDAC.Phys.IB, System.RegularExpressions;
+
+
 
 type
   TDriverBDConexao = class
@@ -107,7 +105,6 @@ type
 
     type
       TEnumAcao = (Conectar, Desconectar, Criar, Dropar, Adicionar, Remover, Renomear, Backup, Restore);
-      TEnumModoQuery = (Open, ExecSQL);
 
     procedure ConectarDesconectarDriverDoDatabase(PNomeDoDatabase: string; PAcao: TEnumAcao);
     procedure HabilitarDesabilitarElementos(PStatusConexao, PBancoSelecionado: Boolean);
@@ -118,7 +115,7 @@ type
     procedure AdicionarOuRemoverPermissoesNosRoles(PNomeDoDatabase: string; PAcao: TEnumAcao);
     procedure RenomearDatabase(PNomeDoDatabaseAntigo, PNomeDoDatabaseNovo: string);
     function ValidaDatabaseExistente(PNomeDoDatabase: String): boolean;
-    procedure RegistrarLogs(PAcao: string);
+    procedure RegistrarLogs(PRotina: string; PLog: string);
     function CriaComando(PAcao: TEnumAcao; POutputFile, PDumpPath, PRestorePath,
                          PHost, PPorta, PNomeDoDatabase, PSenha: string): string;
     function ValidaOwnerDatabase(PNomeDoDatabase, POwnerPadrao: string; out POwnerBD: string): Boolean;
@@ -163,6 +160,7 @@ begin
                            [DumpRestorePath, PHost, PPorta, PNomeDoDatabase, POutputFile]);
       end;
   end;
+  RegistrarLogs('TFormDataManager.CriaComando', 'Comando ' + Result + ' criado com sucesso.');
 end;
 
 // ===========================================================================
@@ -204,8 +202,7 @@ begin
         LblDriverConectado.font.Color := ClRed;
       end;
   end;
-
-  RegistrarLogs('Conexão com o banco de dados "' + FDConnectionDB.DriverName + '" ' + TipoLog1);
+  RegistrarLogs('TFormDataManager.ConectarDesconectarDriverDoDatabase', 'Conexão com o banco de dados "' + FDConnectionDB.DriverName + '" ' + TipoLog1);
 end;
 
 function TFormDataManager.CapturarNomeDoDatabase(PNomeDoDatabase: string; PAcao: TEnumAcao; OUT PDigitou: boolean): string;
@@ -226,6 +223,8 @@ begin
     end;
   until (not PDigitou) or (PNomeDoDatabase <> '');
   Result:= PNomeDoDatabase;
+  RegistrarLogs('TFormDataManager.CapturarNomeDoDatabase', 'Nome do database "' + PNomeDoDatabase +
+                '" capturado - Parâmetro Out foi "' + BoolToStr(PDigitou) + '"');
 end;
 
 procedure TFormDataManager.CboxDriverBDChange(Sender: TObject);
@@ -233,17 +232,21 @@ procedure TFormDataManager.CboxDriverBDChange(Sender: TObject);
 begin
   if CboxDriverBD.Text = 'Firebird 5.0' then
     begin
+      RegistrarLogs('TFormDataManager.CboxDriverBDChange', 'Foi tentado atribuir o driver Firebird 5.0 que ainda não está implementado');
       Showmessage('Recurso não implementado');
       CboxDriverBD.ItemIndex := -1;
-    end;
-
+    end
+    else
+    RegistrarLogs('TFormDataManager.CboxDriverBDChange', 'Foi atribuído o driver ' + CboxDriverBD.text);
 end;
 
 procedure TFormDataManager.CriarDroparRoles(PNomeDoDatabase: string; PAcao: TEnumAcao);
 // Cria Roles para o banco de dados
 Var
   TipoLog1: string;
+  Sucesso: integer;
 begin
+  Sucesso := 0;
   FDQueryBD.close;
   FDQueryBD.sql.Clear;
   case PAcao of
@@ -253,6 +256,7 @@ begin
   try
     FDQueryBD.ExecSQL;
     FDQueryBD.close;
+    Inc(Sucesso);
   Except
     FDQueryBD.close;
   END;
@@ -265,6 +269,7 @@ begin
   TRY
     FDQueryBD.ExecSQL;
     FDQueryBD.close;
+    Inc(Sucesso);
   Except
     FDQueryBD.close;
   END;
@@ -285,10 +290,15 @@ begin
   TRY
     FDQueryBD.ExecSQL;
     FDQueryBD.close;
+    Inc(Sucesso);
   Except
     FDQueryBD.close;
   END;
-  RegistrarLogs('Usuários padrão do database "' + PNomeDoDatabase + '" ' + TipoLog1 + ' com sucesso.');
+
+  if Sucesso = 3 then
+  RegistrarLogs('TFormDataManager.CriarDroparRoles', 'Usuários padrão do database "' + PNomeDoDatabase + '" ' + TipoLog1 + ' com sucesso.')
+  else
+  RegistrarLogs('TFormDataManager.CriarDroparRoles', 'Usuários padrão do database "' + PNomeDoDatabase + '" não puderam ser ' + TipoLog1 + '.');
 end;
 
 procedure TFormDataManager.CriarDroparDataBase(PNomeDoDatabase: string; PAcao: TEnumAcao);
@@ -319,16 +329,18 @@ begin
       end;
   end;
   FDQueryBD.ExecSQL;
+  RegistrarLogs('TFormDataManager.CriarDroparDataBase', 'Query de ' + TipoLog1 + ' de database executada:' + sLineBreak + sLineBreak + FDQueryBD.sql.Text + sLineBreak);
+  RegistrarLogs('TFormDataManager.CriarDroparDataBase', 'Database "' + PNomeDoDatabase + '" ' + TipoLog2 + ' com sucesso.');
   FDQueryBD.close;
-  RegistrarLogs('Query de ' + TipoLog1 + ' de database executada:' + sLineBreak + sLineBreak + FDQueryBD.sql.Text + sLineBreak);
-  RegistrarLogs('Database "' + PNomeDoDatabase + '" ' + TipoLog2 + ' com sucesso.');
 end;
 
 procedure TFormDataManager.AdicionarOuRemoverPermissoesNosRoles(PNomeDoDatabase: string; PAcao: TEnumAcao);
 // Atribúi permissão nos roles
 Var
+  Sucesso: integer;
   TipoLog1 : string;
 begin
+  Sucesso := 0;
   try
     FDQueryBD.close;
     FDQueryBD.sql.Clear;
@@ -339,6 +351,7 @@ begin
     FDQueryBD.ExecSQL;
     FDQueryBD.close;
     FDQueryBD.sql.Clear;
+    Inc(Sucesso);
   Except
   end;
 
@@ -350,8 +363,8 @@ begin
     FDQueryBD.ExecSQL;
     FDQueryBD.close;
     FDQueryBD.sql.Clear;
+    Inc(Sucesso);
   Except
-
   end;
 
   try
@@ -370,53 +383,62 @@ begin
     FDQueryBD.ExecSQL;
     FDQueryBD.close;
     FDQueryBD.sql.Clear;
+    Inc(Sucesso);
   Except
-
   end;
-  RegistrarLogs('Permissões ' + TipoLog1 + ' usuários do database "' + PNomeDoDatabase + '".');
+  if Sucesso = 3 then
+    RegistrarLogs('TFormDataManager.AdicionarOuRemoverPermissoesNosRoles', 'Permissões ' + TipoLog1 + ' usuários do database "' + PNomeDoDatabase + '".')
+  else
+    RegistrarLogs('TFormDataManager.AdicionarOuRemoverPermissoesNosRoles', 'As permissões não puderam ser ' + TipoLog1 + ' usuários do database "' + PNomeDoDatabase + '".');
 end;
 
 procedure TFormDataManager.FormCreate(Sender: TObject);
 // Cria a janela e classes da aplicação
 begin
+  RegistrarLogs('TFormDataManager.FormCreate', '-------------------------------------------------------------------------------');
+  RegistrarLogs('TFormDataManager.FormCreate', 'Aplicação iniciada.');
   HabilitarDesabilitarElementos(False, False);
-  RegistrarLogs('-------------------------------------------------------------------------------');
-  RegistrarLogs('Aplicação iniciada.');
   DriverBDConexao := TDriverBDConexao.Create;
 end;
 
 procedure TFormDataManager.FormClose(Sender: TObject; var Action: TCloseAction);
 // Fecha a janela da aplicação
 begin
+  RegistrarLogs('TFormDataManager.FormClose', 'Aplicação Encerrada.');
+  RegistrarLogs('TFormDataManager.FormClose', '-------------------------------------------------------------------------------');
   HabilitarDesabilitarElementos(False, False);
-  RegistrarLogs('Aplicação Encerrada.');
-  RegistrarLogs('-------------------------------------------------------------------------------');
 end;
 
 procedure TFormDataManager.FormDestroy(Sender: TObject);
 // Destrói a janela e classes da aplicação
 begin
   DriverBDConexao.free;
+  RegistrarLogs('TFormDataManager.FormDestroy', 'Form limpo da memória com sucesso');
 end;
 
 procedure TFormDataManager.BtnConectaBDClick(Sender: TObject);
 // Botão Conectar
 begin
+  RegistrarLogs('TFormDataManager.BtnConectaBDClick', 'Usuário clicou no botão "' + BtnConectaBD.Name + '".');
   if CboxDriverBD.ItemIndex = -1 then
-  showmessage('Selecione um driver de Bando de dados para continuar.')
+  begin
+    RegistrarLogs('TFormDataManager.BtnConectaBDClick', 'Usuário não selecionou nenhum driver de Database.');
+    showmessage('Selecione um driver de Bando de dados para continuar.');
+  end
   else
   begin
+    RegistrarLogs('TFormDataManager.BtnConectaBDClick', 'Usuário com o driver ' +
+                  CboxDriverBD.Items.Strings[CboxDriverBD.ItemIndex] + ' selecionado.');
     ConectarDesconectarDriverDoDatabase('postgres', Conectar);
     HabilitarDesabilitarElementos(True, False);
     AtualizaListaBancos(True);
-
-
   end;
 end;
 
 procedure TFormDataManager.BtnDesconectarClick(Sender: TObject);
 // Botão Desconectar
 begin
+  RegistrarLogs('TFormDataManager.BtnDesconectarClick', 'Usuário clicou no botão "' + BtnDesconectar.Name + '".');
   ConectarDesconectarDriverDoDatabase('Postgres', Desconectar);
   HabilitarDesabilitarElementos(False, False);
   AtualizaListaBancos(False);
@@ -425,6 +447,7 @@ end;
 procedure TFormDataManager.BtnAtualizarClick(Sender: TObject);
 // Botão atualizar(Refresh)
 begin
+  RegistrarLogs('TFormDataManager.BtnAtualizarClick', 'Usuário clicou no botão "' + BtnAtualizar.Name + '".');
   AtualizaListaBancos(True);
   HabilitarDesabilitarElementos(True, False);
 end;
@@ -436,10 +459,14 @@ var
   NomeExiste: boolean;
   Digitou: boolean;
 begin
+  RegistrarLogs('TFormDataManager.BtnAtualizarClick', 'Usuário clicou no botão "' + BtnNovoDatabase.Name + '".');
   HabilitarDesabilitarElementos(True, False);
   NomeDoDatabase := CapturarNomeDoDatabase(NomeDoDatabase, Criar, Digitou);
   if not Digitou then
-  exit
+  begin
+    RegistrarLogs('TFormDataManager.BtnNovoDataBaseClick', 'Usuário cancelou sem digitar o nome do banco.');
+    exit ;
+  end
   else
   begin
     repeat
@@ -447,22 +474,30 @@ begin
       NomeExiste := ValidaDatabaseExistente(NomeDoDatabase);
       if NomeExiste then
       begin
+        RegistrarLogs('TFormDataManager.BtnNovoDataBaseClick', 'Usuário digitou o database "' + NomeDoDatabase + ' que já existe.');
         MessageDlg('Já existe um database com o nome "' + NomeDoDatabase + '", digite um nome diferente', mtInformation, [mbOK], 0);
+
         NomeDoDatabase := CapturarNomeDoDatabase(NomeDoDatabase, Criar, Digitou);
         if not Digitou then
-        exit;
+        begin
+          RegistrarLogs('TFormDataManager.BtnNovoDataBaseClick', 'Novamente o usuário cancelou sem digitar o nome do banco.');
+          exit;
+        end;
       end
     end;
     until not NomeExiste;
 
     if NomeDoDatabase <> '' then
     begin
+      RegistrarLogs('TFormDataManager.BtnNovoDataBaseClick', 'Usuário digitou o nome do banco de dados "' + NomeDoDatabase + '".');
       CriarDroparRoles(NomeDoDatabase, Criar);
       CriarDroparDataBase(NomeDoDatabase, Criar);
       AdicionarOuRemoverPermissoesNosRoles(NomeDoDatabase, Adicionar);
       MessageDlg('Database "' + NomeDoDatabase + '" criado com sucesso', TMsgDlgType.mtInformation, [mbOK], 0);
       AtualizaListaBancos(True);
-    end;
+    end
+    else
+      RegistrarLogs('TFormDataManager.BtnNovoDataBaseClick', 'Usuário não digitou o nome do banco de dados.');
   end;
 end;
 
@@ -472,6 +507,7 @@ var
   NomeDoDatabaseAntigo, NomeDoDatabaseNovo, POwnerBD: string; NomeExiste: boolean;
   Digitou: boolean;
 begin
+  RegistrarLogs('TFormDataManager.BtnRenomearDatabaseClick', 'Usuário clicou no botão "' + BtnRenomearDatabase.Name + '".');
   HabilitarDesabilitarElementos(True, False);
   NomeDoDatabaseAntigo := LbxDatabases.Items[LbxDatabases.ItemIndex];
   if ValidaOwnerDatabase(NomeDoDatabaseAntigo, DriverBDConexao.OwnerPadrao, POwnerBD) then
@@ -480,7 +516,10 @@ begin
     if NomeDoDatabaseNovo <> NomeDoDatabaseAntigo then
     begin
       if not Digitou then
-      exit
+      begin
+        RegistrarLogs('TFormDataManager.BtnRenomearDatabaseClick', 'Usuário cancelou sem digitar o nome do banco.');
+        exit
+      end
       else
       begin
         repeat
@@ -488,16 +527,21 @@ begin
           NomeExiste := ValidaDatabaseExistente(NomeDoDatabaseNovo);
           if NomeExiste then
           begin
+            RegistrarLogs('TFormDataManager.BtnRenomearDatabaseClick', 'Usuário digitou o database "' + NomeDoDatabaseNovo + ' que já existe.');
             MessageDlg('Já existe um database com o nome "' + NomeDoDatabaseNovo + '", digite um nome diferente', mtInformation, [mbOK], 0);
             NomeDoDatabaseNovo := CapturarNomeDoDatabase(NomeDoDatabaseNovo, Criar, Digitou);
             if not Digitou then
-            exit;
+            begin
+              RegistrarLogs('TFormDataManager.BtnRenomearDatabaseClick', 'Novamente o usuário cancelou sem digitar o nome do banco.');
+               exit;
+            end;
           end
         end;
         until not NomeExiste;
 
         if NomeDoDatabaseNovo <> NomeDoDatabaseAntigo then
         begin
+          RegistrarLogs('TFormDataManager.BtnRenomearDatabaseClick', 'Usuário digitou o nome do banco de dados "' + NomeDoDatabaseNovo + '".');
           AdicionarOuRemoverPermissoesNosRoles(NomeDoDatabaseAntigo, Remover);
           CriarDroparRoles(NomeDoDatabaseAntigo, Dropar);
           RenomearDatabase(NomeDoDatabaseAntigo, NomeDoDatabaseNovo);
@@ -505,11 +549,14 @@ begin
           AdicionarOuRemoverPermissoesNosRoles(NomeDoDatabaseNovo, Adicionar);
           MessageDlg('Database "' + NomeDoDatabaseAntigo + '" renomeado com sucesso para "' + NomeDoDatabaseNovo + '.', TMsgDlgType.mtInformation, [mbOK], 0);
           AtualizaListaBancos(True);
-        end;
+        end
+        else
+          RegistrarLogs('TFormDataManager.BtnRenomearDatabaseClick', 'Usuário não digitou o nome do banco de dados.');
       end;
     end;
   end
   else
+    RegistrarLogs('TFormDataManager.BtnRenomearDatabaseClick', 'Função cancelada porquê o usuário escolheu um banco de dados de outro proprietário.');
     Messagedlg('O DataManager não pode renomear o banco de dados "' + NomeDoDatabaseAntigo + '", pois ele pertence ao proprietário "' +
      POwnerBD + '". Torne-se o proprietário do banco para poder executar esta tarefa ou renomeie o banco por outra ferramenta.'
      , TMsgDlgType.mtWarning, [mbOk], 0);
@@ -521,6 +568,7 @@ var
   NomeDoDatabase, POwnerBD: string;
   ConfircamaoExcluirDatabase: TModalResult;
 begin
+  RegistrarLogs('TFormDataManager.BtnExcluirDatabaseClick', ' Usuário clicou no botão "' + BtnExcluirDatabase.Name + '".');
   POwnerBD := '';
   HabilitarDesabilitarElementos(True, False);
   NomeDoDatabase := LbxDatabases.Items[LbxDatabases.ItemIndex];
@@ -530,15 +578,19 @@ begin
       ConfircamaoExcluirDatabase := MessageDlg('Tem certeza que deseja excluir o Database "' + NomeDoDatabase + '" ?', TMsgDlgType.mtWarning, mbYesNo, 0);
       if ConfircamaoExcluirDatabase = mryes then
       begin
+        RegistrarLogs('TFormDataManager.BtnExcluirDatabaseClick', 'Usuário confirmou a exclusão do banco de dados "' + NomeDoDatabase + '".');
         AdicionarOuRemoverPermissoesNosRoles(NomeDoDatabase, Remover);
         CriarDroparRoles(NomeDoDatabase, Dropar);
         CriarDroparRoles(NomeDoDatabase, Dropar);
         CriarDroparDataBase(NomeDoDatabase, Dropar);
         MessageDlg('Database "' + NomeDoDatabase + '" excluído com sucesso', TMsgDlgType.mtInformation, [mbOK], 0);
         AtualizaListaBancos(True);
-      end;
+      end
+      else
+        RegistrarLogs('TFormDataManager.BtnExcluirDatabaseClick', 'Usuário cancelou a exclusão do banco de dados "' + NomeDoDatabase + '".');
     end
     else
+    RegistrarLogs('TFormDataManager.BtnExcluirDatabaseClick', 'Função cancelada porquê o usuário escolheu um banco de dados de outro proprietário.');
     Messagedlg('O DataManager não pode excluir o banco de dados "' + NomeDoDatabase + '", pois ele pertence ao proprietário "' +
      POwnerBD + '". Torne-se o proprietário do banco para poder executar esta tarefa ou exclua o banco por outra ferramenta.'
      , TMsgDlgType.mtWarning, [mbOk], 0);
@@ -551,6 +603,7 @@ var
   NomeDoDatabase, OutputFile, Comando: string;
 
 begin
+  RegistrarLogs('TFormDataManager.BtnFazerBackupDatabaseClick', 'Usuário clicou no botão "' + BtnFazerBackupDatabase.Name + '".');
   HabilitarDesabilitarElementos(True, False);
   NomeDoDatabase := LbxDatabases.Items[LbxDatabases.ItemIndex];
   ConectarDesconectarDriverDoDatabase(NomeDoDatabase, Conectar);
@@ -562,11 +615,18 @@ begin
   SaveDialogBackup.Options := SaveDialogBackup.Options + [ofOverwritePrompt];
 
   if not SaveDialogBackup.Execute then
+  begin
+    RegistrarLogs('TFormDataManager.BtnFazerBackupDatabaseClick', 'Usuário cancelou sem decidir salvar o backup".');
     Exit;
+  end
+  else
+    RegistrarLogs('TFormDataManager.BtnFazerBackupDatabaseClick', 'Usuário confirmou salvar o arquivo de backup".');
+
   OutputFile := SaveDialogBackup.FileName;
 
   Comando := CriaComando(Backup, OutputFile, DriverBDConexao.Dump, DriverBDConexao.Restore, DriverBDConexao.Host,
                           DriverBDConexao.Porta, NomeDoDatabase, DriverBDConexao.Senha);
+  RegistrarLogs('TFormDataManager.BtnFazerBackupDatabaseClick', 'Comando recebido: ' + Comando);
 
   FormBackupRestore := TFormBackupRestore.Create(Self);
   try
@@ -578,6 +638,7 @@ begin
     // Após ShowModal, o código continua aqui (quando o FormBackupRestore é fechado)
   finally
     FormBackupRestore.Free; // Libera o formulário de progresso
+    RegistrarLogs('TFormDataManager.BtnFazerBackupDatabaseClick', 'Form "' + FormBackupRestore.Name + '" foi fechado.');
     ConectarDesconectarDriverDoDatabase('postgres', Conectar);
   end;
 end;
@@ -588,11 +649,17 @@ var
   NomeDoDatabase, InputFile, Comando, Versao, POwnerBD: string;
   OpenDialogRestore: TOpenDialog;
 begin
+  RegistrarLogs('TFormDataManager.BtnFazerRestoreDatabaseClick', 'Usuário clicou no botão "' + BtnFazerRestoreDatabase.Name + '".');
   HabilitarDesabilitarElementos(True, False);
   NomeDoDatabase := LbxDatabases.Items[LbxDatabases.ItemIndex];
 
   if VerificaVersaoPostgres(Versao) < 17 then
-  MessageDlg('O DataManager não faz restauração de backup em banco de dados com versão inferior a 17', TMsgDlgType.mtWarning, [mbOK], 0)
+  begin
+    RegistrarLogs('TFormDataManager.BtnFazerRestoreDatabaseClick', 'Função encerrada devido a tentativa de ' +
+                  'restaurar um backup em um banco de dados com a versão ' + CurrToStr(VerificaVersaoPostgres(Versao)) +
+                  '" que é inferior a ' + CurrToStr(DriverBDConexao.Versao));
+    MessageDlg('O DataManager não faz restauração de backup em banco de dados com versão inferior a 17', TMsgDlgType.mtWarning, [mbOK], 0);
+  end
   else
   begin
     POwnerBD := '';
@@ -606,20 +673,28 @@ begin
         OpenDialogRestore.Title := 'Selecionar Arquivo de Backup para Restaurar';
 
         if not OpenDialogRestore.Execute then
+        begin
+          RegistrarLogs('TFormDataManager.BtnFazerRestoreDatabaseClick', 'Usuário cancelou sem abrir nenhum arquivo de backup".');
           Exit;
-        InputFile := OpenDialogRestore.FileName;
+        end
+        else
+        begin
+          RegistrarLogs('TFormDataManager.BtnFazerRestoreDatabaseClick', 'Usuário abriu o arquivo de backup ' + OpenDialogRestore.FileName + '.');
+          InputFile := OpenDialogRestore.FileName;
+        end;
 
         Comando := CriaComando(Restore, InputFile, DriverBDConexao.Dump, DriverBDConexao.Restore, DriverBDConexao.Host,
                                DriverBDConexao.Porta, NomeDoDatabase, DriverBDConexao.Senha);
+        RegistrarLogs('TFormDataManager.BtnFazerRestoreDatabaseClick', 'Comando recebido: ' + Comando);
 
         AdicionarOuRemoverPermissoesNosRoles(NomeDoDatabase, Remover);
         CriarDroparRoles(NomeDoDatabase, Dropar);
         CriarDroparDataBase(NomeDoDatabase, Dropar);
-
+        RegistrarLogs('TFormDataManager.BtnFazerRestoreDatabaseClick', 'Excluído o banco de dados existente.');
         CriarDroparDataBase(NomeDoDatabase, Criar);
         CriarDroparRoles(NomeDoDatabase, Criar);
         AdicionarOuRemoverPermissoesNosRoles(NomeDoDatabase, Adicionar);
-
+        RegistrarLogs('TFormDataManager.BtnFazerRestoreDatabaseClick', 'Recriado o banco de dados vazio.');
         FormBackupRestore := TFormBackupRestore.Create(Self);
         try
           FormBackupRestore.IniciarOperacao(Comando, InputFile, DriverBDConexao.Dump, DriverBDConexao.Restore, DriverBDConexao.Host,
@@ -627,6 +702,7 @@ begin
           FormBackupRestore.ShowModal;
         finally
           FormBackupRestore.Free;
+          RegistrarLogs('TFormDataManager.BtnFazerRestoreDatabaseClick', 'Form "' + FormBackupRestore.Name + '" foi fechado.');
           ConectarDesconectarDriverDoDatabase('postgres', Conectar);
         end;
       finally
@@ -635,9 +711,11 @@ begin
     end
     else
     begin
+      RegistrarLogs('TFormDataManager.BtnFazerRestoreDatabaseClick', 'Função cancelada porquê o usuário ' +
+                    'escolheu um banco de dados de outro proprietário.');
       Messagedlg('O DataManager não pode restaurar em cima desse banco de dados "' + NomeDoDatabase + '", pois ele pertence ao proprietário "' +
-       POwnerBD + '". Torne-se o proprietário do banco para poder executar esta tarefa ou faça por outra ferramenta.'
-       , TMsgDlgType.mtWarning, [mbOk], 0);
+                 POwnerBD + '". Torne-se o proprietário do banco para poder executar esta tarefa ou faça por outra ferramenta.',
+                 TMsgDlgType.mtWarning, [mbOk], 0);
     end;
   end;
 end;
@@ -645,10 +723,11 @@ end;
 procedure TFormDataManager.LbxDatabasesClick(Sender: TObject);
 // procedimento de clicar na lista de databases
 begin
+  RegistrarLogs('TFormDataManager.LbxDatabasesClick', 'Usuário selecionou um banco de dados');
   HabilitarDesabilitarElementos(True, True);
 end;
 
-procedure TFormDataManager.RegistrarLogs(PAcao: string);
+procedure TFormDataManager.RegistrarLogs(PRotina: string;PLog: string);
 // Registra os acontecimentos do sistema em logs
 Var
   ArquivoDeTexto: TextFile;
@@ -660,9 +739,9 @@ begin
     else
       begin
         Rewrite(ArquivoDeTexto);
-        PAcao := ('-------------------------------------------------------------------------------' + sLineBreak + '[' + DateTimeToStr(Now()) + '] - Foi criado o arquivo "Logs.txt", pois o mesmo não foi encontrado no diretório da aplicação.');
+        PLog := ('-------------------------------------------------------------------------------' + sLineBreak + '[' + DateTimeToStr(Now()) + '] - [Abertura do sistema] - Foi criado o arquivo "Logs.txt", pois o mesmo não foi encontrado no diretório da aplicação.');
       end;
-    Writeln(ArquivoDeTexto, '[' + DateTimeToStr(Now()) + '] - ' + PAcao + ' -');
+    Writeln(ArquivoDeTexto, '[' + DateTimeToStr(Now()) + '] - [' + PRotina + '] - ' + PLog + ' -');
   finally
     CloseFile(ArquivoDeTexto);
   end;
@@ -671,12 +750,17 @@ end;
 procedure TFormDataManager.RenomearDatabase(PNomeDoDatabaseAntigo, PNomeDoDatabaseNovo: string);
 // Renomeia o database
 begin
-  FDQueryBD.close;
-  FDQueryBD.sql.Clear;
-  FDQueryBD.sql.add('ALTER DATABASE "' + PNomeDoDatabaseAntigo + '" RENAME TO "' + PNomeDoDatabaseNovo + '"');
-  FDQueryBD.ExecSQL;
-  FDQueryBD.close;
-  RegistrarLogs('Database "' + PNomeDoDatabaseAntigo + '" renomeado para "' + PNomeDoDatabaseNovo + '" com sucesso');
+  try
+    FDQueryBD.close;
+    FDQueryBD.sql.Clear;
+    FDQueryBD.sql.add('ALTER DATABASE "' + PNomeDoDatabaseAntigo + '" RENAME TO "' + PNomeDoDatabaseNovo + '"');
+    FDQueryBD.ExecSQL;
+    FDQueryBD.close;
+    RegistrarLogs('TFormDataManager.RenomearDatabase', 'Database "' + PNomeDoDatabaseAntigo + '" renomeado para "' + PNomeDoDatabaseNovo + '" com sucesso');
+  except
+    RegistrarLogs('TFormDataManager.RenomearDatabase', 'Não foi possível renomear o database "' +
+                  PNomeDoDatabaseAntigo + '" para "' + PNomeDoDatabaseNovo + '".');
+  end;
 end;
 
 function TFormDataManager.ValidaDatabaseExistente(PNomeDoDatabase: String): boolean;
@@ -688,11 +772,13 @@ begin
     begin
       if PNomeDoDatabase = LbxDatabases.Items[i] then
       begin
+        RegistrarLogs('TFormDataManager.ValidaDatabaseExistente', 'Database "' + PNomeDoDatabase + '" Existe');
         Result := true;
         exit;
       end
     end;
     Result := False;
+    RegistrarLogs('TFormDataManager.ValidaDatabaseExistente', 'Database "' + PNomeDoDatabase + '" não existe');
 end;
 
 function TFormDataManager.ValidaOwnerDatabase(PNomeDoDatabase, POwnerPadrao: string; out POwnerBD: string): Boolean;
@@ -704,9 +790,15 @@ begin
   FDQueryBD.Open;
   POwnerBD := FDQueryBD.FieldByName('owner').AsString;
   if POwnerPadrao = POwnerBD then
-  Result := True
+  begin
+    RegistrarLogs('TFormDataManager.ValidaOwnerDatabase', 'O usuário é o proprietário do banco de dados');
+    Result := True;
+  end
   else
-  Result := False;
+  begin
+    RegistrarLogs('TFormDataManager.ValidaOwnerDatabase', 'O usuário não é o proprietário do banco de dados');
+    Result := False;
+  end;
 end;
 
 function TFormDataManager.VerificaVersaoPostgres(out PVersaoCompleta:string): Currency;
