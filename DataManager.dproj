@@ -4,7 +4,7 @@
         <ProjectVersion>20.1</ProjectVersion>
         <FrameworkType>VCL</FrameworkType>
         <Base>True</Base>
-        <Config Condition="'$(Config)'==''">Debug</Config>
+        <Config Condition="'$(Config)'==''">Release</Config>
         <Platform Condition="'$(Platform)'==''">Win64</Platform>
         <ProjectName Condition="'$(ProjectName)'==''">DataManager</ProjectName>
         <TargetedPlatforms>3</TargetedPlatforms>
@@ -124,7 +124,7 @@
         <VerInfo_Locale>1033</VerInfo_Locale>
         <UWP_DelphiLogo44>Arquivos externos\Icones\BD.png</UWP_DelphiLogo44>
         <UWP_DelphiLogo150>Arquivos externos\Icones\BD.png</UWP_DelphiLogo150>
-        <Icon_MainIcon>Project1_Icon7.ico</Icon_MainIcon>
+        <Icon_MainIcon>DataManager_Icon1.ico</Icon_MainIcon>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">
