@@ -1,0 +1,970 @@
+unit UnitBackupRestore;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
+  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, System.RegularExpressions,
+  Vcl.ComCtrls, Math,
+  Vcl.StdCtrls,
+  System.Threading,
+  System.SyncObjs,
+  Data.DB, FireDAC.Comp.Client, FireDAC.Stan.Intf,
+  System.IOUtils,
+  TypInfo, System.UITypes;
+
+type
+  TEnumAcaoBackup = (Backup, Restore);
+
+  // ===========================================================================
+  // TPostgreSQLWorkerThread - Classe da Thread de Trabalho
+  // ===========================================================================
+  TPostgreSQLWorkerThread = class(TThread)
+  private
+    FCommand: string;
+    FPassword: string;
+    FOutputFilePath: string; // Armazena o caminho do arquivo de backup/restore
+    FLogFilePath: string;
+    FIsDumpOperation: Boolean; // True para backup, False para restore
+    FProgressBar: TProgressBar; // Referência aos componentes do FormBackupRestore
+    FLblStatus: TLabel;         // Referência aos componentes do FormBackupRestore
+    FRichEditLog: TRichEdit;    // Referência aos componentes do FormBackupRestore
+    FConnection: TFDConnection; // Conexão para contar tabelas (Dump)
+    FDumpRestorePsqlPath: string; // Caminho completo do executável (pg_dump, pg_restore, psql)
+
+    // Contadores para o progresso granular
+    FTotalDataTables: Integer; // Número total de TABLE DATA entries
+    FProcessedDataTables: Integer; // Número de TABLE DATA entries processadas
+
+    FTotalSchemas: Integer;    // NOVO: Número total de schemas no dump/db
+    FProcessedSchemas: Integer; // NOVO: Número de schemas processados
+
+    FTotalIndexes: Integer;    // NOVO: Número total de índices no dump/db
+    FProcessedIndexes: Integer; // NOVO: Número de índices processados
+
+    FCurrentPhase: (ppEstimating, ppPreData, ppData, ppPostData); // Enum para as fases do progresso
+    FExitCode: LongWord; // Código de saída do processo externo
+    FLastProgressMessageTick: Cardinal; // Para evitar updates de UI muito rápidos (para barra/status)
+
+    // NOVO: Campos para controlar o timer da fase inicial
+    FLastTimedIncrementTick: Cardinal;
+    FIsPreDataTimedPhase: Boolean;
+
+    const
+    //Constantes que definem o movimento da barra de progresso (Pontos percentuais fixos)
+    // Esses valores foram ajustados para dar mais espaço e movimento nas fases pré e pós-dados.
+    //Backup (pg_dump)
+      DUMP_PHASE_ESTIMATING_END = 1;      // Fim da fase de estimativa (0% a 1%)
+      DUMP_PHASE_DEFINITIONS_START = 2;   // Início da leitura de definições (2% a 4%)
+      DUMP_PHASE_EXTENSIONS_START = 4;    // Início da leitura de extensões (4% a 7%)
+      DUMP_PHASE_SCHEMAS_START = 7;       // Início da leitura de esquemas (7% a 10%)
+      DUMP_PHASE_PREDATA_END = 10;        // Fim da fase pré-dados (marca o início dos dados)
+
+      DUMP_PHASE_DATA_START = 10;         // Início do despejo de dados das tabelas (mantido)
+      DUMP_PHASE_DATA_END = 90;           // Fim do despejo de dados das tabelas (mantido)
+
+      DUMP_PHASE_FINALIZING = 95;         // Finalizando o processo de backup (90% a 99%)
+      DUMP_PHASE_COMPLETE = 100;          // Concluído (garante 100% no fim)
+
+      //Restore (pg_restore / psql) - Ajustado para usar as novas contagens
+      RESTORE_PHASE_ESTIMATING_END = 1;     // Fim da fase de estimativa (0% a 1%)
+      RESTORE_PHASE_CONNECTING = 2;         // Conectando ao banco de dados (1% a 4%)
+      RESTORE_PHASE_SCHEMAS_START = 4;      // Criando esquemas (4% a 8%)
+      RESTORE_PHASE_PREDATA_END = 8;        // Fim da fase pré-dados
+
+      RESTORE_PHASE_DATA_START = 8;         // Início da restauração de dados (8% a 90%)
+      RESTORE_PHASE_DATA_END = 90;          // Fim da restauração de dados (antes de índices e constraints)
+
+      RESTORE_PHASE_INDEXES_START = 90;     // Criando índices (90% a 98%)
+      RESTORE_PHASE_POSTDATA_END = 98;      // Fim da fase pós-dados (antes da finalização)
+      RESTORE_PHASE_LAST_STEP = 99;         // Um passo final antes de 100%
+      RESTORE_PHASE_COMPLETE = 100;         // Restauração concluída
+
+      // Constantes para reconhecimento de log (PT e EN) - Aprimoradas
+      // --- pg_dump ---
+      DUMP_READING_DEFINITIONS_PT = 'pg_dump: lendo definições';
+      DUMP_READING_DEFINITIONS_EN = 'pg_dump: reading definitions';
+      DUMP_READING_EXTENSIONS_PT = 'pg_dump: lendo extensões';
+      DUMP_READING_EXTENSIONS_EN = 'pg_dump: reading extensions';
+      DUMP_READING_SCHEMAS_PT = 'pg_dump: lendo esquemas';
+      DUMP_READING_SCHEMAS_EN = 'pg_dump: reading schemas';
+      DUMP_PROCESSING_TABLE_DATA_PT = 'pg_dump: copiando conteúdo da tabela ';
+      DUMP_PROCESSING_TABLE_DATA_EN = 'pg_dump: dumping contents of table ';
+      DUMP_FINISHED_PT = 'pg_dump: finalizado o despejo da base de dados';
+      DUMP_FINISHED_EN = 'pg_dump: finished dumping database';
+
+      // --- pg_restore ---
+      RESTORE_CONNECTING_EN = 'pg_restore: connecting to database for restore';
+      RESTORE_CONNECTING_PT = 'pg_restore: conectando ao banco de dados para restauração';
+      RESTORE_CREATING_SCHEMA_EN = 'pg_restore: creating SCHEMA ';
+      RESTORE_CREATING_SCHEMA_PT = 'pg_restore: criando SCHEMA ';
+      RESTORE_PROCESSING_TABLE_DATA_EN = 'pg_restore: processing data for table ';
+      RESTORE_PROCESSING_TABLE_DATA_PT = 'pg_restore: processando dados da tabela ';
+      RESTORE_CREATING_INDEX_EN = 'pg_restore: creating INDEX ';
+      RESTORE_CREATING_INDEX_PT = 'pg_restore: criando INDEX ';
+      RESTORE_FINISHED_EN = 'pg_restore: restore complete';
+      RESTORE_FINISHED_PT = 'pg_restore: restauração concluída';
+
+    // Métodos internos que serão sincronizados com a UI
+    procedure UpdateUI(NewPosition: Integer; const StatusText: string; const LogLine: string);
+    procedure ProcessOutputLine(const Line: string);
+    function ExtractTableNameFromLog(const LogLine: string): string;
+
+    // Métodos de Contagem para a Estimativa de Progresso (executados na thread)
+    function CountTablesInDatabase(AConnection: TFDConnection): Integer; // Para pg_dump
+    function CountObjectsInDumpFile(const ADumpFile: string; const PgRestorePath: string; const Password: string): Integer; // Para pg_restore
+
+  protected
+    procedure Execute; override; // Onde a lógica principal do processo externo rodará
+  public
+    // Construtor da Thread
+    constructor Create(const Cmd, Pwd, AOutputFilePathParam, LogPath: string; IsDump: Boolean;
+                        ProgressBar: TProgressBar; LblStatus: TLabel; RichEditLog: TRichEdit;
+                        Connection: TFDConnection; DumpRestorePsqlPath: string);
+
+    property ExitCode: LongWord read FExitCode;
+  end;
+
+  // ===========================================================================
+  // TFormBackupRestore - Seu formulário de Progresso
+  // ===========================================================================
+  TFormBackupRestore = class(TForm)
+    LblProgresso: TLabel;
+    ProgressBarBackupRestore: TProgressBar;
+    RichEditLog: TRichEdit;
+    procedure FormShow(Sender: TObject);
+  private
+    FWorkerThread: TPostgreSQLWorkerThread; // Referência à thread de trabalho
+    FIsOperationSuccessful: Boolean; // Indica se a operação terminou com sucesso
+    FCommandString: string; // Armazena o comando completo para a thread
+    FOutputFilePath: string; // Caminho do arquivo de backup/restore (para logs, etc.)
+
+    // Campos privados para armazenar os parâmetros.
+    FPDump_Path: string;
+    FPRestore_Path: string;
+    FPPsql_Path: string;
+    FPHost_Addr: string;
+    FPPorta_Num: string;
+    FPNomeDoDatabase_Name: string;
+    FPSenha_User: string;
+    FPFormato_Char: char;
+    FPAcao_Type: TEnumAcaoBackup;
+    FConnection_Ref: TFDConnection; // Referência para a conexão FireDAC
+
+    procedure ThreadTerminated(Sender: TObject); // Manipulador de evento de término da thread
+  public
+    // Método que de fato inicia a operação (thread).
+    procedure IniciarOperacao(const ACommand: string; const AOutputFilePath: string;
+                              const ADumpPath, ARestorePath, APsqlPath, AHost, APorta,
+                              ANomeDoDatabase, ASenha: string; AFormato: char; AAcao: TEnumAcaoBackup;
+                              AConnection: TFDConnection);
+
+    // =======================================================================
+    // PROPRIEDADES PÚBLICAS (usadas para configurar o formulário DE FORA)
+    // =======================================================================
+    property PGDumpPath: string read FPDump_Path write FPDump_Path;
+    property PGRestorePath: string read FPRestore_Path write FPRestore_Path;
+    property PQPsqlPath: string read FPPsql_Path write FPPsql_Path;
+    property PGHost: string read FPHost_Addr write FPHost_Addr;
+    property PGPorta: string read FPPorta_Num write FPPorta_Num;
+    property PGNomeDoDatabase: string read FPNomeDoDatabase_Name write FPNomeDoDatabase_Name;
+    property PGSenha: string read FPSenha_User write FPSenha_User;
+    property PGFormato: char read FPFormato_Char write FPFormato_Char;
+    property PGAcao: TEnumAcaoBackup read FPAcao_Type write FPAcao_Type;
+    property Connection: TFDConnection read FConnection_Ref write FConnection_Ref;
+  end;
+
+var
+  FormBackupRestore: TFormBackupRestore;
+
+implementation
+
+{$R *.dfm}
+
+// ==============================================================================
+// TFormBackupRestore - Implementação
+// ==============================================================================
+
+procedure TFormBackupRestore.FormShow(Sender: TObject);
+var
+  DumpRestorePsqlPath: string;
+  LogSuffix: string;
+  LogFilePath: string;
+begin
+  // Inicializações da UI
+  RichEditLog.Clear;
+  LblProgresso.Caption := 'Iniciando...';
+  ProgressBarBackupRestore.Position := 0;
+  ProgressBarBackupRestore.Min := 0;
+  ProgressBarBackupRestore.Max := 100;
+
+  // Determinar o caminho do executável e o sufixo do log com base na ação
+  case PGAcao of
+    Backup:
+      begin
+        DumpRestorePsqlPath := PGDumpPath; // pg_dump.exe
+        LogSuffix := '_backup';
+      end;
+    Restore:
+      begin
+        if PGFormato = 'c' then
+          DumpRestorePsqlPath := PGRestorePath // pg_restore.exe (formato custom)
+        else
+          DumpRestorePsqlPath := PQPsqlPath; // psql.exe (formato plain)
+        LogSuffix := '_restore';
+      end;
+  end;
+
+  // O LogFilePath depende do FOutputFilePath (que veio da chamada do Form principal)
+  LogFilePath := TPath.ChangeExtension(FOutputFilePath, LogSuffix + '.log');
+
+  // DEBUG: Verifique os caminhos antes de criar a thread
+  OutputDebugString(PChar('DEBUG(FormShow): DumpRestorePsqlPath = ' + DumpRestorePsqlPath));
+  OutputDebugString(PChar('DEBUG(FormShow): FOutputFilePath = ' + FOutputFilePath));
+  OutputDebugString(PChar('DEBUG(FormShow): LogFilePath = ' + LogFilePath));
+  OutputDebugString(PChar('DEBUG(FormShow): FCommandString (from IniciarOperacao) = ' + FCommandString)); // O comando completo
+
+  // Agora, de fato, cria e inicia a thread.
+  FWorkerThread := TPostgreSQLWorkerThread.Create(
+    FCommandString,
+    PGSenha,
+    FOutputFilePath,
+    LogFilePath,
+    PGAcao = Backup,
+    ProgressBarBackupRestore,
+    LblProgresso,
+    RichEditLog,
+    Connection,
+    DumpRestorePsqlPath
+  );
+  FWorkerThread.OnTerminate := ThreadTerminated;
+  FWorkerThread.Start; // Inicia a thread
+end;
+
+procedure TFormBackupRestore.IniciarOperacao(const ACommand: string; const AOutputFilePath: string;
+                                              const ADumpPath, ARestorePath, APsqlPath, AHost, APorta,
+                                              ANomeDoDatabase, ASenha: string; AFormato: char; AAcao: TEnumAcaoBackup;
+                                              AConnection: TFDConnection);
+begin
+  // Armazena os parâmetros nas propriedades internas do formulário.
+  FCommandString := ACommand;
+  FOutputFilePath := AOutputFilePath; // Armazena o OutputFilePath
+
+  // Armazenar todos os parâmetros passados (nas suas propriedades públicas)
+  PGDumpPath := ADumpPath;
+  PGRestorePath := ARestorePath;
+  PQPsqlPath := APsqlPath;
+  PGHost := AHost;
+  PGPorta := APorta;
+  PGNomeDoDatabase := ANomeDoDatabase;
+  PGSenha := ASenha;
+  PGFormato := AFormato;
+  PGAcao := AAcao;
+  FConnection_Ref := AConnection;
+end;
+
+
+// ===========================================================================
+// TPostgreSQLWorkerThread Implementação
+// ===========================================================================
+
+constructor TPostgreSQLWorkerThread.Create(const Cmd, Pwd, AOutputFilePathParam, LogPath: string; IsDump: Boolean;
+                                            ProgressBar: TProgressBar; LblStatus: TLabel; RichEditLog: TRichEdit;
+                                            Connection: TFDConnection; DumpRestorePsqlPath: string);
+begin
+  inherited Create(True); // Create suspended initially
+  FCommand := Cmd;
+  FPassword := Pwd;
+  FOutputFilePath := AOutputFilePathParam;
+  FLogFilePath := LogPath;
+  FIsDumpOperation := IsDump;
+  FProgressBar := ProgressBar;
+  FLblStatus := LblStatus;
+  FRichEditLog := RichEditLog;
+  FConnection := Connection;
+  FDumpRestorePsqlPath := DumpRestorePsqlPath;
+
+  // Inicializa todos os contadores
+  FTotalDataTables := 0;
+  FProcessedDataTables := 0;
+  FTotalSchemas := 0;
+  FProcessedSchemas := 0;
+  FTotalIndexes := 0;
+  FProcessedIndexes := 0;
+
+  FCurrentPhase := ppEstimating;
+  FExitCode := 0;
+  FreeOnTerminate := True;
+  FLastProgressMessageTick := 0;
+
+  // NOVO: Inicializa os campos para o timer da fase inicial
+  FLastTimedIncrementTick := GetTickCount;
+  FIsPreDataTimedPhase := False; // Começa como falso, será ativado em Execute
+end;
+
+// ===========================================================================
+// MODIFICADO: TPostgreSQLWorkerThread.UpdateUI
+// ===========================================================================
+procedure TPostgreSQLWorkerThread.UpdateUI(NewPosition: Integer; const StatusText: string; const LogLine: string);
+var
+  CurrentTick: Cardinal;
+  ShouldUpdateProgress: Boolean;
+begin
+  if (LogLine <> '') then
+  begin
+    Synchronize(
+      procedure
+      begin
+        if Assigned(FRichEditLog) then
+        begin
+          if FRichEditLog.Lines.Count > 1000 then
+            FRichEditLog.Lines.Delete(0);
+          FRichEditLog.Lines.Add(LogLine);
+          FRichEditLog.SelStart := FRichEditLog.GetTextLen;
+          FRichEditLog.SelLength := 0;
+          FRichEditLog.Perform(EM_SCROLLCARET, 0, 0);
+        end;
+      end
+    );
+  end;
+
+  // Sempre atualiza o progresso se for 100%, ou se já passou tempo suficiente.
+  // Isso evita updates muito frequentes que podem sobrecarregar a UI.
+  ShouldUpdateProgress := (NewPosition = 100);
+
+  CurrentTick := GetTickCount;
+  if (CurrentTick - FLastProgressMessageTick) >= 50 then // Atualiza a cada 50ms
+  begin
+    ShouldUpdateProgress := True;
+    FLastProgressMessageTick := CurrentTick;
+  end;
+
+  if ShouldUpdateProgress then
+  begin
+    Synchronize(
+      procedure
+      begin
+        if Assigned(FProgressBar) then
+        begin
+          if NewPosition >= FProgressBar.Min then
+          begin
+            if NewPosition <= FProgressBar.Max then
+              FProgressBar.Position := NewPosition
+            else
+              FProgressBar.Position := FProgressBar.Max;
+          end;
+        end;
+
+        if Assigned(FLblStatus) then
+          FLblStatus.Caption := StatusText;
+      end
+    );
+  end;
+end;
+
+// ===========================================================================
+// MODIFICADO: TPostgreSQLWorkerThread.ProcessOutputLine
+// Aprimora o cálculo de progresso para fases pré e pós-dados.
+// ===========================================================================
+procedure TPostgreSQLWorkerThread.ProcessOutputLine(const Line: string);
+var
+  CurrentPosition: Integer;
+  StatusMessage: string;
+begin
+  CurrentPosition := FProgressBar.Position;
+  StatusMessage := FLblStatus.Caption;
+
+  if FIsDumpOperation then // Lógica para pg_dump (Backup)
+  begin
+    // Fase pré-dados (ppPreData)
+    if (Pos(DUMP_READING_DEFINITIONS_EN, Line) > 0) or (Pos(DUMP_READING_DEFINITIONS_PT, Line) > 0) then
+    begin
+      FCurrentPhase := ppPreData;
+      // CurrentPosition é tratado pelo timer em Execute agora, apenas garante que não volte
+      if CurrentPosition < DUMP_PHASE_DEFINITIONS_START then
+        CurrentPosition := DUMP_PHASE_DEFINITIONS_START;
+      StatusMessage := 'Lendo definições do banco...';
+      FIsPreDataTimedPhase := True; // Ativa o modo timer se ainda não estiver
+    end
+    else if (Pos(DUMP_READING_EXTENSIONS_EN, Line) > 0) or (Pos(DUMP_READING_EXTENSIONS_PT, Line) > 0) then
+    begin
+      if CurrentPosition < DUMP_PHASE_EXTENSIONS_START then
+        CurrentPosition := DUMP_PHASE_EXTENSIONS_START;
+      StatusMessage := 'Lendo extensões...';
+      FIsPreDataTimedPhase := True; // Ativa o modo timer se ainda não estiver
+    end
+    else if (Pos(DUMP_READING_SCHEMAS_EN, Line) > 0) or (Pos(DUMP_READING_SCHEMAS_PT, Line) > 0) then
+    begin
+      if CurrentPosition < DUMP_PHASE_SCHEMAS_START then
+        CurrentPosition := DUMP_PHASE_SCHEMAS_START;
+      StatusMessage := 'Lendo esquemas...';
+      FIsPreDataTimedPhase := True; // Ativa o modo timer se ainda não estiver
+    end
+    // Fase de dados (ppData)
+    else if (Pos(DUMP_PROCESSING_TABLE_DATA_EN, Line) > 0) or (Pos(DUMP_PROCESSING_TABLE_DATA_PT, Line) > 0) then
+    begin
+      // Se entrar na fase de dados, desativa o timer da pré-data
+      if FIsPreDataTimedPhase then
+      begin
+          FIsPreDataTimedPhase := False;
+          OutputDebugString(PChar('DEBUG: DUMP - Timed pre-data phase ended, entering DATA phase.'));
+      end;
+
+      if FCurrentPhase <> ppData then
+      begin
+        FCurrentPhase := ppData;
+        FProcessedDataTables := 0; // Reinicia a contagem
+      end;
+      Inc(FProcessedDataTables);
+      // Calcula a posição da barra de progresso entre DUMP_PHASE_DATA_START e DUMP_PHASE_DATA_END
+      if FTotalDataTables > 0 then // Evita divisão por zero
+        CurrentPosition := DUMP_PHASE_DATA_START +
+                           Round((FProcessedDataTables / FTotalDataTables) * (DUMP_PHASE_DATA_END - DUMP_PHASE_DATA_START));
+      StatusMessage := 'Despejando dados da tabela: ' + ExtractTableNameFromLog(Line) + Format(' (%d/%d)', [FProcessedDataTables, FTotalDataTables]);
+    end
+    // Fase pós-dados (ppPostData)
+    else if (Pos(DUMP_FINISHED_EN, Line) > 0) or (Pos(DUMP_FINISHED_PT, Line) > 0) then
+    begin
+      FCurrentPhase := ppPostData;
+      CurrentPosition := DUMP_PHASE_FINALIZING;
+      StatusMessage := 'Finalizando backup...';
+    end;
+  end
+  else // Lógica para pg_restore (Restore)
+  begin
+    // Fase pré-dados (ppPreData)
+    if (Pos(RESTORE_CONNECTING_EN, Line) > 0) or (Pos(RESTORE_CONNECTING_PT, Line) > 0) then
+    begin
+      FCurrentPhase := ppPreData;
+      // CurrentPosition é tratado pelo timer em Execute agora, apenas garante que não volte
+      if CurrentPosition < RESTORE_PHASE_CONNECTING then
+        CurrentPosition := RESTORE_PHASE_CONNECTING;
+      StatusMessage := 'Conectando ao banco de dados...';
+      FIsPreDataTimedPhase := True; // Ativa o modo timer se ainda não estiver
+    end
+    else if (Pos(RESTORE_CREATING_SCHEMA_EN, Line) > 0) or (Pos(RESTORE_CREATING_SCHEMA_PT, Line) > 0) then
+    begin
+      FIsPreDataTimedPhase := False; // Desativa o timer, pois agora temos contagem granular de schemas
+      // Como 'creating SCHEMA' é por objeto, podemos usar FProcessedSchemas aqui.
+      if FCurrentPhase <> ppPreData then // Garante que estamos na fase certa
+      begin
+        FCurrentPhase := ppPreData;
+        FProcessedSchemas := 0;
+      end;
+      Inc(FProcessedSchemas);
+      // Calcula a posição entre RESTORE_PHASE_CONNECTING e RESTORE_PHASE_PREDATA_END
+      // Se FTotalSchemas for 0 (ex: dump sem schemas explícitos), o progresso será um salto fixo para a próxima fase.
+      if FTotalSchemas > 0 then
+        CurrentPosition := RESTORE_PHASE_CONNECTING +
+                           Round((FProcessedSchemas / FTotalSchemas) * (RESTORE_PHASE_PREDATA_END - RESTORE_PHASE_CONNECTING))
+      else
+        CurrentPosition := RESTORE_PHASE_PREDATA_END; // Se não houver schemas, salta para o fim da pré-data
+      StatusMessage := 'Criando esquema: ' + ExtractTableNameFromLog(Line) + Format(' (%d/%d)', [FProcessedSchemas, FTotalSchemas]);
+      OutputDebugString(PChar(Format('DEBUG(Restore Schema Phase): Line="%s", FProcessedSchemas=%d, FTotalSchemas=%d, CalculatedPosition=%d', [Line, FProcessedSchemas, FTotalSchemas, CurrentPosition])));
+    end
+    // Fase de dados (ppData)
+    else if (Pos(RESTORE_PROCESSING_TABLE_DATA_EN, Line) > 0) or (Pos(RESTORE_PROCESSING_TABLE_DATA_PT, Line) > 0) then
+    begin
+      // Se entrar na fase de dados, desativa o timer da pré-data
+      if FIsPreDataTimedPhase then
+      begin
+          FIsPreDataTimedPhase := False;
+          OutputDebugString(PChar('DEBUG: RESTORE - Timed pre-data phase ended, entering DATA phase.'));
+      end;
+
+      if FCurrentPhase <> ppData then
+      begin
+        FCurrentPhase := ppData;
+        FProcessedDataTables := 0; // Reinicia a contagem
+      end;
+      Inc(FProcessedDataTables);
+      // Calcula a posição da barra de progresso entre RESTORE_PHASE_DATA_START e RESTORE_PHASE_DATA_END
+      if FTotalDataTables > 0 then // Evita divisão por zero
+        CurrentPosition := RESTORE_PHASE_DATA_START +
+                           Round((FProcessedDataTables / FTotalDataTables) * (RESTORE_PHASE_DATA_END - RESTORE_PHASE_DATA_START));
+      StatusMessage := 'Restaurando dados da tabela: ' + ExtractTableNameFromLog(Line) + Format(' (%d/%d)', [FProcessedDataTables, FTotalDataTables]);
+      OutputDebugString(PChar(Format('DEBUG(Restore Data Phase): Line="%s", FProcessedDataTables=%d, FTotalDataTables=%d, CalculatedPosition=%d', [Line, FProcessedDataTables, FTotalDataTables, CurrentPosition])));
+    end
+    // Fase pós-dados (ppPostData)
+    else if (Pos(RESTORE_CREATING_INDEX_EN, Line) > 0) or (Pos(RESTORE_CREATING_INDEX_PT, Line) > 0) then
+    begin
+      // Se estava no modo timer na fase pós-dados e um índice é detectado, desativa o timer.
+      // (Isso seria mais útil para o dump, no restore já estamos contando índices)
+      FIsPreDataTimedPhase := False; // Apenas para garantir que o timer esteja desativado aqui.
+
+      // Como 'creating INDEX' é por objeto, podemos usar FProcessedIndexes aqui.
+      if FCurrentPhase <> ppPostData then // Garante que estamos na fase certa
+      begin
+        FCurrentPhase := ppPostData;
+        FProcessedIndexes := 0;
+      end;
+      Inc(FProcessedIndexes);
+      // Calcula a posição entre RESTORE_PHASE_INDEXES_START e RESTORE_PHASE_POSTDATA_END
+      // Se FTotalIndexes for 0, o progresso será um salto fixo para o fim da pós-data.
+      if FTotalIndexes > 0 then
+        CurrentPosition := RESTORE_PHASE_INDEXES_START +
+                           Round((FProcessedIndexes / FTotalIndexes) * (RESTORE_PHASE_POSTDATA_END - RESTORE_PHASE_INDEXES_START))
+      else
+        CurrentPosition := RESTORE_PHASE_POSTDATA_END; // Se não houver índices, salta para o fim da pós-data
+      StatusMessage := 'Criando índice: ' + ExtractTableNameFromLog(Line) + Format(' (%d/%d)', [FProcessedIndexes, FTotalIndexes]);
+      OutputDebugString(PChar(Format('DEBUG(Restore Index Phase): Line="%s", CurrentPosition=%d', [Line, CurrentPosition])));
+    end
+    else if (Pos(RESTORE_FINISHED_EN, Line) > 0) or (Pos(RESTORE_FINISHED_PT, Line) > 0) then
+    begin
+      FCurrentPhase := ppPostData;
+      CurrentPosition := RESTORE_PHASE_LAST_STEP;
+      StatusMessage := 'Restauração concluída!';
+      OutputDebugString(PChar(Format('DEBUG(Restore Finished): Line="%s", CurrentPosition=%d', [Line, CurrentPosition])));
+    end;
+  end;
+
+  UpdateUI(CurrentPosition, StatusMessage, Line);
+end;
+
+function TPostgreSQLWorkerThread.ExtractTableNameFromLog(const LogLine: string): string;
+var
+  StartPos: Integer;
+  EndPos: Integer;
+begin
+  Result := 'N/A';
+
+  // Tenta extrair entre aspas duplas (formato comum para tabelas e esquemas)
+  // Adaptado para pegar nome de schema, index, etc.
+  StartPos := Pos('table "', LogLine);
+  if StartPos = 0 then StartPos := Pos('tabela "', LogLine);
+  if StartPos = 0 then StartPos := Pos('SCHEMA "', LogLine);
+  if StartPos = 0 then StartPos := Pos('INDEX "', LogLine);
+
+  if StartPos > 0 then
+  begin
+    // Avança para depois da palavra-chave e aspas
+    if LogLine.Contains('table "') then StartPos := StartPos + Length('table "')
+    else if LogLine.Contains('tabela "') then StartPos := StartPos + Length('tabela "')
+    else if LogLine.Contains('SCHEMA "') then StartPos := StartPos + Length('SCHEMA "')
+    else if LogLine.Contains('INDEX "') then StartPos := StartPos + Length('INDEX "');
+
+    EndPos := Pos('"', LogLine, StartPos); // Encontra a próxima aspas
+    if EndPos > 0 then
+      Result := Copy(LogLine, StartPos, EndPos - StartPos)
+    else
+      Result := Copy(LogLine, StartPos, Length(LogLine));
+  end;
+
+  // Tenta pegar após a palavra-chave e fazer um trim (fallback se não tiver aspas)
+  if Result = 'N/A' then
+  begin
+      StartPos := Pos('table ', LogLine);
+      if StartPos > 0 then
+      begin
+        StartPos := StartPos + Length('table ');
+        Result := Trim(Copy(LogLine, StartPos, Length(LogLine)));
+        if Result.EndsWith('...') then
+          Result := Result.Substring(0, Result.Length - 3);
+        if Result.Contains(' (') then
+          Result := Result.Substring(0, Result.IndexOf(' ('));
+      end
+      else // Tenta para SCHEMA sem aspas
+      begin
+          StartPos := Pos('SCHEMA ', LogLine);
+          if StartPos > 0 then
+          begin
+            StartPos := StartPos + Length('SCHEMA ');
+            Result := Trim(Copy(LogLine, StartPos, Length(LogLine)));
+          end
+          else // Tenta para INDEX sem aspas
+          begin
+              StartPos := Pos('INDEX ', LogLine);
+              if StartPos > 0 then
+              begin
+                StartPos := StartPos + Length('INDEX ');
+                Result := Trim(Copy(LogLine, StartPos, Length(LogLine)));
+              end;
+          end;
+      end;
+  end;
+end;
+
+function TPostgreSQLWorkerThread.CountTablesInDatabase(AConnection: TFDConnection): Integer;
+var
+  Q: TFDQuery;
+begin
+  Result := 0; // Este é o FTotalDataTables para o caso de Backup
+  FTotalSchemas := 0; // Tentativa de contar schemas também para backup
+  FTotalIndexes := 0; // Tentativa de contar índices também para backup
+
+  if not Assigned(AConnection) or not AConnection.Connected then
+  begin
+    OutputDebugString(PChar('Thread: Erro: Conexão FDConnection não atribuída ou não conectada para contar tabelas.'));
+    Exit;
+  end;
+
+  Q := TFDQuery.Create(nil);
+  try
+    Q.Connection := AConnection;
+    // Contar tabelas com dados
+    Q.SQL.Text := 'select count(*) from information_schema.tables ' +
+                  'where table_schema not in (''pg_catalog'', ''information_schema'', ''pg_toast'') ' +
+                  'and table_type = ''BASE TABLE''';
+    Q.Open;
+    Result := Q.Fields[0].AsInteger; // Popula FTotalDataTables
+    OutputDebugString(PChar(Format('Thread: Contou %d tabelas no banco de dados para dados.', [Result])));
+    Q.Close;
+
+    // Contar schemas
+    Q.SQL.Text := 'select count(*) from information_schema.schemata ' +
+                  'where schema_name not in (''pg_catalog'', ''information_schema'', ''pg_toast'')';
+    Q.Open;
+    FTotalSchemas := Q.Fields[0].AsInteger;
+    OutputDebugString(PChar(Format('Thread: Contou %d schemas no banco de dados.', [FTotalSchemas])));
+    Q.Close;
+
+    // Contar índices
+    Q.SQL.Text := 'select count(*) from pg_class c join pg_namespace n on n.oid = c.relnamespace ' +
+                  'where c.relkind = ''i'' and n.nspname not in (''pg_catalog'', ''information_schema'', ''pg_toast'')';
+    Q.Open;
+    FTotalIndexes := Q.Fields[0].AsInteger;
+    OutputDebugString(PChar(Format('Thread: Contou %d índices no banco de dados.', [FTotalIndexes])));
+    Q.Close;
+
+  except
+    on E: Exception do
+    begin
+      OutputDebugString(PChar('Thread: Erro ao contar objetos para estimativa de backup: ' + E.Message));
+      Result := 0; // Em caso de erro, retorna 0
+      FTotalSchemas := 0;
+      FTotalIndexes := 0;
+    end;
+  end;
+  Q.Free;
+end;
+
+
+// ===========================================================================
+// MODIFICADO: CountObjectsInDumpFile
+// Agora conta TABLE DATA, SCHEMA e INDEX do arquivo de dump
+// ===========================================================================
+function TPostgreSQLWorkerThread.CountObjectsInDumpFile(const ADumpFile: string; const PgRestorePath: string; const Password: string): Integer;
+var
+  SA: TSecurityAttributes;
+  StdOutPipeRead, StdOutPipeWrite: THandle;
+  StartupInfo: TStartupInfo;
+  ProcessInfo: TProcessInformation;
+  Cmd: string;
+  OutputReader: TStreamReader;
+  Line: string;
+  TableDataRegex: TRegEx;
+  SchemaRegex: TRegEx;
+  IndexRegex: TRegEx;
+begin
+  FTotalDataTables := 0; // Reinicia a contagem
+  FTotalSchemas := 0;    // Reinicia a contagem
+  FTotalIndexes := 0;    // Reinicia a contagem
+
+  // Expressões Regulares para os diferentes tipos de objetos no pg_restore --list
+  // Ajuste os padrões se necessário para o output exato do seu pg_restore --list
+  // Ex: "; 0; 24956 SCHEMA public"
+  // Ex: "; 0; 24987 TABLE DATA public users"
+  // Ex: "; 0; 25012 INDEX public users_pkey"
+  TableDataRegex := TRegEx.Create('TABLE DATA\s+"?[\w\.]+"?\s+"?[\w\.]+"?', [roIgnoreCase]);
+  SchemaRegex := TRegEx.Create(';\s*\d+;\s*\d+\s+SCHEMA\s+"?[\w\.]+"?', [roIgnoreCase]);
+  IndexRegex := TRegEx.Create(';\s*\d+;\s*\d+\s+INDEX\s+"?[\w\.]+"?\s+"?[\w\.]+"?', [roIgnoreCase]);
+
+  try
+    Cmd := Format('"%s" --list "%s"', [PgRestorePath, ADumpFile]);
+    OutputDebugString(PChar('Thread: CountObjectsInDumpFile - Comando: ' + Cmd));
+
+    SetEnvironmentVariable('PGPASSWORD', PChar(Password));
+    try
+      ZeroMemory(@SA, SizeOf(SA));
+      SA.nLength := SizeOf(SA);
+      SA.bInheritHandle := True;
+
+      if not CreatePipe(StdOutPipeRead, StdOutPipeWrite, @SA, 0) then
+        RaiseLastOSError;
+
+      try
+        ZeroMemory(@StartupInfo, SizeOf(StartupInfo));
+        StartupInfo.cb := SizeOf(StartupInfo);
+        StartupInfo.hStdOutput := StdOutPipeWrite;
+        StartupInfo.hStdError := StdOutPipeWrite; // Redireciona erro também para o pipe
+        StartupInfo.dwFlags := STARTF_USESTDHANDLES;
+        ZeroMemory(@ProcessInfo, SizeOf(ProcessInfo));
+
+        if not CreateProcess(nil, PChar(Cmd), nil, nil, True, CREATE_NO_WINDOW, nil, nil, StartupInfo, ProcessInfo) then
+        begin
+          OutputDebugString(PChar(Format('Thread: CountObjectsInDumpFile - Erro ao executar CreateProcess: %d', [GetLastError])));
+          RaiseLastOSError;
+        end;
+
+        CloseHandle(StdOutPipeWrite);
+
+        OutputReader := TStreamReader.Create(THandleStream.Create(StdOutPipeRead));
+        OutputReader.BaseStream.Position := 0;
+
+        try
+          while not OutputReader.EndOfStream do
+          begin
+            Line := OutputReader.ReadLine;
+            // Contar os tipos de objetos relevantes
+            if TableDataRegex.Match(Line).Success then
+            begin
+              Inc(FTotalDataTables);
+              OutputDebugString(PChar('Contando TABLE DATA: ' + Line));
+            end
+            else if SchemaRegex.Match(Line).Success then
+            begin
+              Inc(FTotalSchemas);
+              OutputDebugString(PChar('Contando SCHEMA: ' + Line));
+            end
+            else if IndexRegex.Match(Line).Success then
+            begin
+              Inc(FTotalIndexes);
+              OutputDebugString(PChar('Contando INDEX: ' + Line));
+            end;
+          end;
+
+        finally
+          OutputReader.Free;
+        end;
+
+        WaitForSingleObject(ProcessInfo.hProcess, INFINITE);
+      finally
+        CloseHandle(ProcessInfo.hProcess);
+        CloseHandle(ProcessInfo.hThread);
+        CloseHandle(StdOutPipeRead);
+      end;
+    finally
+      SetEnvironmentVariable('PGPASSWORD', nil);
+    end;
+
+    // Retorna a contagem de tabelas de dados, mas as outras totais estão nas variáveis de classe
+    Result := FTotalDataTables;
+    OutputDebugString(PChar(Format('Thread: CountObjectsInDumpFile - Resumo: TABLE DATA=%d, SCHEMAS=%d, INDEXES=%d', [FTotalDataTables, FTotalSchemas, FTotalIndexes])));
+  finally
+    // TRegEx são registros, não precisam ser liberados explicitamente.
+  end;
+end;
+
+procedure TPostgreSQLWorkerThread.Execute;
+var
+  SA: TSecurityAttributes;
+  StdOutPipeRead, StdOutPipeWrite: THandle;
+  StartupInfo: TStartupInfo;
+  ProcessInfo: TProcessInformation;
+  LogFileStreamWriter: TStreamWriter;
+  OutputReader: TStreamReader;
+  Line: string;
+  ProcessStatus: LongWord;
+  TimePassed: Cardinal; // Para calcular o tempo para o incremento
+begin
+  UpdateUI(0, 'Iniciando operação...', '');
+  FExitCode := 0;
+
+  try
+    // 0. Estimativa de progresso
+    FCurrentPhase := ppEstimating;
+    if FIsDumpOperation then // Backup
+    begin
+      UpdateUI(0, 'Contando objetos para estimativa de backup...', '');
+      // CountTablesInDatabase agora preenche FTotalDataTables, FTotalSchemas, FTotalIndexes
+      CountTablesInDatabase(FConnection);
+
+      // Define um mínimo para as contagens para evitar divisão por zero e garantir movimento
+      // Se a contagem for 0, usamos 1 para permitir o cálculo de progresso "completo" para essa fase
+      // se ela não existir.
+      if FTotalDataTables = 0 then FTotalDataTables := 1;
+      if FTotalSchemas = 0 then FTotalSchemas := 1;
+      if FTotalIndexes = 0 then FTotalIndexes := 1;
+
+      UpdateUI(DUMP_PHASE_ESTIMATING_END, 'Estimativa concluída. Preparando backup...', '');
+      FIsPreDataTimedPhase := True; // Ativa o modo timer para a fase pré-dados do DUMP
+      FLastTimedIncrementTick := GetTickCount; // Reinicia o tick para o timer
+    end
+    else // Restore
+    begin
+      UpdateUI(0, 'Analisando arquivo de backup para estimativa de restauração...', '');
+      // CountObjectsInDumpFile agora preenche FTotalDataTables, FTotalSchemas, FTotalIndexes
+      CountObjectsInDumpFile(FOutputFilePath, FDumpRestorePsqlPath, FPassword);
+
+      // Define um mínimo para as contagens para evitar divisão por zero e garantir movimento
+      // Se a contagem for 0, usamos 1 para permitir o cálculo de progresso "completo" para essa fase
+      // se ela não existir.
+      if FTotalDataTables = 0 then FTotalDataTables := 1;
+      if FTotalSchemas = 0 then FTotalSchemas := 1;
+      if FTotalIndexes = 0 then FTotalIndexes := 1;
+
+      UpdateUI(RESTORE_PHASE_ESTIMATING_END, 'Estimativa concluída. Preparando restauração...', '');
+      FIsPreDataTimedPhase := True; // Ativa o modo timer para a fase pré-dados do RESTORE
+      FLastTimedIncrementTick := GetTickCount; // Reinicia o tick para o timer
+    end;
+    FCurrentPhase := ppPreData; // A thread está na fase pré-dados (controlada pelo timer)
+
+    LogFileStreamWriter := nil;
+    try
+      LogFileStreamWriter := TStreamWriter.Create(FLogFilePath, False);
+    except
+      on E: Exception do
+      begin
+        FExitCode := 1;
+        UpdateUI(0, 'ERRO: ' + E.Message, 'ERRO ao criar arquivo de log: ' + E.Message);
+        Exit;
+      end;
+    end;
+
+    SetEnvironmentVariable('PGPASSWORD', PChar(FPassword));
+    try
+      ZeroMemory(@SA, SizeOf(SA));
+      SA.nLength := SizeOf(SA);
+      SA.bInheritHandle := True;
+
+      if not CreatePipe(StdOutPipeRead, StdOutPipeWrite, @SA, 0) then
+        RaiseLastOSError;
+
+      try
+        ZeroMemory(@StartupInfo, SizeOf(StartupInfo));
+        StartupInfo.cb := SizeOf(StartupInfo);
+        StartupInfo.hStdOutput := StdOutPipeWrite;
+        StartupInfo.hStdError := StdOutPipeWrite;
+        StartupInfo.dwFlags := STARTF_USESTDHANDLES;
+        ZeroMemory(@ProcessInfo, SizeOf(ProcessInfo));
+
+        if not CreateProcess(nil, PChar(FCommand), nil, nil, True, CREATE_NO_WINDOW, nil, nil, StartupInfo, ProcessInfo) then
+          RaiseLastOSError;
+
+        CloseHandle(StdOutPipeWrite);
+
+        OutputReader := TStreamReader.Create(THandleStream.Create(StdOutPipeRead));
+        OutputReader.BaseStream.Position := 0;
+
+        try
+          while (GetExitCodeProcess(ProcessInfo.hProcess, ProcessStatus) and (ProcessStatus = STILL_ACTIVE)) or
+                (OutputReader.Peek <> -1) do
+          begin
+            if Terminated then
+              Break;
+
+            // Lógica para o incremento de 1% a cada meio segundo na fase pré-dados
+            if FIsPreDataTimedPhase then
+            begin
+              TimePassed := GetTickCount - FLastTimedIncrementTick;
+              if TimePassed >= 500 then // Meio segundo (500ms)
+              begin
+                FLastTimedIncrementTick := GetTickCount;
+                // Incrementa a barra, mas não ultrapassa o limite da fase de dados
+                if FIsDumpOperation then
+                begin
+                  if (FProgressBar.Position < DUMP_PHASE_DATA_START) then
+                  begin
+                    UpdateUI(Min(FProgressBar.Position + 1, DUMP_PHASE_DATA_START), 'Preparando backup...', '');
+                  end
+                  else
+                  begin
+                    FIsPreDataTimedPhase := False; // Desativa o timer se atingiu o limite
+                  end;
+                end
+                else // Restore
+                begin
+                   if (FProgressBar.Position < RESTORE_PHASE_DATA_START) then
+                   begin
+                     UpdateUI(Min(FProgressBar.Position + 1, RESTORE_PHASE_DATA_START), 'Preparando restauração...', '');
+                   end
+                   else
+                   begin
+                     FIsPreDataTimedPhase := False; // Desativa o timer se atingiu o limite
+                   end;
+                end;
+              end;
+            end;
+
+
+            if not OutputReader.EndOfStream then
+            begin
+              Line := OutputReader.ReadLine;
+              LogFileStreamWriter.WriteLine(Line);
+              ProcessOutputLine(Line); // ProcessOutputLine irá desativar o timer se a fase mudar para dados
+            end
+            else
+            begin
+              Sleep(10); // Pequeno sleep para não consumir 100% da CPU se não houver output
+            end;
+          end;
+
+          // Processar qualquer linha restante após o fim do processo
+          while not OutputReader.EndOfStream and not Terminated do
+          begin
+            Line := OutputReader.ReadLine;
+            LogFileStreamWriter.WriteLine(Line);
+            ProcessOutputLine(Line);
+          end;
+
+          WaitForSingleObject(ProcessInfo.hProcess, INFINITE);
+
+          if GetExitCodeProcess(ProcessInfo.hProcess, ProcessStatus) then
+          begin
+            FExitCode := ProcessStatus;
+            if FExitCode <> 0 then
+              UpdateUI(100, Format('Operação finalizada com erros. Código: %d', [FExitCode]), '')
+            else
+              UpdateUI(100, 'Operação concluída com sucesso!', '');
+          end
+          else
+          begin
+            FExitCode := 1;
+            UpdateUI(100, 'Não foi possível obter código de saída do processo.', '');
+          end;
+
+        finally
+          OutputReader.Free;
+        end;
+
+      finally
+        CloseHandle(ProcessInfo.hProcess);
+        CloseHandle(ProcessInfo.hThread);
+        CloseHandle(StdOutPipeRead);
+      end;
+    finally
+      SetEnvironmentVariable('PGPASSWORD', nil);
+      if Assigned(LogFileStreamWriter) then
+        FreeAndNil(LogFileStreamWriter);
+    end;
+
+  except
+    on E: Exception do
+    begin
+      FExitCode := 1;
+      UpdateUI(FProgressBar.Position, 'ERRO: ' + E.Message, 'ERRO CRÍTICO NA THREAD: ' + E.Message);
+    end;
+  end;
+
+  // Garante que a barra chegue a 100% no final, mesmo em caso de erro menor ou sem mais logs.
+  if Assigned(FProgressBar) and (FProgressBar.Position < 100) then
+    UpdateUI(100, FLblStatus.Caption, '');
+end;
+
+procedure TFormBackupRestore.ThreadTerminated(Sender: TObject);
+var
+  ExitCode: LongWord;
+begin
+  if Assigned(FWorkerThread) then
+  begin
+    ExitCode := FWorkerThread.ExitCode;
+    FIsOperationSuccessful := (ExitCode = 0);
+
+    if FIsOperationSuccessful then
+    begin
+      if PGAcao = Backup then
+        ShowMessage('Backup concluído com sucesso!' + sLineBreak + 'Arquivo salvo em: ' + TPath.GetFileName(FOutputFilePath) + sLineBreak + 'Log salvo em: ' + FWorkerThread.FLogFilePath)
+      else
+        ShowMessage('Restauração concluída com sucesso!' + sLineBreak + 'Database: ' + PGNomeDoDatabase + sLineBreak + 'Dados restaurados com sucesso.' + sLineBreak + 'Log salvo em: ' + FWorkerThread.FLogFilePath);
+    end
+    else
+    begin
+      ShowMessage(Format('Ocorreu um erro durante a operação de %s. Código de saída: %d' + sLineBreak + 'Verifique o arquivo de log para mais detalhes: %s', [GetEnumName(TypeInfo(TEnumAcaoBackup), Ord(PGAcao)), ExitCode, FWorkerThread.FLogFilePath]));
+    end;
+
+    FWorkerThread := nil;
+    Close;
+  end;
+end;
+
+end.

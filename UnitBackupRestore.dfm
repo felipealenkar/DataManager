@@ -4,7 +4,7 @@ object FormBackupRestore: TFormBackupRestore
   BorderIcons = []
   BorderStyle = bsSingle
   Caption = 'FormBackupRestore'
-  ClientHeight = 233
+  ClientHeight = 278
   ClientWidth = 420
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -15,9 +15,24 @@ object FormBackupRestore: TFormBackupRestore
   Position = poDesktopCenter
   OnShow = FormShow
   TextHeight = 15
+  object LblPorcentagem: TLabel
+    Left = 200
+    Top = 57
+    Width = 23
+    Height = 21
+    Caption = '0%'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clDodgerblue
+    Font.Height = -16
+    Font.Name = 'Segoe UI'
+    Font.Style = [fsBold]
+    ParentFont = False
+    Transparent = True
+    StyleElements = []
+  end
   object LblProgresso: TLabel
     Left = 8
-    Top = 5
+    Top = 1
     Width = 120
     Height = 15
     Caption = 'progresso da opera'#231#227'o'
@@ -30,16 +45,17 @@ object FormBackupRestore: TFormBackupRestore
   end
   object ProgressBarBackupRestore: TProgressBar
     Left = 4
-    Top = 23
+    Top = 16
     Width = 411
     Height = 45
     TabOrder = 0
+    OnChange = ProgressBarBackupRestoreChange
   end
   object RichEditLog: TRichEdit
-    Left = 4
-    Top = 76
-    Width = 411
-    Height = 154
+    Left = 2
+    Top = 77
+    Width = 416
+    Height = 198
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
     Font.Height = -12
