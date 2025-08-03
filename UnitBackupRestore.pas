@@ -16,9 +16,7 @@ uses
 type
   TEnumAcaoBackup = (Backup, Restore);
 
-  // ===========================================================================
   // TPostgreSQLWorkerThread - Classe da Thread de Trabalho
-  // ===========================================================================
   TPostgreSQLWorkerThread = class(TThread)
   private
     // ... (campos existentes) ...
@@ -31,7 +29,7 @@ type
     FLblStatus: TLabel;         // Referência aos componentes do FormBackupRestore
     FRichEditLog: TRichEdit;    // Referência aos componentes do FormBackupRestore
     FConnection: TFDConnection; // Conexão para contar tabelas (Dump)
-    FDumpRestorePsqlPath: string; // Caminho completo do executável (pg_dump, pg_restore, psql)
+    FDumpRestorePath: string; // Caminho completo do executável (pg_dump, pg_restore)
 
     FTotalItemsToProcess: Integer; // Será o número de tabelas com dados para restore
     FProcessedItems: Integer;
@@ -44,6 +42,7 @@ type
     //Constantes que definem o movimento da barra de progresso (Pontos percentuais fixos)
     //Esses valores são baseados na sua estrutura original e podem precisar de ajustes finos.
     //Backup (pg_dump)
+      TempoAtualizacao = 50;
       DUMP_PHASE_ESTIMATING_END = 1; // Fim da estimativa
       DUMP_PHASE_DEFINITIONS_START = 2;  // Início da leitura de definições
       DUMP_PHASE_EXTENSIONS_START = 3;   // Início da leitura de extensões
@@ -53,7 +52,7 @@ type
       DUMP_PHASE_FINALIZING = 95;        // Finalizando o processo de backup
       DUMP_PHASE_COMPLETE = 100;         // Backup concluído
 
-      //Restore (pg_restore / psql) - Voltamos aos pesos originais para reavaliar com a nova contagem
+      //Restore (pg_restore) - Voltamos aos pesos originais para reavaliar com a nova contagem
       RESTORE_PHASE_ESTIMATING_END = 1; // Fim da estimativa
       RESTORE_PHASE_CONNECTING = 3;     // Conectando ao banco de dados
       RESTORE_PHASE_SCHEMAS_START = 5;  // Criando esquemas
@@ -103,7 +102,7 @@ type
     // Construtor da Thread
     constructor Create(const Cmd, Pwd, AOutputFilePathParam, LogPath: string; IsDump: Boolean;
                         ProgressBar: TProgressBar; LblStatus: TLabel; RichEditLog: TRichEdit;
-                        Connection: TFDConnection; DumpRestorePsqlPath: string);
+                        Connection: TFDConnection; DumpRestorePath: string);
 
     property ExitCode: LongWord read FExitCode;
   end;
@@ -127,12 +126,10 @@ type
     // Campos privados para armazenar os parâmetros.
     FPDump_Path: string;
     FPRestore_Path: string;
-    FPPsql_Path: string;
     FPHost_Addr: string;
     FPPorta_Num: string;
     FPNomeDoDatabase_Name: string;
     FPSenha_User: string;
-    FPFormato_Char: char;
     FPAcao_Type: TEnumAcaoBackup;
     FConnection_Ref: TFDConnection; // Referência para a conexão FireDAC
 
@@ -140,8 +137,8 @@ type
   public
     // Método que de fato inicia a operação (thread).
     procedure IniciarOperacao(const ACommand: string; const AOutputFilePath: string;
-                              const ADumpPath, ARestorePath, APsqlPath, AHost, APorta,
-                              ANomeDoDatabase, ASenha: string; AFormato: char; AAcao: TEnumAcaoBackup;
+                              const ADumpPath, ARestorePath, AHost, APorta,
+                              ANomeDoDatabase, ASenha: string; AAcao: TEnumAcaoBackup;
                               AConnection: TFDConnection);
 
     // =======================================================================
@@ -149,12 +146,10 @@ type
     // =======================================================================
     property PGDumpPath: string read FPDump_Path write FPDump_Path;
     property PGRestorePath: string read FPRestore_Path write FPRestore_Path;
-    property PQPsqlPath: string read FPPsql_Path write FPPsql_Path;
     property PGHost: string read FPHost_Addr write FPHost_Addr;
     property PGPorta: string read FPPorta_Num write FPPorta_Num;
     property PGNomeDoDatabase: string read FPNomeDoDatabase_Name write FPNomeDoDatabase_Name;
     property PGSenha: string read FPSenha_User write FPSenha_User;
-    property PGFormato: char read FPFormato_Char write FPFormato_Char;
     property PGAcao: TEnumAcaoBackup read FPAcao_Type write FPAcao_Type;
     property Connection: TFDConnection read FConnection_Ref write FConnection_Ref;
   end;
@@ -172,7 +167,7 @@ implementation
 
 procedure TFormBackupRestore.FormShow(Sender: TObject);
 var
-  DumpRestorePsqlPath: string;
+  DumpRestorePath: string;
   LogSuffix: string;
   LogFilePath: string;
 begin
@@ -187,16 +182,13 @@ begin
   case PGAcao of
     Backup:
       begin
-        DumpRestorePsqlPath := PGDumpPath; // pg_dump.exe
+        DumpRestorePath := PGDumpPath; // pg_dump.exe
         LogSuffix := '_backup';
       end;
     Restore:
       begin
-        if PGFormato = 'c' then
-          DumpRestorePsqlPath := PGRestorePath // pg_restore.exe (formato custom)
-        else
-          DumpRestorePsqlPath := PQPsqlPath; // psql.exe (formato plain)
-        LogSuffix := '_restore';
+          DumpRestorePath := PGRestorePath;
+          LogSuffix := '_restore' // pg_restore.exe
       end;
   end;
 
@@ -204,7 +196,7 @@ begin
   LogFilePath := TPath.ChangeExtension(FOutputFilePath, LogSuffix + '.log');
 
   // DEBUG: Verifique os caminhos antes de criar a thread
-  OutputDebugString(PChar('DEBUG(FormShow): DumpRestorePsqlPath = ' + DumpRestorePsqlPath));
+  OutputDebugString(PChar('DEBUG(FormShow): DumpRestorePath = ' + DumpRestorePath));
   OutputDebugString(PChar('DEBUG(FormShow): FOutputFilePath = ' + FOutputFilePath));
   OutputDebugString(PChar('DEBUG(FormShow): LogFilePath = ' + LogFilePath));
   OutputDebugString(PChar('DEBUG(FormShow): FCommandString (from IniciarOperacao) = ' + FCommandString)); // O comando completo
@@ -220,15 +212,15 @@ begin
     LblProgresso,
     RichEditLog,
     Connection,
-    DumpRestorePsqlPath
+    DumpRestorePath
   );
   FWorkerThread.OnTerminate := ThreadTerminated;
   FWorkerThread.Start; // Inicia a thread
 end;
 
 procedure TFormBackupRestore.IniciarOperacao(const ACommand: string; const AOutputFilePath: string;
-                                              const ADumpPath, ARestorePath, APsqlPath, AHost, APorta,
-                                              ANomeDoDatabase, ASenha: string; AFormato: char; AAcao: TEnumAcaoBackup;
+                                              const ADumpPath, ARestorePath, AHost, APorta,
+                                              ANomeDoDatabase, ASenha: string; AAcao: TEnumAcaoBackup;
                                               AConnection: TFDConnection);
 begin
   // Armazena os parâmetros nas propriedades internas do formulário.
@@ -240,12 +232,10 @@ begin
   // Armazenar todos os parâmetros passados (nas suas propriedades públicas)
   PGDumpPath := ADumpPath;
   PGRestorePath := ARestorePath;
-  PQPsqlPath := APsqlPath;
   PGHost := AHost;
   PGPorta := APorta;
   PGNomeDoDatabase := ANomeDoDatabase;
   PGSenha := ASenha;
-  PGFormato := AFormato;
   PGAcao := AAcao;
   Connection := AConnection;
 end;
@@ -262,7 +252,7 @@ end;
 
 constructor TPostgreSQLWorkerThread.Create(const Cmd, Pwd, AOutputFilePathParam, LogPath: string; IsDump: Boolean;
                                             ProgressBar: TProgressBar; LblStatus: TLabel; RichEditLog: TRichEdit;
-                                            Connection: TFDConnection; DumpRestorePsqlPath: string);
+                                            Connection: TFDConnection; DumpRestorePath: string);
 begin
   inherited Create(True); // Create suspended initially
   FCommand := Cmd;
@@ -274,7 +264,7 @@ begin
   FLblStatus := LblStatus;
   FRichEditLog := RichEditLog;
   FConnection := Connection;
-  FDumpRestorePsqlPath := DumpRestorePsqlPath;
+  FDumpRestorePath := DumpRestorePath;
   FTotalItemsToProcess := 0;
   FProcessedItems := 0;
   FCurrentPhase := ppEstimating;
@@ -319,7 +309,7 @@ begin
   ShouldUpdateProgress := (NewPosition = 100); // Força a atualização se for 100%
 
   CurrentTick := GetTickCount;
-  if (CurrentTick - FLastProgressMessageTick) >= 50 then // Só atualiza se 50ms ou mais passaram
+  if (CurrentTick - FLastProgressMessageTick) >= TempoAtualizacao then // Só atualiza se 50ms ou mais passaram
   begin
     ShouldUpdateProgress := True; // Permite atualização pelo throttle
     FLastProgressMessageTick := CurrentTick; // Reseta o contador APÓS verificar a condição
@@ -456,7 +446,7 @@ var
 begin
   Result := 'N/A';
 
-  // Tenta extrair entre aspas duplas (formato comum)
+  // Tenta extrair entre aspas duplas
   StartPos := Pos('table "', LogLine);
   if StartPos = 0 then StartPos := Pos('tabela "', LogLine); // Para logs em PT
 
@@ -644,7 +634,7 @@ begin
     begin
       UpdateUI(1, 'Analisando arquivo de backup para estimativa de progresso...', '');
       // AGORA FTotalItemsToProcess contará apenas as TABLE DATA entries!
-      FTotalItemsToProcess := CountObjectsInDumpFile(FOutputFilePath, FDumpRestorePsqlPath, FPassword);
+      FTotalItemsToProcess := CountObjectsInDumpFile(FOutputFilePath, FDumpRestorePath, FPassword);
       if FTotalItemsToProcess = 0 then
       begin
           // Fallback se não conseguir analisar o dump
@@ -804,8 +794,6 @@ begin
     end
     else
     begin
-      // A mensagem de erro que você viu na tela vem daqui.
-      // O `ExitCode: 1` indica que a operação falhou.
       ShowMessage(Format('Ocorreu um erro durante a operação de %s. Código de saída: %d' + sLineBreak + 'Verifique o arquivo de log para mais detalhes: %s', [GetEnumName(TypeInfo(TEnumAcaoBackup), Ord(PGAcao)), ExitCode, FWorkerThread.FLogFilePath]));
     end;
 

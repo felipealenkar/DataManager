@@ -42,3 +42,7 @@
 [02/08/2025 22:57:26] - Conexão com o banco de dados "PG" encerrada com sucesso. -
 [02/08/2025 22:57:29] - Conexão com o banco de dados "PG" iniciada com sucesso. -
 [02/08/2025 22:57:31] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 09:53:00] - ------------------------------------------------------------------------------- -
+[03/08/2025 09:53:00] - Aplicação iniciada. -
+[03/08/2025 09:53:01] - Aplicação Encerrada. -
+[03/08/2025 09:53:01] - ------------------------------------------------------------------------------- -

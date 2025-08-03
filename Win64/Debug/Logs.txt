@@ -666,3 +666,330 @@ CONNECTION LIMIT = -1
 [03/08/2025 03:22:51] - Aplicação iniciada. -
 [03/08/2025 03:22:53] - Conexão com o banco de dados "PG" iniciada com sucesso. -
 [03/08/2025 03:22:56] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 06:05:09] - ------------------------------------------------------------------------------- -
+[03/08/2025 06:05:09] - Aplicação iniciada. -
+[03/08/2025 06:05:15] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 06:05:17] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 06:08:07] - ------------------------------------------------------------------------------- -
+[03/08/2025 06:08:07] - Aplicação iniciada. -
+[03/08/2025 06:08:10] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 06:08:15] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 06:08:19] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 06:24:48] - ------------------------------------------------------------------------------- -
+[03/08/2025 06:24:48] - Aplicação iniciada. -
+[03/08/2025 06:24:51] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 06:24:53] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 06:27:41] - ------------------------------------------------------------------------------- -
+[03/08/2025 06:27:41] - Aplicação iniciada. -
+[03/08/2025 06:27:44] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 06:27:47] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 06:28:08] - ------------------------------------------------------------------------------- -
+[03/08/2025 06:28:08] - Aplicação iniciada. -
+[03/08/2025 06:28:11] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 06:28:13] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 06:34:13] - ------------------------------------------------------------------------------- -
+[03/08/2025 06:34:13] - Aplicação iniciada. -
+[03/08/2025 06:34:16] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 06:34:18] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 06:35:00] - ------------------------------------------------------------------------------- -
+[03/08/2025 06:35:00] - Aplicação iniciada. -
+[03/08/2025 06:35:04] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 06:35:07] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 06:36:48] - ------------------------------------------------------------------------------- -
+[03/08/2025 06:36:48] - Aplicação iniciada. -
+[03/08/2025 06:36:50] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 06:36:53] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 06:39:29] - ------------------------------------------------------------------------------- -
+[03/08/2025 06:39:29] - Aplicação iniciada. -
+[03/08/2025 06:39:31] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 06:39:34] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 06:44:48] - ------------------------------------------------------------------------------- -
+[03/08/2025 06:44:48] - Aplicação iniciada. -
+[03/08/2025 06:44:52] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 06:44:56] - Permissões removidas dos usuários do database "456". -
+[03/08/2025 06:44:56] - Usuários padrão do database "456" excluídos com sucesso. -
+[03/08/2025 06:44:56] - Usuários padrão do database "456" excluídos com sucesso. -
+[03/08/2025 06:44:56] - Query de exclusão de database executada:
+
+DROP DATABASE "456"
+ -
+[03/08/2025 06:44:56] - Database "456" excluído com sucesso. -
+[03/08/2025 06:44:58] - Permissões removidas dos usuários do database "123". -
+[03/08/2025 06:44:58] - Usuários padrão do database "123" excluídos com sucesso. -
+[03/08/2025 06:44:58] - Usuários padrão do database "123" excluídos com sucesso. -
+[03/08/2025 06:44:58] - Query de exclusão de database executada:
+
+DROP DATABASE "123"
+ -
+[03/08/2025 06:44:58] - Database "123" excluído com sucesso. -
+[03/08/2025 06:45:01] - Permissões removidas dos usuários do database "TESTE2". -
+[03/08/2025 06:45:01] - Usuários padrão do database "TESTE2" excluídos com sucesso. -
+[03/08/2025 06:45:01] - Usuários padrão do database "TESTE2" excluídos com sucesso. -
+[03/08/2025 06:45:01] - Query de exclusão de database executada:
+
+DROP DATABASE "TESTE2"
+ -
+[03/08/2025 06:45:01] - Database "TESTE2" excluído com sucesso. -
+[03/08/2025 06:45:03] - Permissões removidas dos usuários do database "TSTE". -
+[03/08/2025 06:45:03] - Usuários padrão do database "TSTE" excluídos com sucesso. -
+[03/08/2025 06:45:03] - Usuários padrão do database "TSTE" excluídos com sucesso. -
+[03/08/2025 06:45:03] - Query de exclusão de database executada:
+
+DROP DATABASE "TSTE"
+ -
+[03/08/2025 06:45:03] - Database "TSTE" excluído com sucesso. -
+[03/08/2025 06:45:05] - Permissões removidas dos usuários do database "teste". -
+[03/08/2025 06:45:05] - Usuários padrão do database "teste" excluídos com sucesso. -
+[03/08/2025 06:45:05] - Usuários padrão do database "teste" excluídos com sucesso. -
+[03/08/2025 06:45:05] - Query de exclusão de database executada:
+
+DROP DATABASE "teste"
+ -
+[03/08/2025 06:45:05] - Database "teste" excluído com sucesso. -
+[03/08/2025 06:45:07] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 06:49:25] - ------------------------------------------------------------------------------- -
+[03/08/2025 06:49:25] - Aplicação iniciada. -
+[03/08/2025 06:49:28] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 06:49:31] - Usuários padrão do database "1234" cadastrados com sucesso. -
+[03/08/2025 06:49:31] - Query de criação de database executada:
+
+CREATE DATABASE "1234"
+WITH OWNER = "PRODFAB_ADMIN"
+ENCODING = 'UTF8'
+TABLESPACE = pg_default
+LC_COLLATE = 'Portuguese_Brazil.1252'
+LC_CTYPE = 'Portuguese_Brazil.1252'
+CONNECTION LIMIT = -1
+ -
+[03/08/2025 06:49:31] - Database "1234" criado com sucesso. -
+[03/08/2025 06:49:31] - Permissões adicionadas aos usuários do database "1234". -
+[03/08/2025 06:49:35] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 06:52:18] - ------------------------------------------------------------------------------- -
+[03/08/2025 06:52:18] - Aplicação iniciada. -
+[03/08/2025 06:52:21] - Aplicação Encerrada. -
+[03/08/2025 06:52:21] - ------------------------------------------------------------------------------- -
+[03/08/2025 06:56:33] - ------------------------------------------------------------------------------- -
+[03/08/2025 06:56:33] - Aplicação iniciada. -
+[03/08/2025 06:56:36] - Aplicação Encerrada. -
+[03/08/2025 06:56:36] - ------------------------------------------------------------------------------- -
+[03/08/2025 06:58:17] - ------------------------------------------------------------------------------- -
+[03/08/2025 06:58:17] - Aplicação iniciada. -
+[03/08/2025 06:58:19] - Aplicação Encerrada. -
+[03/08/2025 06:58:19] - ------------------------------------------------------------------------------- -
+[03/08/2025 06:58:20] - ------------------------------------------------------------------------------- -
+[03/08/2025 06:58:20] - Aplicação iniciada. -
+[03/08/2025 06:58:23] - Aplicação Encerrada. -
+[03/08/2025 06:58:23] - ------------------------------------------------------------------------------- -
+[03/08/2025 07:00:42] - ------------------------------------------------------------------------------- -
+[03/08/2025 07:00:42] - Aplicação iniciada. -
+[03/08/2025 07:00:43] - Aplicação Encerrada. -
+[03/08/2025 07:00:43] - ------------------------------------------------------------------------------- -
+[03/08/2025 07:03:43] - ------------------------------------------------------------------------------- -
+[03/08/2025 07:03:43] - Aplicação iniciada. -
+[03/08/2025 07:03:45] - Aplicação Encerrada. -
+[03/08/2025 07:03:45] - ------------------------------------------------------------------------------- -
+[03/08/2025 07:11:25] - ------------------------------------------------------------------------------- -
+[03/08/2025 07:11:25] - Aplicação iniciada. -
+[03/08/2025 07:11:27] - Aplicação Encerrada. -
+[03/08/2025 07:11:27] - ------------------------------------------------------------------------------- -
+[03/08/2025 07:11:37] - ------------------------------------------------------------------------------- -
+[03/08/2025 07:11:37] - Aplicação iniciada. -
+[03/08/2025 07:11:41] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 07:11:43] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 07:26:50] - ------------------------------------------------------------------------------- -
+[03/08/2025 07:26:50] - Aplicação iniciada. -
+[03/08/2025 07:27:23] - Aplicação Encerrada. -
+[03/08/2025 07:27:23] - ------------------------------------------------------------------------------- -
+[03/08/2025 07:29:48] - ------------------------------------------------------------------------------- -
+[03/08/2025 07:29:48] - Aplicação iniciada. -
+[03/08/2025 07:29:53] - Aplicação Encerrada. -
+[03/08/2025 07:29:53] - ------------------------------------------------------------------------------- -
+[03/08/2025 07:31:14] - ------------------------------------------------------------------------------- -
+[03/08/2025 07:31:14] - Aplicação iniciada. -
+[03/08/2025 07:31:15] - Aplicação Encerrada. -
+[03/08/2025 07:31:15] - ------------------------------------------------------------------------------- -
+[03/08/2025 07:31:18] - ------------------------------------------------------------------------------- -
+[03/08/2025 07:31:18] - Aplicação iniciada. -
+[03/08/2025 07:31:21] - Aplicação Encerrada. -
+[03/08/2025 07:31:21] - ------------------------------------------------------------------------------- -
+[03/08/2025 07:31:23] - ------------------------------------------------------------------------------- -
+[03/08/2025 07:31:23] - Aplicação iniciada. -
+[03/08/2025 07:31:24] - Aplicação Encerrada. -
+[03/08/2025 07:31:24] - ------------------------------------------------------------------------------- -
+[03/08/2025 08:09:30] - ------------------------------------------------------------------------------- -
+[03/08/2025 08:09:30] - Aplicação iniciada. -
+[03/08/2025 08:09:31] - Aplicação Encerrada. -
+[03/08/2025 08:09:31] - ------------------------------------------------------------------------------- -
+[03/08/2025 08:11:23] - ------------------------------------------------------------------------------- -
+[03/08/2025 08:11:23] - Aplicação iniciada. -
+[03/08/2025 08:11:30] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 08:11:41] - Conexão com o banco de dados "PG" encerrada com sucesso. -
+[03/08/2025 08:11:43] - Aplicação Encerrada. -
+[03/08/2025 08:11:43] - ------------------------------------------------------------------------------- -
+[03/08/2025 08:14:37] - ------------------------------------------------------------------------------- -
+[03/08/2025 08:14:37] - Aplicação iniciada. -
+[03/08/2025 08:14:40] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 08:14:46] - Aplicação Encerrada. -
+[03/08/2025 08:14:46] - ------------------------------------------------------------------------------- -
+[03/08/2025 08:24:03] - ------------------------------------------------------------------------------- -
+[03/08/2025 08:24:03] - Aplicação iniciada. -
+[03/08/2025 08:24:07] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 08:24:14] - Aplicação Encerrada. -
+[03/08/2025 08:24:14] - ------------------------------------------------------------------------------- -
+[03/08/2025 08:30:07] - ------------------------------------------------------------------------------- -
+[03/08/2025 08:30:07] - Aplicação iniciada. -
+[03/08/2025 08:30:14] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 08:30:29] - Aplicação Encerrada. -
+[03/08/2025 08:30:29] - ------------------------------------------------------------------------------- -
+[03/08/2025 08:36:46] - ------------------------------------------------------------------------------- -
+[03/08/2025 08:36:46] - Aplicação iniciada. -
+[03/08/2025 08:36:49] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 08:37:24] - Conexão com o banco de dados "PG" encerrada com sucesso. -
+[03/08/2025 08:38:18] - Aplicação Encerrada. -
+[03/08/2025 08:38:18] - ------------------------------------------------------------------------------- -
+[03/08/2025 08:38:43] - ------------------------------------------------------------------------------- -
+[03/08/2025 08:38:43] - Aplicação iniciada. -
+[03/08/2025 08:38:46] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 08:38:55] - Conexão com o banco de dados "PG" encerrada com sucesso. -
+[03/08/2025 08:38:57] - Aplicação Encerrada. -
+[03/08/2025 08:38:57] - ------------------------------------------------------------------------------- -
+[03/08/2025 08:39:12] - ------------------------------------------------------------------------------- -
+[03/08/2025 08:39:12] - Aplicação iniciada. -
+[03/08/2025 08:39:16] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 08:39:19] - Aplicação Encerrada. -
+[03/08/2025 08:39:19] - ------------------------------------------------------------------------------- -
+[03/08/2025 08:39:56] - ------------------------------------------------------------------------------- -
+[03/08/2025 08:39:56] - Aplicação iniciada. -
+[03/08/2025 08:40:00] - Aplicação Encerrada. -
+[03/08/2025 08:40:00] - ------------------------------------------------------------------------------- -
+[03/08/2025 08:40:49] - ------------------------------------------------------------------------------- -
+[03/08/2025 08:40:49] - Aplicação iniciada. -
+[03/08/2025 08:40:51] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 08:40:59] - Aplicação Encerrada. -
+[03/08/2025 08:40:59] - ------------------------------------------------------------------------------- -
+[03/08/2025 09:01:10] - ------------------------------------------------------------------------------- -
+[03/08/2025 09:01:10] - Aplicação iniciada. -
+[03/08/2025 09:01:22] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 09:01:32] - Usuários padrão do database "123" cadastrados com sucesso. -
+[03/08/2025 09:01:33] - Query de criação de database executada:
+
+CREATE DATABASE "123"
+WITH OWNER = "PRODFAB_ADMIN"
+ENCODING = 'UTF8'
+TABLESPACE = pg_default
+LC_COLLATE = 'Portuguese_Brazil.1252'
+LC_CTYPE = 'Portuguese_Brazil.1252'
+CONNECTION LIMIT = -1
+ -
+[03/08/2025 09:01:33] - Database "123" criado com sucesso. -
+[03/08/2025 09:01:33] - Permissões adicionadas aos usuários do database "123". -
+[03/08/2025 09:02:11] - Conexão com o banco de dados "PG" encerrada com sucesso. -
+[03/08/2025 09:02:23] - Aplicação Encerrada. -
+[03/08/2025 09:02:23] - ------------------------------------------------------------------------------- -
+[03/08/2025 09:03:31] - ------------------------------------------------------------------------------- -
+[03/08/2025 09:03:31] - Aplicação iniciada. -
+[03/08/2025 09:03:34] - Aplicação Encerrada. -
+[03/08/2025 09:03:34] - ------------------------------------------------------------------------------- -
+[03/08/2025 09:17:24] - ------------------------------------------------------------------------------- -
+[03/08/2025 09:17:24] - Aplicação iniciada. -
+[03/08/2025 09:17:30] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 09:20:50] - Conexão com o banco de dados "PG" encerrada com sucesso. -
+[03/08/2025 09:20:53] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 09:20:59] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 09:36:35] - ------------------------------------------------------------------------------- -
+[03/08/2025 09:36:35] - Aplicação iniciada. -
+[03/08/2025 09:36:39] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 09:36:56] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 09:37:04] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 09:37:08] - Aplicação Encerrada. -
+[03/08/2025 09:37:08] - ------------------------------------------------------------------------------- -
+[03/08/2025 09:37:40] - ------------------------------------------------------------------------------- -
+[03/08/2025 09:37:40] - Aplicação iniciada. -
+[03/08/2025 09:37:48] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 09:37:53] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 09:37:57] - Conexão com o banco de dados "PG" encerrada com sucesso. -
+[03/08/2025 09:38:01] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 09:38:04] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 09:38:19] - Aplicação Encerrada. -
+[03/08/2025 09:38:19] - ------------------------------------------------------------------------------- -
+[03/08/2025 09:38:40] - ------------------------------------------------------------------------------- -
+[03/08/2025 09:38:40] - Aplicação iniciada. -
+[03/08/2025 09:38:43] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 09:38:45] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 09:38:55] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 09:39:17] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 09:39:23] - Permissões removidas dos usuários do database "123". -
+[03/08/2025 09:39:23] - Usuários padrão do database "123" excluídos com sucesso. -
+[03/08/2025 09:39:23] - Usuários padrão do database "123" excluídos com sucesso. -
+[03/08/2025 09:39:39] - Permissões removidas dos usuários do database "123". -
+[03/08/2025 09:39:39] - Usuários padrão do database "123" excluídos com sucesso. -
+[03/08/2025 09:39:39] - Usuários padrão do database "123" excluídos com sucesso. -
+[03/08/2025 09:40:00] - Permissões removidas dos usuários do database "TSTE". -
+[03/08/2025 09:40:00] - Usuários padrão do database "TSTE" excluídos com sucesso. -
+[03/08/2025 09:40:00] - Usuários padrão do database "TSTE" excluídos com sucesso. -
+[03/08/2025 09:40:01] - Query de exclusão de database executada:
+
+DROP DATABASE "TSTE"
+ -
+[03/08/2025 09:40:01] - Database "TSTE" excluído com sucesso. -
+[03/08/2025 09:40:08] - Permissões removidas dos usuários do database "123". -
+[03/08/2025 09:40:08] - Usuários padrão do database "123" excluídos com sucesso. -
+[03/08/2025 09:40:08] - Usuários padrão do database "123" excluídos com sucesso. -
+[03/08/2025 09:40:52] - Permissões removidas dos usuários do database "123". -
+[03/08/2025 09:40:52] - Usuários padrão do database "123" excluídos com sucesso. -
+[03/08/2025 09:40:52] - Usuários padrão do database "123" excluídos com sucesso. -
+[03/08/2025 09:41:05] - Conexão com o banco de dados "PG" encerrada com sucesso. -
+[03/08/2025 09:41:06] - Aplicação Encerrada. -
+[03/08/2025 09:41:06] - ------------------------------------------------------------------------------- -
+[03/08/2025 09:41:09] - ------------------------------------------------------------------------------- -
+[03/08/2025 09:41:09] - Aplicação iniciada. -
+[03/08/2025 09:41:11] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 09:41:15] - Permissões removidas dos usuários do database "123". -
+[03/08/2025 09:41:15] - Usuários padrão do database "123" excluídos com sucesso. -
+[03/08/2025 09:41:15] - Usuários padrão do database "123" excluídos com sucesso. -
+[03/08/2025 09:41:16] - Query de exclusão de database executada:
+
+DROP DATABASE "123"
+ -
+[03/08/2025 09:41:16] - Database "123" excluído com sucesso. -
+[03/08/2025 09:41:23] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 09:41:30] - Usuários padrão do database "TESTE" cadastrados com sucesso. -
+[03/08/2025 09:41:30] - Query de criação de database executada:
+
+CREATE DATABASE "TESTE"
+WITH OWNER = "PRODFAB_ADMIN"
+ENCODING = 'UTF8'
+TABLESPACE = pg_default
+LC_COLLATE = 'Portuguese_Brazil.1252'
+LC_CTYPE = 'Portuguese_Brazil.1252'
+CONNECTION LIMIT = -1
+ -
+[03/08/2025 09:41:30] - Database "TESTE" criado com sucesso. -
+[03/08/2025 09:41:30] - Permissões adicionadas aos usuários do database "TESTE". -
+[03/08/2025 09:41:34] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 09:42:36] - ------------------------------------------------------------------------------- -
+[03/08/2025 09:42:36] - Aplicação iniciada. -
+[03/08/2025 09:42:39] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 09:42:44] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 09:44:40] - ------------------------------------------------------------------------------- -
+[03/08/2025 09:44:40] - Aplicação iniciada. -
+[03/08/2025 09:44:43] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 09:47:46] - ------------------------------------------------------------------------------- -
+[03/08/2025 09:47:46] - Aplicação iniciada. -
+[03/08/2025 09:47:49] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[03/08/2025 09:47:51] - Usuários padrão do database "123" cadastrados com sucesso. -
+[03/08/2025 09:47:52] - Query de criação de database executada:
+
+CREATE DATABASE "123"
+WITH OWNER = "PRODFAB_ADMIN"
+ENCODING = 'UTF8'
+TABLESPACE = pg_default
+LC_COLLATE = 'Portuguese_Brazil.1252'
+LC_CTYPE = 'Portuguese_Brazil.1252'
+CONNECTION LIMIT = -1
+ -
+[03/08/2025 09:47:52] - Database "123" criado com sucesso. -
+[03/08/2025 09:47:52] - Permissões adicionadas aos usuários do database "123". -
+[03/08/2025 09:51:31] - ------------------------------------------------------------------------------- -
+[03/08/2025 09:51:31] - Aplicação iniciada. -
+[03/08/2025 09:51:34] - Conexão com o banco de dados "PG" iniciada com sucesso. -

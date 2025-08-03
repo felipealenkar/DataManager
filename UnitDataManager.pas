@@ -30,11 +30,9 @@ type
     Biblioteca: string;
     Dump: string;
     Restore: string;
-    Psql: string;
     Database:String;
     OwnerPadrao: string;
     Senha: string;
-    Formato: Char;
     Extensao: string;
     TipoQueryDlg: string;
     Versao: currency;
@@ -76,13 +74,12 @@ type
     BtnRenomearDatabase: TButton;
     BtnExcluirDatabase: TButton;
     BtnFazerBackupDatabase: TButton;
-    PnlBackupRestore: TPanel;
     BtnFazerRestoreDatabase: TButton;
-    RadioGroupTipoArquivo: TRadioGroup;
     LbxDatabases: TListBox;
     SaveDialogBackup: TSaveDialog;
     OpenDialogRestore: TOpenDialog;
     LblDriverConectado: TLabel;
+    PnlQuery: TPanel;
     procedure FormCreate(Sender: TObject);
     procedure BtnConectaBDClick(Sender: TObject);
     procedure DeleteClick(Sender: TObject);
@@ -123,7 +120,7 @@ type
     function ValidaDatabaseExistente(PNomeDoDatabase: String): boolean;
     procedure RegistrarLogs(PAcao: string);
     function CriaComando(PAcao: TEnumAcao; POutputFile, PDumpPath, PRestorePath,
-                         PPsqlPath, PHost, PPorta, PNomeDoDatabase, PSenha: string; PFormato: Char): string;
+                         PHost, PPorta, PNomeDoDatabase, PSenha: string): string;
     function ValidaOwnerDatabase(PNomeDoDatabase, POwnerPadrao: string; out POwnerBD: string): Boolean;
 
   public
@@ -145,34 +142,25 @@ uses
 // Implementação das Funções Auxiliares do processo de backup/Restore
 // ===========================================================================
 
-function TFormDataManager.CriaComando(PAcao: TEnumAcao ; POutputFile, PDumpPath, PRestorePath, PPsqlPath,
-                                        PHost, PPorta, PNomeDoDatabase, PSenha: string; PFormato: char): string;
+function TFormDataManager.CriaComando(PAcao: TEnumAcao ; POutputFile, PDumpPath, PRestorePath,
+                                      PHost, PPorta, PNomeDoDatabase, PSenha: string): string;
 var
-  DumpRestorePsqlPath: string;
+  DumpRestorePath: string;
 begin
   Result := ''; // Default
 
   case PAcao of
     Backup:
       begin
-        DumpRestorePsqlPath := PDumpPath;
-        Result := Format('"%s" -U postgres -h %s -p %s -F %s -b -v -f "%s" %s',
-                         [DumpRestorePsqlPath, PHost, PPorta, PFormato, POutputFile, PNomeDoDatabase]);
+        DumpRestorePath := PDumpPath;
+        Result := Format('"%s" -U postgres -h %s -p %s -F c -b -v -f "%s" %s',
+                         [DumpRestorePath, PHost, PPorta, POutputFile, PNomeDoDatabase]);
       end;
     Restore:
       begin
-        if PFormato = 'c' then
-        begin
-          DumpRestorePsqlPath := PRestorePath;
-          Result := Format('"%s" -U postgres -h %s -p %s -d %s -v --no-owner --no-acl "%s"',
-                           [DumpRestorePsqlPath, PHost, PPorta, PNomeDoDatabase, POutputFile]);
-        end
-        else if PFormato = 'p' then
-        begin
-          DumpRestorePsqlPath := PPsqlPath;
-          Result := Format('"%s" -U postgres -h %s -p %s -d %s -f "%s"',
-                           [DumpRestorePsqlPath, PHost, PPorta, PNomeDoDatabase, POutputFile]);
-        end;
+        DumpRestorePath := PRestorePath;
+        Result := Format('"%s" -U postgres -h %s -p %s -d %s -v --no-owner --no-acl "%s"',
+                           [DumpRestorePath, PHost, PPorta, PNomeDoDatabase, POutputFile]);
       end;
   end;
 end;
@@ -577,14 +565,14 @@ begin
     Exit;
   OutputFile := SaveDialogBackup.FileName;
 
-  Comando := CriaComando(Backup, OutputFile, DriverBDConexao.Dump, DriverBDConexao.Restore, DriverBDConexao.Psql, DriverBDConexao.Host,
-                          DriverBDConexao.Porta, NomeDoDatabase, DriverBDConexao.Senha, DriverBDConexao.Formato);
+  Comando := CriaComando(Backup, OutputFile, DriverBDConexao.Dump, DriverBDConexao.Restore, DriverBDConexao.Host,
+                          DriverBDConexao.Porta, NomeDoDatabase, DriverBDConexao.Senha);
 
   FormBackupRestore := TFormBackupRestore.Create(Self);
   try
     // Configura o formulário de progresso com os parâmetros necessários
-    FormBackupRestore.IniciarOperacao(Comando, OutputFile, DriverBDConexao.Dump, DriverBDConexao.Restore, DriverBDConexao.Psql, DriverBDConexao.Host,
-                          DriverBDConexao.Porta, NomeDoDatabase, DriverBDConexao.Senha, DriverBDConexao.Formato, TEnumAcaoBackup.Backup, FDConnectionDB); // Passa a conexão
+    FormBackupRestore.IniciarOperacao(Comando, OutputFile, DriverBDConexao.Dump, DriverBDConexao.Restore, DriverBDConexao.Host,
+                          DriverBDConexao.Porta, NomeDoDatabase, DriverBDConexao.Senha, TEnumAcaoBackup.Backup, FDConnectionDB); // Passa a conexão
 
     FormBackupRestore.ShowModal;
     // Após ShowModal, o código continua aqui (quando o FormBackupRestore é fechado)
@@ -597,43 +585,59 @@ end;
 procedure TFormDataManager.BtnFazerRestoreDatabaseClick(Sender: TObject);
 var
   FormBackupRestore : TFormBackupRestore;
-  NomeDoDatabase, InputFile, Comando, Versao: string;
+  NomeDoDatabase, InputFile, Comando, Versao, POwnerBD: string;
   OpenDialogRestore: TOpenDialog;
 begin
   HabilitarDesabilitarElementos(True, False);
   NomeDoDatabase := LbxDatabases.Items[LbxDatabases.ItemIndex];
-  ConectarDesconectarDriverDoDatabase(NomeDoDatabase, Conectar);
 
   if VerificaVersaoPostgres(Versao) < 17 then
   MessageDlg('O DataManager não faz restauração de backup em banco de dados com versão inferior a 17', TMsgDlgType.mtWarning, [mbOK], 0)
   else
   begin
-       OpenDialogRestore := TOpenDialog.Create(Self);
-    try
-      OpenDialogRestore.Filter := 'PostgreSQL Custom Backup Files (*.' + DriverBDConexao.Extensao + ')|*.' + DriverBDConexao.Extensao + '|Todos os arquivos (*.*)|*.*';
-      SaveDialogBackup.DefaultExt := DriverBDConexao.Extensao;
-      OpenDialogRestore.Options := [ofFileMustExist, ofPathMustExist, ofEnableSizing];
-      OpenDialogRestore.Title := 'Selecionar Arquivo de Backup para Restaurar';
-
-      if not OpenDialogRestore.Execute then
-        Exit;
-      InputFile := OpenDialogRestore.FileName;
-
-      Comando := CriaComando(Restore, InputFile, DriverBDConexao.Dump, DriverBDConexao.Restore, DriverBDConexao.Psql, DriverBDConexao.Host,
-                             DriverBDConexao.Porta, NomeDoDatabase, DriverBDConexao.Senha, DriverBDConexao.Formato);
-
-      FormBackupRestore := TFormBackupRestore.Create(Self);
+    POwnerBD := '';
+    if ValidaOwnerDatabase(NomeDoDatabase, DriverBDConexao.OwnerPadrao, POwnerBD) then
+    begin
+      OpenDialogRestore := TOpenDialog.Create(Self);
       try
-        FormBackupRestore.IniciarOperacao(Comando, InputFile, DriverBDConexao.Dump, DriverBDConexao.Restore, DriverBDConexao.Psql, DriverBDConexao.Host,
-                                          DriverBDConexao.Porta, NomeDoDatabase, DriverBDConexao.Senha, DriverBDConexao.Formato, TEnumAcaoBackup.Restore, FDConnectionDB);
+        OpenDialogRestore.Filter := 'PostgreSQL Custom Backup Files (*.' + DriverBDConexao.Extensao + ')|*.' + DriverBDConexao.Extensao + '|Todos os arquivos (*.*)|*.*';
+        SaveDialogBackup.DefaultExt := DriverBDConexao.Extensao;
+        OpenDialogRestore.Options := [ofFileMustExist, ofPathMustExist, ofEnableSizing];
+        OpenDialogRestore.Title := 'Selecionar Arquivo de Backup para Restaurar';
 
-        FormBackupRestore.ShowModal;
+        if not OpenDialogRestore.Execute then
+          Exit;
+        InputFile := OpenDialogRestore.FileName;
+
+        Comando := CriaComando(Restore, InputFile, DriverBDConexao.Dump, DriverBDConexao.Restore, DriverBDConexao.Host,
+                               DriverBDConexao.Porta, NomeDoDatabase, DriverBDConexao.Senha);
+
+        AdicionarOuRemoverPermissoesNosRoles(NomeDoDatabase, Remover);
+        CriarDroparRoles(NomeDoDatabase, Dropar);
+        CriarDroparDataBase(NomeDoDatabase, Dropar);
+
+        CriarDroparDataBase(NomeDoDatabase, Criar);
+        CriarDroparRoles(NomeDoDatabase, Criar);
+        AdicionarOuRemoverPermissoesNosRoles(NomeDoDatabase, Adicionar);
+
+        FormBackupRestore := TFormBackupRestore.Create(Self);
+        try
+          FormBackupRestore.IniciarOperacao(Comando, InputFile, DriverBDConexao.Dump, DriverBDConexao.Restore, DriverBDConexao.Host,
+                                            DriverBDConexao.Porta, NomeDoDatabase, DriverBDConexao.Senha, TEnumAcaoBackup.Restore, FDConnectionDB);
+          FormBackupRestore.ShowModal;
+        finally
+          FormBackupRestore.Free;
+          ConectarDesconectarDriverDoDatabase('postgres', Conectar);
+        end;
       finally
-        FormBackupRestore.Free;
-        ConectarDesconectarDriverDoDatabase('postgres', Conectar);
+        OpenDialogRestore.Free;
       end;
-    finally
-      OpenDialogRestore.Free;
+    end
+    else
+    begin
+      Messagedlg('O DataManager não pode restaurar em cima desse banco de dados "' + NomeDoDatabase + '", pois ele pertence ao proprietário "' +
+       POwnerBD + '". Torne-se o proprietário do banco para poder executar esta tarefa ou faça por outra ferramenta.'
+       , TMsgDlgType.mtWarning, [mbOk], 0);
     end;
   end;
 end;
@@ -848,19 +852,9 @@ begin
   Senha := FormDataManager.EdtSenha.text;
   Porta := FormDataManager.EdtPorta.text;
   OwnerPadrao := 'PRODFAB_ADMIN';
+  Extensao := 'postgresql';
+  TipoQueryDlg := 'Backup PostgreSQL';
 
-  if FormDataManager.RadioGroupTipoArquivo.Items[FormDataManager.RadioGroupTipoArquivo.ItemIndex] = 'Custom' then
-  begin
-    Formato := 'c';
-    Extensao := 'postgresql';
-    TipoQueryDlg := 'Backup PostgreSQL';
-  end
-  else if FormDataManager.RadioGroupTipoArquivo.Items[FormDataManager.RadioGroupTipoArquivo.ItemIndex] = 'Plain' then
-  begin
-    Formato := 'p';
-    Extensao := 'sql';
-    TipoQueryDlg := 'Backup QuerySQL';
-  end;
 
   if PNomeDoDriverBD = 'Firebird 5.0' then
     begin
@@ -874,7 +868,6 @@ begin
       Biblioteca := 'C:\Program Files\PostgreSQL\17\bin\libpq.dll';
       Dump := 'C:\Program Files\PostgreSQL\17\bin\pg_dump.exe';
       Restore := 'C:\Program Files\PostgreSQL\17\bin\pg_restore.exe';
-      Psql := 'C:\Program Files\PostgreSQL\17\bin\psql.exe';
     end
   else
     begin
@@ -882,7 +875,6 @@ begin
       Biblioteca := '';
       Dump := '';
       Restore := '';
-      Psql := '';
     end;
 
 end;
