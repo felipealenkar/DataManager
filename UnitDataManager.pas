@@ -25,6 +25,7 @@ type
     Driver: string;
     Host: string;
     Porta: string;
+    Usuario: string;
     Biblioteca: string;
     Dump: string;
     Restore: string;
@@ -97,7 +98,6 @@ type
 
     procedure FormDestroy(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure DBRadioGroupTipoBackupChange(Sender: TObject);
     procedure CboxDriverBDChange(Sender: TObject);
 
   private
@@ -261,6 +261,7 @@ begin
     FDQueryBD.close;
   END;
   FDQueryBD.sql.Clear;
+  Showmessage(IntToStr(Sucesso));
 
   case PAcao of
     Criar: FDQueryBD.sql.Add('CREATE ROLE "PRODFAB_GROUP"');
@@ -274,6 +275,7 @@ begin
     FDQueryBD.close;
   END;
   FDQueryBD.sql.Clear;
+  Showmessage(IntToStr(Sucesso));
 
   case PAcao of
     Criar:
@@ -294,9 +296,12 @@ begin
   Except
     FDQueryBD.close;
   END;
+  Showmessage(IntToStr(Sucesso));
 
   if Sucesso = 3 then
   RegistrarLogs('TFormDataManager.CriarDroparRoles', 'Usuários padrão do database "' + PNomeDoDatabase + '" ' + TipoLog1 + ' com sucesso.')
+  else if Sucesso > 0 then
+  RegistrarLogs('TFormDataManager.CriarDroparRoles', 'Alguns usuários padrão já existiam.')
   else
   RegistrarLogs('TFormDataManager.CriarDroparRoles', 'Usuários padrão do database "' + PNomeDoDatabase + '" não puderam ser ' + TipoLog1 + '.');
 end;
@@ -388,6 +393,8 @@ begin
   end;
   if Sucesso = 3 then
     RegistrarLogs('TFormDataManager.AdicionarOuRemoverPermissoesNosRoles', 'Permissões ' + TipoLog1 + ' usuários do database "' + PNomeDoDatabase + '".')
+  else if Sucesso > 0 then
+    RegistrarLogs('TFormDataManager.AdicionarOuRemoverPermissoesNosRoles', 'Algumas permissões não puderam ser atribuídas posi já existiam.')
   else
     RegistrarLogs('TFormDataManager.AdicionarOuRemoverPermissoesNosRoles', 'As permissões não puderam ser ' + TipoLog1 + ' usuários do database "' + PNomeDoDatabase + '".');
 end;
@@ -552,10 +559,16 @@ begin
         end
         else
           RegistrarLogs('TFormDataManager.BtnRenomearDatabaseClick', 'Usuário não digitou o nome do banco de dados.');
+        exit;
       end;
+    end
+    else
+    begin
+      RegistrarLogs('TFormDataManager.BtnRenomearDatabaseClick', 'Usuário digitou o mesmo nome de banco de dados.');
+      Exit;
     end;
-  end
-  else
+
+  end;
     RegistrarLogs('TFormDataManager.BtnRenomearDatabaseClick', 'Função cancelada porquê o usuário escolheu um banco de dados de outro proprietário.');
     Messagedlg('O DataManager não pode renomear o banco de dados "' + NomeDoDatabaseAntigo + '", pois ele pertence ao proprietário "' +
      POwnerBD + '". Torne-se o proprietário do banco para poder executar esta tarefa ou renomeie o banco por outra ferramenta.'
@@ -581,10 +594,10 @@ begin
         RegistrarLogs('TFormDataManager.BtnExcluirDatabaseClick', 'Usuário confirmou a exclusão do banco de dados "' + NomeDoDatabase + '".');
         AdicionarOuRemoverPermissoesNosRoles(NomeDoDatabase, Remover);
         CriarDroparRoles(NomeDoDatabase, Dropar);
-        CriarDroparRoles(NomeDoDatabase, Dropar);
         CriarDroparDataBase(NomeDoDatabase, Dropar);
         MessageDlg('Database "' + NomeDoDatabase + '" excluído com sucesso', TMsgDlgType.mtInformation, [mbOK], 0);
         AtualizaListaBancos(True);
+        Exit;
       end
       else
         RegistrarLogs('TFormDataManager.BtnExcluirDatabaseClick', 'Usuário cancelou a exclusão do banco de dados "' + NomeDoDatabase + '".');
@@ -843,6 +856,7 @@ begin
   VersaoMaiorOuMenor := StringReplace(VersaoMaiorOuMenor, '.', ',', [rfReplaceAll]); //Substitui o ponto pela vírgula
 
   Result := StrToCurrDef(VersaoMaiorOuMenor , 0); // Converte a string "Major.Minor" para o tipo Currency e retorna na função
+  RegistrarLogs('TFormDataManager.VerificaVersaoPostgres', 'Conectado ao banco de dados ' + PVersaoCompleta);
 end;
 
 procedure TFormDataManager.HabilitarDesabilitarElementos(PStatusConexao, PBancoSelecionado: Boolean);
@@ -863,7 +877,8 @@ begin
   BtnExcluirDatabase.Enabled := PBancoSelecionado;
   BtnFazerBackupDatabase.Enabled := PBancoSelecionado;
   BtnFazerRestoreDatabase.Enabled := PBancoSelecionado;
-
+  RegistrarLogs('TFormDataManager.HabilitarDesabilitarElementos', 'Alguns componentes foram ' +
+                'habilitados e outros desabilitados conforme o modo de operação utilizado.');
 end;
 
 procedure TFormDataManager.AtualizaListaBancos(PStatusConexao: Boolean);
@@ -886,6 +901,7 @@ begin
         LbxDatabases.Items.Clear;
       end;
   end;
+  RegistrarLogs('TFormDataManager.AtualizaListaBancos', 'Lista de bancos de dados atualizada.');
 end;
 
 procedure TFormDataManager.Button2Click(Sender: TObject);
@@ -915,11 +931,6 @@ begin
   Button2Click(nil);
 end;
 
-procedure TFormDataManager.DBRadioGroupTipoBackupChange(Sender: TObject);
-begin
-   beep;
-end;
-
 procedure TFormDataManager.DeleteClick(Sender: TObject);
 // Faz um delete no banco
 begin
@@ -933,26 +944,23 @@ begin
   Button2Click(nil);
 end;
 
-
-
 { TDriverBD }
 
 procedure TDriverBDConexao.DefineParametros(PNomeDoDriverBD: string);
 // Retorna qual driver de banco de dados usar com base na opção escolhida
 begin
   Host := FormDataManager.EdtHost.text;
+  Usuario := FormDataManager.EdtUsuario.text;
   Senha := FormDataManager.EdtSenha.text;
   Porta := FormDataManager.EdtPorta.text;
   OwnerPadrao := 'PRODFAB_ADMIN';
   Extensao := 'postgresql';
   TipoQueryDlg := 'Backup PostgreSQL';
 
-
   if PNomeDoDriverBD = 'Firebird 5.0' then
     begin
        Driver := 'FB';
        Biblioteca := 'C:\Program Files\Firebird\Firebird_5_0\fbclient.dll';
-       Dump := '';
     end
   else if (PNomeDoDriverBD = 'PostgreSQL 17') then
     begin
@@ -968,6 +976,18 @@ begin
       Dump := '';
       Restore := '';
     end;
-
-end;
+  FormDataManager.RegistrarLogs('TDriverBDConexao.DefineParametros', 'Parâmetros de conexão definidos.'
+                                + sLineBreak
+                                + sLineBreak
+                                + 'Driver e versão: ' + FormDataManager.CboxDriverBD.Text + sLineBreak
+                                + 'Diretório biblioteca: ' + Biblioteca + sLineBreak
+                                + 'Diretório dump: ' + Dump + sLineBreak
+                                + 'Diretório restore: ' + Restore + sLineBreak
+                                + 'Porta: ' + Porta + sLineBreak
+                                + 'Usuário: ' + Usuario + sLineBreak
+                                + 'Senha: ' + Senha + sLineBreak
+                                + 'Owner do BD principal: ' + OwnerPadrao + sLineBreak
+                                + 'Extensao dos backups: ' + Extensao + sLineBreak
+                                + 'TipoQueryDlg: ' + TipoQueryDlg + sLineBreak);
+  end;
 end.
