@@ -4,7 +4,7 @@
         <ProjectVersion>20.1</ProjectVersion>
         <FrameworkType>VCL</FrameworkType>
         <Base>True</Base>
-        <Config Condition="'$(Config)'==''">Release</Config>
+        <Config Condition="'$(Config)'==''">Debug</Config>
         <Platform Condition="'$(Platform)'==''">Win64</Platform>
         <ProjectName Condition="'$(ProjectName)'==''">DataManager</ProjectName>
         <TargetedPlatforms>3</TargetedPlatforms>
@@ -125,6 +125,8 @@
         <UWP_DelphiLogo44>Arquivos externos\Icones\BD.png</UWP_DelphiLogo44>
         <UWP_DelphiLogo150>Arquivos externos\Icones\BD.png</UWP_DelphiLogo150>
         <Icon_MainIcon>DataManager_Icon1.ico</Icon_MainIcon>
+        <VerInfo_MinorVer>1</VerInfo_MinorVer>
+        <VerInfo_Keys>CompanyName=Felipe Neves Vieira Alencar;FileDescription=$(DataManager);FileVersion=1.1.0.0;InternalName=Data Manager;LegalCopyright=;LegalTrademarks=;OriginalFilename=DataManager;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(Data Manager);ProductVersion=1.1;Comments=</VerInfo_Keys>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">

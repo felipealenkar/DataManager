@@ -38,3 +38,10 @@ TipoQueryDlg: Backup PostgreSQL
  -
 [04/08/2025 01:01:16] - [TFormDataManager.VerificaVersaoPostgres] - Conectado ao banco de dados PostgreSQL 17.5 on x86_64-windows, compiled by msvc-19.44.35209, 64-bit -
 [04/08/2025 01:01:16] - [TFormDataManager.ConectarDesconectarDriverDoDatabase] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[04/08/2025 22:57:22] - [TFormDataManager.FormCreate] - ------------------------------------------------------------------------------- -
+[04/08/2025 22:57:22] - [TFormDataManager.FormCreate] - Aplicação iniciada. -
+[04/08/2025 22:57:22] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[04/08/2025 22:57:24] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[04/08/2025 22:57:24] - [TFormDataManager.FormClose] - Aplicação Encerrada. -
+[04/08/2025 22:57:24] - [TFormDataManager.FormClose] - ------------------------------------------------------------------------------- -
+[04/08/2025 22:57:24] - [TFormDataManager.FormDestroy] - Form limpo da memória com sucesso -

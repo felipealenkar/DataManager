@@ -2,7 +2,7 @@ object FormDataManager: TFormDataManager
   Left = 0
   Top = 0
   BorderStyle = bsSingle
-  Caption = 'Data Manager 1.0'
+  Caption = 'Data Manager 1.1'
   ClientHeight = 597
   ClientWidth = 718
   Color = clBtnFace
