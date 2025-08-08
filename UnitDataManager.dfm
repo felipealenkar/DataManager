@@ -403,7 +403,7 @@ object FormDataManager: TFormDataManager
       Width = 121
       Height = 23
       TabOrder = 0
-      Text = 'localhost'
+      Text = '192.168.0.8'
     end
     object EdtPorta: TEdit
       Left = 105
@@ -655,6 +655,8 @@ object FormDataManager: TFormDataManager
   end
   object FDConnectionDB: TFDConnection
     Params.Strings = (
+      'Port=0'
+      'Server='
       'DriverID=PG')
     Left = 512
     Top = 536

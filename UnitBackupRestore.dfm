@@ -4,8 +4,8 @@ object FormBackupRestore: TFormBackupRestore
   BorderIcons = []
   BorderStyle = bsSingle
   Caption = 'FormBackupRestore'
-  ClientHeight = 278
-  ClientWidth = 420
+  ClientHeight = 316
+  ClientWidth = 422
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -64,5 +64,14 @@ object FormBackupRestore: TFormBackupRestore
     ParentFont = False
     ReadOnly = True
     TabOrder = 1
+  end
+  object BtnCancelar: TButton
+    Left = 174
+    Top = 284
+    Width = 73
+    Height = 25
+    Caption = 'Cancelar'
+    TabOrder = 2
+    OnClick = BtnCancelarClick
   end
 end

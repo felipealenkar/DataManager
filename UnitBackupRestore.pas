@@ -29,13 +29,13 @@ type
     FRichEditLog: TRichEdit;    // Referência aos componentes do FormBackupRestore
     FConnection: TFDConnection; // Conexão para contar tabelas (Dump)
     FDumpRestorePath: string; // Caminho completo do executável (pg_dump, pg_restore)
+    FProcessInfo: TProcessInformation; // Movido para campo privado para controle de cancelamento
 
     FTotalItemsToProcess: Integer; // Será o número de tabelas com dados para restore
     FProcessedItems: Integer;
     FCurrentPhase: (ppEstimating, ppPreData, ppData, ppPostData); // Enum para as fases do progresso
     FExitCode: LongWord; // Código de saída do processo externo
     FLastProgressMessageTick: Cardinal; // Para evitar updates de UI muito rápidos (para barra/status)
-
 
     const
       //Constantes que definem o movimento da barra de progresso (Pontos percentuais fixos)
@@ -101,6 +101,7 @@ type
     constructor Create(const Cmd, Pwd, AOutputFilePathParam, LogPath: string; IsDump: Boolean; ProgressBar: TProgressBar; LblStatus: TLabel;
                        RichEditLog: TRichEdit; Connection: TFDConnection; DumpRestorePath: string);
 
+    procedure CancelOperation; // Método para cancelar a operação
     property ExitCode: LongWord read FExitCode;
   end;
 
@@ -112,13 +113,18 @@ type
     ProgressBarBackupRestore: TProgressBar;
     RichEditLog: TRichEdit;
     LblPorcentagem: TLabel;
+    BtnCancelar: TButton; // Botão para cancelar a operação
+
     procedure FormShow(Sender: TObject);
     procedure ProgressBarBackupRestoreChange(Sender: TObject);
+    procedure BtnCancelarClick(Sender: TObject); // Evento do botão cancelar
+
   private
     FWorkerThread: TPostgreSQLWorkerThread; // Referência à thread de trabalho
     FIsOperationSuccessful: Boolean; // Indica se a operação terminou com sucesso
     FCommandString: string; // Armazena o comando completo para a thread
     FOutputFilePath: string; // Caminho do arquivo de backup/restore (para logs, etc.)
+    FOperationCancelled: Boolean; // Controla se a operação foi cancelada
 
     // Campos privados para armazenar os parâmetros.
     FPDump_Path: string;
@@ -175,6 +181,11 @@ begin
   ProgressBarBackupRestore.Min := 0;
   ProgressBarBackupRestore.Max := 100;
 
+  // Inicializar controles do cancelamento
+  FOperationCancelled := False;
+  BtnCancelar.Enabled := True;
+  BtnCancelar.Caption := 'Cancelar';
+
   // Determinar o caminho do executável e o sufixo do log com base na ação
   case PGAcao of
     Backup:
@@ -215,6 +226,25 @@ begin
   FWorkerThread.Start; // Inicia a thread
 end;
 
+procedure TFormBackupRestore.BtnCancelarClick(Sender: TObject);
+begin
+  if Assigned(FWorkerThread) and not FWorkerThread.Finished then
+  begin
+    if MessageDlg('Tem certeza que deseja cancelar a operação?',
+                  mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+    begin
+      FOperationCancelled := True;
+      BtnCancelar.Enabled := False;
+      BtnCancelar.Caption := 'Cancelando...';
+      LblProgresso.Caption := 'Cancelando operação...';
+
+      // Solicita o término da thread
+      FWorkerThread.CancelOperation;
+      FWorkerThread.Terminate;
+    end;
+  end;
+end;
+
 procedure TFormBackupRestore.IniciarOperacao(const ACommand: string; const AOutputFilePath: string;
                                               const ADumpPath, ARestorePath, AHost, APorta,
                                               ANomeDoDatabase, ASenha: string; AAcao: TEnumAcaoBackup;
@@ -237,10 +267,46 @@ begin
   Connection := AConnection;
 end;
 
-
 procedure TFormBackupRestore.ProgressBarBackupRestoreChange(Sender: TObject);
 begin
   LblPorcentagem.caption := IntToStr(ProgressBarBackupRestore.Position) + '%';
+end;
+
+procedure TFormBackupRestore.ThreadTerminated(Sender: TObject);
+var
+  ExitCode: LongWord;
+begin
+  if Assigned(FWorkerThread) then
+  begin
+    ExitCode := FWorkerThread.ExitCode;
+
+    if FOperationCancelled then
+    begin
+      ShowMessage('Operação cancelada pelo usuário.');
+    end
+    else
+    begin
+      FIsOperationSuccessful := (ExitCode = 0); // Sucesso se o código de saída for 0
+
+      if FIsOperationSuccessful then
+      begin
+        if PGAcao = Backup then
+          ShowMessage('Backup concluído com sucesso!' + sLineBreak + 'Arquivo salvo em: ' + TPath.GetFileName(FOutputFilePath) + sLineBreak + 'Log salvo em: ' + FWorkerThread.FLogFilePath)
+        else
+          ShowMessage('Restauração concluída com sucesso!' + sLineBreak + 'Database: ' + PGNomeDoDatabase + sLineBreak + 'Dados restaurados com sucesso.' + sLineBreak + 'Log salvo em: ' + FWorkerThread.FLogFilePath);
+      end
+      else
+      begin
+        ShowMessage(Format('Ocorreu um erro durante a operação de %s. Código de saída: %d' + sLineBreak + 'Verifique o arquivo de log para mais detalhes: %s', [GetEnumName(TypeInfo(TEnumAcaoBackup), Ord(PGAcao)), ExitCode, FWorkerThread.FLogFilePath]));
+      end;
+    end;
+
+    // Libera a thread
+    FWorkerThread := nil;
+
+    // Fecha o formulário de progresso
+    Close;
+  end;
 end;
 
 // ===========================================================================
@@ -268,6 +334,19 @@ begin
   FExitCode := 0;
   FreeOnTerminate := True;
   FLastProgressMessageTick := 0;
+
+  // Inicializar FProcessInfo
+  ZeroMemory(@FProcessInfo, SizeOf(FProcessInfo));
+end;
+
+procedure TPostgreSQLWorkerThread.CancelOperation;
+begin
+  // Termina o processo externo se estiver rodando
+  if FProcessInfo.hProcess <> 0 then
+  begin
+    OutputDebugString(PChar('DEBUG: Terminando processo externo...'));
+    TerminateProcess(FProcessInfo.hProcess, 1);
+  end;
 end;
 
 // ===========================================================================
@@ -598,7 +677,6 @@ var
   SA: TSecurityAttributes;
   StdOutPipeRead, StdOutPipeWrite: THandle;
   StartupInfo: TStartupInfo;
-  ProcessInfo: TProcessInformation;
   LogFileStreamWriter: TStreamWriter;
   OutputReader: TStreamReader;
   Line: string;
@@ -677,12 +755,12 @@ begin
         StartupInfo.hStdOutput := StdOutPipeWrite;
         StartupInfo.hStdError := StdOutPipeWrite; // Redireciona erro também para o pipe
         StartupInfo.dwFlags := STARTF_USESTDHANDLES;
-        ZeroMemory(@ProcessInfo, SizeOf(ProcessInfo));
+        ZeroMemory(@FProcessInfo, SizeOf(FProcessInfo)); // Usar campo da classe
 
         // DEBUG: Imprime o comando exato antes de executar
         OutputDebugString(PChar('DEBUG: Executing Command = ' + FCommand));
 
-        if not CreateProcess(nil, PChar(FCommand), nil, nil, True, CREATE_NO_WINDOW, nil, nil, StartupInfo, ProcessInfo) then
+        if not CreateProcess(nil, PChar(FCommand), nil, nil, True, CREATE_NO_WINDOW, nil, nil, StartupInfo, FProcessInfo) then
           RaiseLastOSError; // Levanta exceção se o processo não puder ser criado
 
         CloseHandle(StdOutPipeWrite); // Importante fechar a extremidade de escrita do pipe
@@ -692,12 +770,15 @@ begin
         OutputReader.BaseStream.Position := 0;
 
         try
-          // Loop para ler a saída do pipe linha por linha enquanto o processo estiver ativo OU houver dados no pipe
-          while (GetExitCodeProcess(ProcessInfo.hProcess, ProcessStatus) and (ProcessStatus = STILL_ACTIVE)) or
+          // Loop principal - agora verifica Terminated mais frequentemente
+          while (GetExitCodeProcess(FProcessInfo.hProcess, ProcessStatus) and (ProcessStatus = STILL_ACTIVE)) or
                 (OutputReader.Peek <> -1) do
           begin
-            if Terminated then // Permite parar o thread se solicitado externamente
+            if Terminated then // Verificação de cancelamento mais frequente
+            begin
+              OutputDebugString(PChar('DEBUG: Thread termination requested, breaking loop'));
               Break;
+            end;
 
             if not OutputReader.EndOfStream then
             begin
@@ -707,39 +788,54 @@ begin
             end
             else
             begin
-              Sleep(10); // Pequena pausa para evitar consumo excessivo de CPU se não houver dados
+              Sleep(10); // Permite verificação mais rápida de Terminated
             end;
           end;
 
-          // Processar qualquer linha restante no buffer APÓS o processo ter terminado
-          while not OutputReader.EndOfStream and not Terminated do
+          // Se foi cancelado, não processa linhas restantes
+          if not Terminated then
           begin
-            Line := OutputReader.ReadLine;
-            LogFileStreamWriter.WriteLine(Line);
-            ProcessOutputLine(Line);
+            // Processar qualquer linha restante no buffer APÓS o processo ter terminado
+            while not OutputReader.EndOfStream do
+            begin
+              Line := OutputReader.ReadLine;
+              LogFileStreamWriter.WriteLine(Line);
+              ProcessOutputLine(Line);
+            end;
           end;
 
-          // Espera o processo terminar (se ainda não terminou)
-          WaitForSingleObject(ProcessInfo.hProcess, INFINITE);
-
-          // Obtém o código de saída final do processo
-          if GetExitCodeProcess(ProcessInfo.hProcess, ProcessStatus) then
+          // Espera o processo terminar ou força a terminação se cancelado
+          if Terminated then
           begin
-            FExitCode := ProcessStatus; // Atribui o valor final à variável de classe
-            // DEBUG: Imprime o ExitCode final
-            OutputDebugString(PChar(Format('DEBUG: Process exited with ExitCode = %d', [FExitCode])));
-
-            // Mensagem final de status com base no ExitCode
-            if FExitCode <> 0 then
-              UpdateUI(100, Format('Operação finalizada com erros. Código: %d', [FExitCode]), '')
-            else
-              UpdateUI(100, 'Operação concluída com sucesso!', '');
+            OutputDebugString(PChar('DEBUG: Forcing process termination due to cancellation'));
+            TerminateProcess(FProcessInfo.hProcess, 1);
+            FExitCode := 1; // Código de erro para cancelamento
+            UpdateUI(100, 'Operação cancelada pelo usuário', 'Operação cancelada');
           end
           else
           begin
-            FExitCode := 1; // Erro genérico se não conseguir o código de saída
-            OutputDebugString(PChar('DEBUG: Could not get process exit code. Setting ExitCode to 1.'));
-            UpdateUI(100, 'Não foi possível obter código de saída do processo.', '');
+            // Espera o processo terminar (se ainda não terminou)
+            WaitForSingleObject(FProcessInfo.hProcess, INFINITE);
+
+            // Obtém o código de saída final do processo
+            if GetExitCodeProcess(FProcessInfo.hProcess, ProcessStatus) then
+            begin
+              FExitCode := ProcessStatus; // Atribui o valor final à variável de classe
+              // DEBUG: Imprime o ExitCode final
+              OutputDebugString(PChar(Format('DEBUG: Process exited with ExitCode = %d', [FExitCode])));
+
+              // Mensagem final de status com base no ExitCode
+              if FExitCode <> 0 then
+                UpdateUI(100, Format('Operação finalizada com erros. Código: %d', [FExitCode]), '')
+              else
+                UpdateUI(100, 'Operação concluída com sucesso!', '');
+            end
+            else
+            begin
+              FExitCode := 1; // Erro genérico se não conseguir o código de saída
+              OutputDebugString(PChar('DEBUG: Could not get process exit code. Setting ExitCode to 1.'));
+              UpdateUI(100, 'Não foi possível obter código de saída do processo.', '');
+            end;
           end;
 
         finally
@@ -747,8 +843,8 @@ begin
         end;
 
       finally
-        CloseHandle(ProcessInfo.hProcess);
-        CloseHandle(ProcessInfo.hThread);
+        CloseHandle(FProcessInfo.hProcess);
+        CloseHandle(FProcessInfo.hThread);
         CloseHandle(StdOutPipeRead);
       end;
     finally
@@ -771,35 +867,6 @@ begin
   // Garante que a barra de progresso chegue a 100% no final, caso não tenha chegado
   if Assigned(FProgressBar) and (FProgressBar.Position < 100) then
     UpdateUI(100, FLblStatus.Caption, '');
-end;
-
-procedure TFormBackupRestore.ThreadTerminated(Sender: TObject);
-var
-  ExitCode: LongWord;
-begin
-  if Assigned(FWorkerThread) then
-  begin
-    ExitCode := FWorkerThread.ExitCode;
-    FIsOperationSuccessful := (ExitCode = 0); // Sucesso se o código de saída for 0
-
-    if FIsOperationSuccessful then
-    begin
-      if PGAcao = Backup then
-        ShowMessage('Backup concluído com sucesso!' + sLineBreak + 'Arquivo salvo em: ' + TPath.GetFileName(FOutputFilePath) + sLineBreak + 'Log salvo em: ' + FWorkerThread.FLogFilePath)
-      else
-        ShowMessage('Restauração concluída com sucesso!' + sLineBreak + 'Database: ' + PGNomeDoDatabase + sLineBreak + 'Dados restaurados com sucesso.' + sLineBreak + 'Log salvo em: ' + FWorkerThread.FLogFilePath);
-    end
-    else
-    begin
-      ShowMessage(Format('Ocorreu um erro durante a operação de %s. Código de saída: %d' + sLineBreak + 'Verifique o arquivo de log para mais detalhes: %s', [GetEnumName(TypeInfo(TEnumAcaoBackup), Ord(PGAcao)), ExitCode, FWorkerThread.FLogFilePath]));
-    end;
-
-    // Libera a thread
-    FWorkerThread := nil;
-
-    // Fecha o formulário de progresso
-    Close;
-  end;
 end;
 
 end.

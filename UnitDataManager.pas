@@ -109,7 +109,7 @@ type
     procedure DefineParametros(PNomeDoDriverBD: String);
   public
     Driver: string;
-    Host: string;
+    Server: string;
     Porta: string;
     Usuario: string;
     Biblioteca: string;
@@ -176,18 +176,19 @@ begin
   case PAcao of
     Conectar:
       begin
-        DriverBDConexao.DefineParametros(CboxDriverBD.Text);
         FDConnectionDB.close;
         FDConnectionDB.Params.Clear;
+        DriverBDConexao.DefineParametros(CboxDriverBD.Text);
         FDConnectionDB.DriverName := DriverBDConexao.Driver;
         FDPhysPgDriverLinkBD.VendorLib := DriverBDConexao.Biblioteca;
-        FDConnectionDB.Params.Values['Host'] := EdtHost.text;
-        FDConnectionDB.Params.Values['Port'] := EdtPorta.text;
-        FDConnectionDB.Params.Values['User_Name'] := EdtUsuario.text;
-        FDConnectionDB.Params.Values['Password'] := EdtSenha.text;
+        FDConnectionDB.Params.Values['Server'] := DriverBDConexao.Server;
+        FDConnectionDB.Params.Values['Port'] := DriverBDConexao.Porta;
+        FDConnectionDB.Params.Values['User_Name'] := DriverBDConexao.Usuario;
+        FDConnectionDB.Params.Values['Password'] := DriverBDConexao.Senha;
         FDConnectionDB.Params.Values['Database'] := PNomeDoDatabase;
         FDConnectionDB.Params.Values['CharacterSet'] := 'UTF8';
         FDConnectionDB.LoginPrompt := False;
+        FDConnectionDB.Params.Values['SSLMode'] := 'disable';
         FDConnectionDB.Open;
         VerificaVersaoPostgres(VersaoCompleta);
         LblDriverConectado.Caption := VersaoCompleta;
@@ -402,8 +403,8 @@ begin
   CaminhoDoArquivoDeLog := TPath.Combine(ExtractFilePath(ParamStr(0)), 'Logs.txt') ;
   RegistrarLogs('TFormDataManager.FormCreate', '-------------------------------------------------------------------------------');
   RegistrarLogs('TFormDataManager.FormCreate', 'Aplicação iniciada.');
-  HabilitarDesabilitarElementos(False, False);
   DriverBDConexao := TDriverBDConexao.Create;
+  HabilitarDesabilitarElementos(False, False);
 end;
 
 procedure TFormDataManager.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -599,14 +600,15 @@ end;
 procedure TFormDataManager.BtnExcluirDatabaseClick(Sender: TObject);
 // Botão excluir database
 var
-  NomeDoDatabase, POwnerBD: string;
+  NomeDoDatabase, POwnerBD, Versao: string;
   ConfircamaoExcluirDatabase: TModalResult;
 begin
   RegistrarLogs('TFormDataManager.BtnExcluirDatabaseClick', ' Usuário clicou no botão "' + BtnExcluirDatabase.Name + '".');
   POwnerBD := '';
   HabilitarDesabilitarElementos(True, False);
   NomeDoDatabase := LbxDatabases.Items[LbxDatabases.ItemIndex];
-
+  if not (VerificaVersaoPostgres(Versao) < DriverBDConexao.VersaoMinima) then
+  begin
     if ValidaOwnerDatabase(NomeDoDatabase, DriverBDConexao.OwnerPadrao, POwnerBD) then
     begin
       ConfircamaoExcluirDatabase := MessageDlg('Tem certeza que deseja excluir o Database "' + NomeDoDatabase + '" ?', TMsgDlgType.mtWarning, mbYesNo, 0);
@@ -629,6 +631,16 @@ begin
     Messagedlg('O DataManager não pode excluir o banco de dados "' + NomeDoDatabase + '", pois ele pertence ao proprietário "' +
      POwnerBD + '". Torne-se o proprietário do banco para poder executar esta tarefa ou exclua o banco por outra ferramenta.'
      , TMsgDlgType.mtWarning, [mbOk], 0);
+  end
+  else
+  begin
+    RegistrarLogs('TFormDataManager.BtnExcluirDatabaseClick', 'Função encerrada devido a tentativa de ' +
+                  'excluir um banco de dados com a versão ' + CurrToStr(VerificaVersaoPostgres(Versao)) +
+                  ' que é inferior a versão ' + CurrToStr(DriverBDConexao.VersaoMinima) + ' .');
+    MessageDlg('O DataManager não exclúi banco de dados com versão inferior a versão ' +
+                CurrToStr(DriverBDConexao.VersaoMinima) + ' .', TMsgDlgType.mtWarning, [mbOK], 0);
+  end;
+
 end;
 
 procedure TFormDataManager.BtnFazerBackupDatabaseClick(Sender: TObject);
@@ -659,14 +671,14 @@ begin
 
   OutputFile := SaveDialogBackup.FileName;
 
-  Comando := CriaComando(Backup, OutputFile, DriverBDConexao.Dump, DriverBDConexao.Restore, DriverBDConexao.Host,
+  Comando := CriaComando(Backup, OutputFile, DriverBDConexao.Dump, DriverBDConexao.Restore, DriverBDConexao.Server,
                           DriverBDConexao.Porta, NomeDoDatabase, DriverBDConexao.Senha);
   RegistrarLogs('TFormDataManager.BtnFazerBackupDatabaseClick', 'Comando recebido: ' + Comando);
 
   FormBackupRestore := TFormBackupRestore.Create(Self);
   try
     // Configura o formulário de progresso com os parâmetros necessários
-    FormBackupRestore.IniciarOperacao(Comando, OutputFile, DriverBDConexao.Dump, DriverBDConexao.Restore, DriverBDConexao.Host,
+    FormBackupRestore.IniciarOperacao(Comando, OutputFile, DriverBDConexao.Dump, DriverBDConexao.Restore, DriverBDConexao.Server,
                           DriverBDConexao.Porta, NomeDoDatabase, DriverBDConexao.Senha, TEnumAcaoBackup.Backup, FDConnectionDB); // Passa a conexão
 
     FormBackupRestore.ShowModal;
@@ -719,7 +731,7 @@ begin
           InputFile := OpenDialogRestore.FileName;
         end;
 
-        Comando := CriaComando(Restore, InputFile, DriverBDConexao.Dump, DriverBDConexao.Restore, DriverBDConexao.Host,
+        Comando := CriaComando(Restore, InputFile, DriverBDConexao.Dump, DriverBDConexao.Restore, DriverBDConexao.Server,
                                DriverBDConexao.Porta, NomeDoDatabase, DriverBDConexao.Senha);
         RegistrarLogs('TFormDataManager.BtnFazerRestoreDatabaseClick', 'Comando recebido: ' + Comando);
 
@@ -733,7 +745,7 @@ begin
         RegistrarLogs('TFormDataManager.BtnFazerRestoreDatabaseClick', 'Recriado o banco de dados vazio.');
         FormBackupRestore := TFormBackupRestore.Create(Self);
         try
-          FormBackupRestore.IniciarOperacao(Comando, InputFile, DriverBDConexao.Dump, DriverBDConexao.Restore, DriverBDConexao.Host,
+          FormBackupRestore.IniciarOperacao(Comando, InputFile, DriverBDConexao.Dump, DriverBDConexao.Restore, DriverBDConexao.Server,
                                             DriverBDConexao.Porta, NomeDoDatabase, DriverBDConexao.Senha, TEnumAcaoBackup.Restore, FDConnectionDB);
           FormBackupRestore.ShowModal;
         finally
@@ -971,7 +983,7 @@ end;
 procedure TDriverBDConexao.DefineParametros(PNomeDoDriverBD: string);
 // Retorna qual driver de banco de dados usar com base na opção escolhida
 begin
-  Host := FormDataManager.EdtHost.text;
+  Server := FormDataManager.EdtHost.text;
   Usuario := FormDataManager.EdtUsuario.text;
   Senha := FormDataManager.EdtSenha.text;
   Porta := FormDataManager.EdtPorta.text;
@@ -991,13 +1003,6 @@ begin
       Biblioteca := 'C:\Program Files\PostgreSQL\17\bin\libpq.dll';
       Dump := 'C:\Program Files\PostgreSQL\17\bin\pg_dump.exe';
       Restore := 'C:\Program Files\PostgreSQL\17\bin\pg_restore.exe';
-    end
-  else
-    begin
-      Driver := '';
-      Biblioteca := '';
-      Dump := '';
-      Restore := '';
     end;
   FormDataManager.RegistrarLogs('TDriverBDConexao.DefineParametros', 'Parâmetros de conexão definidos.'
                                 + sLineBreak
