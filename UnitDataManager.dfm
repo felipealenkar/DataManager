@@ -3,8 +3,8 @@ object FormDataManager: TFormDataManager
   Top = 0
   BorderStyle = bsSingle
   Caption = 'Data Manager 1.1'
-  ClientHeight = 597
-  ClientWidth = 718
+  ClientHeight = 284
+  ClientWidth = 698
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -319,33 +319,28 @@ object FormDataManager: TFormDataManager
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   TextHeight = 15
-  object LblBancosDeDados: TLabel
-    Left = 8
-    Top = 442
-    Width = 91
-    Height = 15
-    Caption = 'Bancos De Dados'
-  end
-  object DBGridTabela: TDBGrid
-    Left = 255
-    Top = 161
-    Width = 458
-    Height = 432
-    DataSource = DataSourceBD
-    Enabled = False
-    TabOrder = 0
-    TitleFont.Charset = DEFAULT_CHARSET
-    TitleFont.Color = clWindowText
-    TitleFont.Height = -12
-    TitleFont.Name = 'Segoe UI'
-    TitleFont.Style = []
+  object LblDriverConectado: TLabel
+    Left = 450
+    Top = 8
+    Width = 225
+    Height = 38
+    AutoSize = False
+    Caption = 'Nenhum banco de dados conectado'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clRed
+    Font.Height = -12
+    Font.Name = 'Segoe UI'
+    Font.Style = []
+    ParentFont = False
+    WordWrap = True
+    StyleElements = [seClient, seBorder]
   end
   object PnlConexao: TPanel
-    Left = 7
+    Left = 8
     Top = 8
     Width = 241
-    Height = 305
-    TabOrder = 1
+    Height = 270
+    TabOrder = 0
     object LblHost: TLabel
       Left = 105
       Top = 58
@@ -380,22 +375,6 @@ object FormDataManager: TFormDataManager
       Width = 15
       Height = 15
       Caption = 'BD'
-    end
-    object LblDriverConectado: TLabel
-      Left = 8
-      Top = 269
-      Width = 225
-      Height = 32
-      AutoSize = False
-      Caption = 'Nenhum banco de dados conectado'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clRed
-      Font.Height = -12
-      Font.Name = 'Segoe UI'
-      Font.Style = []
-      ParentFont = False
-      WordWrap = True
-      StyleElements = [seClient, seBorder]
     end
     object EdtHost: TEdit
       Left = 105
@@ -482,7 +461,7 @@ object FormDataManager: TFormDataManager
     end
     object BtnAtualizar: TButton
       Left = 8
-      Top = 183
+      Top = 182
       Width = 80
       Height = 80
       BiDiMode = bdLeftToRight
@@ -502,12 +481,12 @@ object FormDataManager: TFormDataManager
   object PnlGerenciar: TPanel
     Left = 255
     Top = 8
-    Width = 458
-    Height = 100
-    TabOrder = 2
+    Width = 188
+    Height = 270
+    TabOrder = 1
     object BtnNovoDataBase: TButton
       Left = 9
-      Top = 10
+      Top = 8
       Width = 80
       Height = 80
       BiDiMode = bdLeftToRight
@@ -526,7 +505,7 @@ object FormDataManager: TFormDataManager
     end
     object BtnRenomearDatabase: TButton
       Left = 98
-      Top = 10
+      Top = 8
       Width = 80
       Height = 80
       BiDiMode = bdLeftToRight
@@ -544,8 +523,8 @@ object FormDataManager: TFormDataManager
       OnClick = BtnRenomearDatabaseClick
     end
     object BtnExcluirDatabase: TButton
-      Left = 365
-      Top = 10
+      Left = 54
+      Top = 182
       Width = 80
       Height = 80
       BiDiMode = bdLeftToRight
@@ -563,8 +542,8 @@ object FormDataManager: TFormDataManager
       OnClick = BtnExcluirDatabaseClick
     end
     object BtnFazerBackupDatabase: TButton
-      Left = 187
-      Top = 10
+      Left = 9
+      Top = 95
       Width = 80
       Height = 80
       BiDiMode = bdLeftToRight
@@ -582,8 +561,8 @@ object FormDataManager: TFormDataManager
       OnClick = BtnFazerBackupDatabaseClick
     end
     object BtnFazerRestoreDatabase: TButton
-      Left = 276
-      Top = 10
+      Left = 98
+      Top = 95
       Width = 80
       Height = 80
       BiDiMode = bdLeftToRight
@@ -602,78 +581,35 @@ object FormDataManager: TFormDataManager
     end
   end
   object LbxDatabases: TListBox
-    Left = 8
-    Top = 319
+    Left = 450
+    Top = 52
     Width = 241
-    Height = 274
+    Height = 226
     ItemHeight = 15
-    TabOrder = 3
+    TabOrder = 2
     OnClick = LbxDatabasesClick
-  end
-  object PnlQuery: TPanel
-    Left = 254
-    Top = 114
-    Width = 459
-    Height = 41
-    TabOrder = 4
-    object Button2: TButton
-      Left = 137
-      Top = 8
-      Width = 75
-      Height = 23
-      Caption = 'Select'
-      Enabled = False
-      TabOrder = 0
-      OnClick = Button2Click
-    end
-    object Button3: TButton
-      Left = 255
-      Top = 8
-      Width = 75
-      Height = 23
-      Caption = 'Update'
-      Enabled = False
-      TabOrder = 1
-    end
-    object Delete: TButton
-      Left = 371
-      Top = 8
-      Width = 75
-      Height = 23
-      Caption = 'Delete'
-      Enabled = False
-      TabOrder = 2
-    end
-    object EditFormaDePagamento: TEdit
-      Left = 10
-      Top = 8
-      Width = 121
-      Height = 23
-      Enabled = False
-      TabOrder = 3
-    end
   end
   object FDConnectionDB: TFDConnection
     Params.Strings = (
       'Port=0'
       'Server='
       'DriverID=PG')
-    Left = 512
-    Top = 536
+    Left = 624
+    Top = 57
   end
   object FDPhysPgDriverLinkBD: TFDPhysPgDriverLink
-    Left = 626
-    Top = 536
+    Left = 624
+    Top = 113
   end
   object DataSourceBD: TDataSource
     DataSet = FDQueryBD
-    Left = 350
-    Top = 536
+    Left = 630
+    Top = 225
   end
   object FDQueryBD: TFDQuery
     Connection = FDConnectionDB
-    Left = 427
-    Top = 536
+    Left = 627
+    Top = 169
   end
   object ImageCollectionManager: TImageCollection
     Images = <
@@ -8463,8 +8399,8 @@ object FormDataManager: TFormDataManager
               F61AC03FA0AF8FFF007247749D4AD1EFD30000000049454E44AE426082}
           end>
       end>
-    Left = 626
-    Top = 480
+    Left = 514
+    Top = 57
   end
   object VirtualImageListManager: TVirtualImageList
     Images = <
@@ -8516,15 +8452,15 @@ object FormDataManager: TFormDataManager
     ImageCollection = ImageCollectionManager
     Width = 40
     Height = 40
-    Left = 481
-    Top = 480
+    Left = 513
+    Top = 113
   end
   object SaveDialogBackup: TSaveDialog
-    Left = 352
-    Top = 424
+    Left = 512
+    Top = 225
   end
   object OpenDialogRestore: TOpenDialog
-    Left = 352
-    Top = 480
+    Left = 512
+    Top = 169
   end
 end

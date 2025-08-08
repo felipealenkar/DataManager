@@ -1,7 +1,4 @@
-﻿[Button2]
-Coordinates=10,144,59,58
-
-[EdtSenha]
+﻿[EdtSenha]
 Coordinates=522,212,71,58
 
 [EdtPorta]
@@ -9,9 +6,6 @@ Coordinates=416,10,65,58
 
 [ImageCollectionManager]
 Coordinates=640,1,158,36
-
-[Button3]
-Coordinates=265,212,59,58
 
 [EdtHost]
 Coordinates=460,144,60,58
@@ -22,17 +16,11 @@ Coordinates=413,212,99,58
 [VirtualImageListManager]
 Coordinates=836,1,158,36
 
-[Delete]
-Coordinates=245,144,52,58
-
 [LblUsuario]
 Coordinates=10,280,76,58
 
 [LblSenha]
 Coordinates=334,212,69,58
-
-[EditFormaDePagamento]
-Coordinates=79,144,156,58
 
 [EdtUsuario]
 Coordinates=10,212,78,58
@@ -59,7 +47,7 @@ Coordinates=300,10,106,58
 Coordinates=366,144,84,58
 
 []
-Coordinates=121,10,101,124
+Coordinates=245,144,52,58
 
 [DataSourceBD]
 Coordinates=503,1,89,36
@@ -70,7 +58,4 @@ Coordinates=836,56,141,36
 [CboxDriverBD]
 Coordinates=10,10,101,124
 Visible=True
-
-[DBGridTabela]
-Coordinates=96,280,64,36
 

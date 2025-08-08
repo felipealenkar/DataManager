@@ -19,16 +19,10 @@ uses
 type
   TFormDataManager = class(TForm)
     //Criado por james
-    Button2: TButton;
-    Button3: TButton;
-    Delete: TButton;
-    EditFormaDePagamento: TEdit;
-    //Criado por james
 
     FDConnectionDB: TFDConnection;
     BtnConectaBD: TButton;
     FDPhysPgDriverLinkBD: TFDPhysPgDriverLink;
-    DBGridTabela: TDBGrid;
     DataSourceBD: TDataSource;
     FDQueryBD: TFDQuery;
     ImageCollectionManager: TImageCollection;
@@ -45,7 +39,6 @@ type
     LblBd: TLabel;
     BtnDesconectar: TButton;
     CboxDriverBD: TComboBox;
-    LblBancosDeDados: TLabel;
     BtnNovoDataBase: TButton;
     PnlGerenciar: TPanel;
     BtnAtualizar: TButton;
@@ -57,10 +50,8 @@ type
     SaveDialogBackup: TSaveDialog;
     OpenDialogRestore: TOpenDialog;
     LblDriverConectado: TLabel;
-    PnlQuery: TPanel;
     procedure FormCreate(Sender: TObject);
     procedure BtnConectaBDClick(Sender: TObject);
-    procedure DeleteClick(Sender: TObject);
     procedure BtnDesconectarClick(Sender: TObject);
     procedure BtnNovoDataBaseClick(Sender: TObject);
     procedure BtnAtualizarClick(Sender: TObject);
@@ -69,11 +60,6 @@ type
     procedure BtnFazerBackupDatabaseClick(Sender: TObject);
     procedure BtnFazerRestoreDatabaseClick(Sender: TObject);
     procedure LbxDatabasesClick(Sender: TObject);
-
-    // jAMES CRIOU
-    procedure Button2Click(Sender: TObject);
-    procedure Button3Click(Sender: TObject);
-    // JAMES CRIOU
 
     procedure FormDestroy(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -474,7 +460,8 @@ begin
     if not Digitou then
     begin
       RegistrarLogs('TFormDataManager.BtnNovoDataBaseClick', 'Usuário cancelou a operação.');
-      exit ;
+      AtualizaListaBancos(True);
+      exit;
     end
     else
     begin
@@ -490,6 +477,7 @@ begin
           if not Digitou then
           begin
             RegistrarLogs('TFormDataManager.BtnNovoDataBaseClick', 'Novamente o usuário cancelou sem digitar o nome do banco.');
+            AtualizaListaBancos(True);
             exit;
           end;
         end
@@ -517,7 +505,7 @@ begin
     MessageDlg('O DataManager não cria banco de dados com versão inferior a versão ' +
                 CurrToStr(DriverBDConexao.VersaoMinima) + ' .', TMsgDlgType.mtWarning, [mbOK], 0);
   end;
-
+  AtualizaListaBancos(True);
 end;
 
 procedure TFormDataManager.BtnRenomearDatabaseClick(Sender: TObject);
@@ -537,6 +525,7 @@ begin
       if not Digitou then
       begin
         RegistrarLogs('TFormDataManager.BtnRenomearDatabaseClick', 'Usuário cancelou a operação.');
+        AtualizaListaBancos(True);
         exit
       end
       else
@@ -554,7 +543,8 @@ begin
               if not Digitou then
               begin
                 RegistrarLogs('TFormDataManager.BtnRenomearDatabaseClick', 'usuário cancelou a operação.');
-                 exit;
+                AtualizaListaBancos(True);
+                exit;
               end;
             end
           end;
@@ -573,11 +563,13 @@ begin
           end
           else
             RegistrarLogs('TFormDataManager.BtnRenomearDatabaseClick', 'Usuário não digitou o nome do banco de dados.');
+          AtualizaListaBancos(True);
           exit;
         end
         else
         begin
           RegistrarLogs('TFormDataManager.BtnRenomearDatabaseClick', 'Usuário digitou o mesmo nome de banco de dados.');
+          AtualizaListaBancos(True);
           Exit;
         end;
       end
@@ -595,6 +587,7 @@ begin
     MessageDlg('O DataManager não renomeia banco de dados com versão inferior a versão ' +
                 CurrToStr(DriverBDConexao.VersaoMinima) + ' .', TMsgDlgType.mtWarning, [mbOK], 0);
   end;
+  AtualizaListaBancos(True);
 end;
 
 procedure TFormDataManager.BtnExcluirDatabaseClick(Sender: TObject);
@@ -624,7 +617,8 @@ begin
       end
       else
         RegistrarLogs('TFormDataManager.BtnExcluirDatabaseClick', 'Usuário cancelou a exclusão do banco de dados "' + NomeDoDatabase + '".');
-        Exit;
+      AtualizaListaBancos(True);
+      Exit;
     end
     else
     RegistrarLogs('TFormDataManager.BtnExcluirDatabaseClick', 'Função cancelada porquê o usuário tentou excluir um banco de dados de outro proprietário.');
@@ -640,7 +634,7 @@ begin
     MessageDlg('O DataManager não exclúi banco de dados com versão inferior a versão ' +
                 CurrToStr(DriverBDConexao.VersaoMinima) + ' .', TMsgDlgType.mtWarning, [mbOK], 0);
   end;
-
+  AtualizaListaBancos(True);
 end;
 
 procedure TFormDataManager.BtnFazerBackupDatabaseClick(Sender: TObject);
@@ -664,6 +658,7 @@ begin
   if not SaveDialogBackup.Execute then
   begin
     RegistrarLogs('TFormDataManager.BtnFazerBackupDatabaseClick', 'Usuário cancelou sem decidir salvar o backup".');
+    AtualizaListaBancos(True);
     Exit;
   end
   else
@@ -688,6 +683,7 @@ begin
     RegistrarLogs('TFormDataManager.BtnFazerBackupDatabaseClick', 'Form "' + FormBackupRestore.Name + '" foi fechado.');
     ConectarDesconectarDriverDoDatabase('postgres', Conectar);
   end;
+  AtualizaListaBancos(True);
 end;
 
 procedure TFormDataManager.BtnFazerRestoreDatabaseClick(Sender: TObject);
@@ -723,6 +719,7 @@ begin
         if not OpenDialogRestore.Execute then
         begin
           RegistrarLogs('TFormDataManager.BtnFazerRestoreDatabaseClick', 'Usuário cancelou sem abrir nenhum arquivo de backup".');
+          AtualizaListaBancos(True);
           Exit;
         end
         else
@@ -766,6 +763,7 @@ begin
                  TMsgDlgType.mtWarning, [mbOk], 0);
     end;
   end;
+  AtualizaListaBancos(True);
 end;
 
 procedure TFormDataManager.LbxDatabasesClick(Sender: TObject);
@@ -935,47 +933,8 @@ begin
         LbxDatabases.Items.Clear;
       end;
   end;
+  LbxDatabases.ItemIndex := -1;
   RegistrarLogs('TFormDataManager.AtualizaListaBancos', 'Lista de bancos de dados atualizada.');
-end;
-
-procedure TFormDataManager.Button2Click(Sender: TObject);
-// Faz um select no banco
-// FDQuery1.Open Só roda selec
-// FDQuery1.
-begin
-  FDQueryBD.close;
-  FDQueryBD.SQL.Clear;
-  FDQueryBD.SQL.Add('select * from wshop.tprec');
-  FDQueryBD.SQL.Add('order by cdtiporec');
-  FDQueryBD.Open;
-end;
-
-procedure TFormDataManager.Button3Click(Sender: TObject);
-// Faz um update no banco
-begin
-  FDQueryBD.close;
-  FDQueryBD.SQL.Clear;
-  FDQueryBD.SQL.Add('update wshop.tprec');
-  FDQueryBD.SQL.Add('set nmtprecebimento = :pnmtprecebimento');
-  FDQueryBD.SQL.Add('where idtprecebimento = :pidtprecebimento');
-  FDQueryBD.ParamByName('pnmtprecebimento').Asstring :=
-    EditFormaDePagamento.text;
-  FDQueryBD.ParamByName('pidtprecebimento').Asstring := '0RR0000001';
-  FDQueryBD.ExecSQL;
-  Button2Click(nil);
-end;
-
-procedure TFormDataManager.DeleteClick(Sender: TObject);
-// Faz um delete no banco
-begin
-  FDQueryBD.close;
-  FDQueryBD.SQL.Clear;
-  FDQueryBD.SQL.Add('delete from wshop.tprec');
-  FDQueryBD.SQL.Add('where nmtprecebimento = :pnmtprecebimento');
-  FDQueryBD.ParamByName('pnmtprecebimento').Asstring :=
-  EditFormaDePagamento.text;
-  FDQueryBD.ExecSQL;
-  Button2Click(nil);
 end;
 
 { TDriverBD }
