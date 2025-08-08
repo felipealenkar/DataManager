@@ -3,7 +3,7 @@ object FormDataManager: TFormDataManager
   Top = 0
   BorderStyle = bsSingle
   Caption = 'Data Manager 1.2'
-  ClientHeight = 286
+  ClientHeight = 321
   ClientWidth = 698
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
