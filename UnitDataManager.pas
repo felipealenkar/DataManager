@@ -80,12 +80,12 @@ type
     procedure AdicionarOuRemoverPermissoesNosRoles(PNomeDoDatabase: string; PAcao: TEnumAcao);
     procedure RenomearDatabase(PNomeDoDatabaseAntigo, PNomeDoDatabaseNovo: string);
     function ValidaDatabaseExistente(PNomeDoDatabase: String): boolean;
-    procedure RegistrarLogs(PRotina: string; PLog: string);
     function CriaComando(PAcao: TEnumAcao; POutputFile, PDumpPath, PRestorePath,
                          PHost, PPorta, PNomeDoDatabase, PSenha: string): string;
     function ValidaOwnerDatabase(PNomeDoDatabase, POwnerPadrao: string; out POwnerBD: string): Boolean;
 
   public
+    procedure RegistrarLogs(PRotina: string; PLog: string);
     Const VersaoMinimaPostgre: currency = 17;
 end;
 
@@ -386,7 +386,7 @@ end;
 procedure TFormDataManager.FormCreate(Sender: TObject);
 // Cria a janela e classes da aplicação
 begin
-  CaminhoDoArquivoDeLog := TPath.Combine(ExtractFilePath(ParamStr(0)), 'Logs.txt') ;
+  CaminhoDoArquivoDeLog := TPath.Combine(ExtractFilePath(ParamStr(0)), 'Logs.txt');
   RegistrarLogs('TFormDataManager.FormCreate', '-------------------------------------------------------------------------------');
   RegistrarLogs('TFormDataManager.FormCreate', 'Aplicação iniciada.');
   DriverBDConexao := TDriverBDConexao.Create;
@@ -415,7 +415,7 @@ begin
   if CboxDriverBD.ItemIndex = -1 then
   begin
     RegistrarLogs('TFormDataManager.BtnConectaBDClick', 'Usuário não selecionou nenhum driver de Database.');
-    showmessage('Selecione um driver de Bando de dados para continuar.');
+    showmessage('Selecione um driver de Banco de dados para continuar.');
   end
   else
   begin
@@ -596,45 +596,54 @@ var
   NomeDoDatabase, POwnerBD, Versao: string;
   ConfircamaoExcluirDatabase: TModalResult;
 begin
-  RegistrarLogs('TFormDataManager.BtnExcluirDatabaseClick', ' Usuário clicou no botão "' + BtnExcluirDatabase.Name + '".');
-  POwnerBD := '';
-  HabilitarDesabilitarElementos(True, False);
-  NomeDoDatabase := LbxDatabases.Items[LbxDatabases.ItemIndex];
-  if not (VerificaVersaoPostgres(Versao) < DriverBDConexao.VersaoMinima) then
-  begin
-    if ValidaOwnerDatabase(NomeDoDatabase, DriverBDConexao.OwnerPadrao, POwnerBD) then
+  try
+    RegistrarLogs('TFormDataManager.BtnExcluirDatabaseClick', ' Usuário clicou no botão "' + BtnExcluirDatabase.Name + '".');
+    POwnerBD := '';
+    HabilitarDesabilitarElementos(True, False);
+    NomeDoDatabase := LbxDatabases.Items[LbxDatabases.ItemIndex];
+    if not (VerificaVersaoPostgres(Versao) < DriverBDConexao.VersaoMinima) then
     begin
-      ConfircamaoExcluirDatabase := MessageDlg('Tem certeza que deseja excluir o Database "' + NomeDoDatabase + '" ?', TMsgDlgType.mtWarning, mbYesNo, 0);
-      if ConfircamaoExcluirDatabase = mryes then
+      if ValidaOwnerDatabase(NomeDoDatabase, DriverBDConexao.OwnerPadrao, POwnerBD) then
       begin
-        RegistrarLogs('TFormDataManager.BtnExcluirDatabaseClick', 'Usuário confirmou a exclusão do banco de dados "' + NomeDoDatabase + '".');
-        AdicionarOuRemoverPermissoesNosRoles(NomeDoDatabase, Remover);
-        CriarDroparRoles(NomeDoDatabase, Dropar);
-        CriarDroparDataBase(NomeDoDatabase, Dropar);
-        MessageDlg('Database "' + NomeDoDatabase + '" excluído com sucesso', TMsgDlgType.mtInformation, [mbOK], 0);
+        ConfircamaoExcluirDatabase := MessageDlg('Tem certeza que deseja excluir o Database "' + NomeDoDatabase + '" ?', TMsgDlgType.mtWarning, mbYesNo, 0);
+        if ConfircamaoExcluirDatabase = mryes then
+        begin
+          RegistrarLogs('TFormDataManager.BtnExcluirDatabaseClick', 'Usuário confirmou a exclusão do banco de dados "' + NomeDoDatabase + '".');
+          AdicionarOuRemoverPermissoesNosRoles(NomeDoDatabase, Remover);
+          CriarDroparRoles(NomeDoDatabase, Dropar);
+          CriarDroparDataBase(NomeDoDatabase, Dropar);
+          MessageDlg('Database "' + NomeDoDatabase + '" excluído com sucesso', TMsgDlgType.mtInformation, [mbOK], 0);
+          AtualizaListaBancos(True);
+          Exit;
+        end
+        else
+          RegistrarLogs('TFormDataManager.BtnExcluirDatabaseClick', 'Usuário cancelou a exclusão do banco de dados "' + NomeDoDatabase + '".');
         AtualizaListaBancos(True);
         Exit;
       end
       else
-        RegistrarLogs('TFormDataManager.BtnExcluirDatabaseClick', 'Usuário cancelou a exclusão do banco de dados "' + NomeDoDatabase + '".');
-      AtualizaListaBancos(True);
-      Exit;
+      RegistrarLogs('TFormDataManager.BtnExcluirDatabaseClick', 'Função cancelada porquê o usuário tentou excluir um banco de dados de outro proprietário.');
+      Messagedlg('O DataManager não pode excluir o banco de dados "' + NomeDoDatabase + '", pois ele pertence ao proprietário "' +
+       POwnerBD + '". Torne-se o proprietário do banco para poder executar esta tarefa ou exclua o banco por outra ferramenta.'
+       , TMsgDlgType.mtWarning, [mbOk], 0);
     end
     else
-    RegistrarLogs('TFormDataManager.BtnExcluirDatabaseClick', 'Função cancelada porquê o usuário tentou excluir um banco de dados de outro proprietário.');
-    Messagedlg('O DataManager não pode excluir o banco de dados "' + NomeDoDatabase + '", pois ele pertence ao proprietário "' +
-     POwnerBD + '". Torne-se o proprietário do banco para poder executar esta tarefa ou exclua o banco por outra ferramenta.'
-     , TMsgDlgType.mtWarning, [mbOk], 0);
-  end
-  else
-  begin
-    RegistrarLogs('TFormDataManager.BtnExcluirDatabaseClick', 'Função encerrada devido a tentativa de ' +
-                  'excluir um banco de dados com a versão ' + CurrToStr(VerificaVersaoPostgres(Versao)) +
-                  ' que é inferior a versão ' + CurrToStr(DriverBDConexao.VersaoMinima) + ' .');
-    MessageDlg('O DataManager não exclúi banco de dados com versão inferior a versão ' +
-                CurrToStr(DriverBDConexao.VersaoMinima) + ' .', TMsgDlgType.mtWarning, [mbOK], 0);
+    begin
+      RegistrarLogs('TFormDataManager.BtnExcluirDatabaseClick', 'Função encerrada devido a tentativa de ' +
+                    'excluir um banco de dados com a versão ' + CurrToStr(VerificaVersaoPostgres(Versao)) +
+                    ' que é inferior a versão ' + CurrToStr(DriverBDConexao.VersaoMinima) + ' .');
+      MessageDlg('O DataManager não exclúi banco de dados com versão inferior a versão ' +
+                  CurrToStr(DriverBDConexao.VersaoMinima) + ' .', TMsgDlgType.mtWarning, [mbOK], 0);
+    end;
+    AtualizaListaBancos(True);
+  except
+    on E: Exception do
+      begin
+        RegistrarLogs('TFormDataManager.BtnExcluirDatabaseClick', E.ClassName + ' - ' + e.Message);
+        Showmessage(e.Message);
+      end;
+
   end;
-  AtualizaListaBancos(True);
 end;
 
 procedure TFormDataManager.BtnFazerBackupDatabaseClick(Sender: TObject);
@@ -972,7 +981,7 @@ begin
                                 + 'Diretório restore: ' + Restore + sLineBreak
                                 + 'Porta: ' + Porta + sLineBreak
                                 + 'Usuário: ' + Usuario + sLineBreak
-                                + 'Senha: ' + Senha + sLineBreak
+                                + 'Senha: ' + '*******' + sLineBreak
                                 + 'Owner do BD principal: ' + OwnerPadrao + sLineBreak
                                 + 'Extensao dos backups: ' + Extensao + sLineBreak
                                 + 'TipoQueryDlg: ' + TipoQueryDlg + sLineBreak);

@@ -162,6 +162,9 @@ var
 
 implementation
 
+uses
+  UnitDataManager;
+
 {$R *.dfm}
 
 // ==============================================================================
@@ -177,6 +180,7 @@ begin
   // Inicializações da UI
   RichEditLog.Clear;
   LblProgresso.Caption := 'Iniciando...';
+  FormDataManager.RegistrarLogs('TFormBackupRestore.FormShow', 'Backup do banco de dados "' + FPNomeDoDatabase_Name + '" Iniciado');
   ProgressBarBackupRestore.Position := 0;
   ProgressBarBackupRestore.Min := 0;
   ProgressBarBackupRestore.Max := 100;
