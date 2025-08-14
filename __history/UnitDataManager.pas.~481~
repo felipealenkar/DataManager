@@ -60,6 +60,7 @@ type
     procedure BtnFazerBackupDatabaseClick(Sender: TObject);
     procedure BtnFazerRestoreDatabaseClick(Sender: TObject);
     procedure LbxDatabasesClick(Sender: TObject);
+
     procedure FormDestroy(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CboxDriverBDChange(Sender: TObject);
