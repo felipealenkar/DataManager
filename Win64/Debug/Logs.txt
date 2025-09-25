@@ -4000,3 +4000,81 @@ TipoQueryDlg: Backup PostgreSQL
 [11/08/2025 19:19:48] - [TFormDataManager.FormClose] - Aplicação Encerrada. -
 [11/08/2025 19:19:48] - [TFormDataManager.FormClose] - ------------------------------------------------------------------------------- -
 [11/08/2025 19:19:48] - [TFormDataManager.FormDestroy] - Form limpo da memória com sucesso -
+[20/08/2025 17:06:52] - [TFormDataManager.FormCreate] - ------------------------------------------------------------------------------- -
+[20/08/2025 17:06:52] - [TFormDataManager.FormCreate] - Aplicação iniciada. -
+[20/08/2025 17:06:52] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[20/08/2025 17:06:56] - [TFormDataManager.CboxDriverBDChange] - Foi atribuído o driver PostgreSQL 17 -
+[20/08/2025 17:06:57] - [TFormDataManager.BtnConectaBDClick] - Usuário clicou no botão "BtnConectaBD". -
+[20/08/2025 17:06:57] - [TFormDataManager.BtnConectaBDClick] - Usuário com o driver PostgreSQL 17 selecionado. -
+[20/08/2025 17:06:57] - [TDriverBDConexao.DefineParametros] - Parâmetros de conexão definidos.
+
+Driver e versão: PostgreSQL 17
+Diretório biblioteca: C:\Program Files\PostgreSQL\17\bin\libpq.dll
+Diretório dump: C:\Program Files\PostgreSQL\17\bin\pg_dump.exe
+Diretório restore: C:\Program Files\PostgreSQL\17\bin\pg_restore.exe
+Porta: 5433
+Usuário: postgres
+Senha: *******
+Owner do BD principal: PRODFAB_ADMIN
+Extensao dos backups: postgresql
+TipoQueryDlg: Backup PostgreSQL
+ -
+[20/08/2025 17:06:57] - [TFormDataManager.VerificaVersaoPostgres] - Conectado ao banco de dados PostgreSQL 17.5 on x86_64-windows, compiled by msvc-19.44.35209, 64-bit -
+[20/08/2025 17:06:57] - [TFormDataManager.ConectarDesconectarDriverDoDatabase] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[20/08/2025 17:06:57] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[20/08/2025 17:06:57] - [TFormDataManager.AtualizaListaBancos] - Lista de bancos de dados atualizada. -
+[20/08/2025 17:06:59] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "TESTE". -
+[20/08/2025 17:06:59] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[20/08/2025 17:07:02] - [TFormDataManager.VerificaVersaoPostgres] - Conectado ao banco de dados PostgreSQL 17.5 on x86_64-windows, compiled by msvc-19.44.35209, 64-bit -
+[20/08/2025 17:07:02] - [TFormDataManager.BtnAtualizarClick] - Usuário clicou no botão "BtnNovoDataBase". -
+[20/08/2025 17:07:02] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[20/08/2025 17:07:08] - [TFormDataManager.CapturarNomeDoDatabase] - Nome do database "TESTE2" capturado - Parâmetro Out foi "-1" -
+[20/08/2025 17:07:08] - [TFormDataManager.ValidaDatabaseExistente] - Database "TESTE2" não existe -
+[20/08/2025 17:07:08] - [TFormDataManager.BtnNovoDataBaseClick] - Usuário digitou o nome do banco de dados "TESTE2". -
+[20/08/2025 17:07:08] - [TFormDataManager.CriarDroparRoles] - Alguns usuários padrão do database não foram cadastrados, pois já existiam. -
+[20/08/2025 17:07:09] - [TFormDataManager.CriarDroparDataBase] - Query de criação de database executada:
+
+CREATE DATABASE "TESTE2"
+WITH OWNER = "PRODFAB_ADMIN"
+ENCODING = 'UTF8'
+TABLESPACE = pg_default
+LC_COLLATE = 'Portuguese_Brazil.1252'
+LC_CTYPE = 'Portuguese_Brazil.1252'
+CONNECTION LIMIT = -1
+ -
+[20/08/2025 17:07:09] - [TFormDataManager.CriarDroparDataBase] - Database "TESTE2" criado com sucesso. -
+[20/08/2025 17:07:09] - [TFormDataManager.AdicionarOuRemoverPermissoesNosRoles] - Permissões adicionadas aos usuários do database "TESTE2". -
+[20/08/2025 17:07:10] - [TFormDataManager.AtualizaListaBancos] - Lista de bancos de dados atualizada. -
+[20/08/2025 17:07:10] - [TFormDataManager.AtualizaListaBancos] - Lista de bancos de dados atualizada. -
+[20/08/2025 17:07:11] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[20/08/2025 17:07:11] - [TFormDataManager.FormClose] - Aplicação Encerrada. -
+[20/08/2025 17:07:11] - [TFormDataManager.FormClose] - ------------------------------------------------------------------------------- -
+[20/08/2025 17:07:11] - [TFormDataManager.FormDestroy] - Form limpo da memória com sucesso -
+[20/08/2025 17:07:19] - [TFormDataManager.FormCreate] - ------------------------------------------------------------------------------- -
+[20/08/2025 17:07:19] - [TFormDataManager.FormCreate] - Aplicação iniciada. -
+[20/08/2025 17:07:19] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[20/08/2025 17:07:21] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[20/08/2025 17:07:21] - [TFormDataManager.FormClose] - Aplicação Encerrada. -
+[20/08/2025 17:07:21] - [TFormDataManager.FormClose] - ------------------------------------------------------------------------------- -
+[20/08/2025 17:07:21] - [TFormDataManager.FormDestroy] - Form limpo da memória com sucesso -
+[20/08/2025 17:11:20] - [TFormDataManager.FormCreate] - ------------------------------------------------------------------------------- -
+[20/08/2025 17:11:20] - [TFormDataManager.FormCreate] - Aplicação iniciada. -
+[20/08/2025 17:11:20] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[20/08/2025 17:11:22] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[20/08/2025 17:11:22] - [TFormDataManager.FormClose] - Aplicação Encerrada. -
+[20/08/2025 17:11:22] - [TFormDataManager.FormClose] - ------------------------------------------------------------------------------- -
+[20/08/2025 17:11:22] - [TFormDataManager.FormDestroy] - Form limpo da memória com sucesso -
+[20/08/2025 17:17:12] - [TFormDataManager.FormCreate] - ------------------------------------------------------------------------------- -
+[20/08/2025 17:17:12] - [TFormDataManager.FormCreate] - Aplicação iniciada. -
+[20/08/2025 17:17:13] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[20/08/2025 17:17:15] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[20/08/2025 17:17:15] - [TFormDataManager.FormClose] - Aplicação Encerrada. -
+[20/08/2025 17:17:15] - [TFormDataManager.FormClose] - ------------------------------------------------------------------------------- -
+[20/08/2025 17:17:15] - [TFormDataManager.FormDestroy] - Form limpo da memória com sucesso -
+[20/08/2025 17:18:52] - [TFormDataManager.FormCreate] - ------------------------------------------------------------------------------- -
+[20/08/2025 17:18:52] - [TFormDataManager.FormCreate] - Aplicação iniciada. -
+[20/08/2025 17:18:52] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[20/08/2025 17:18:54] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[20/08/2025 17:18:54] - [TFormDataManager.FormClose] - Aplicação Encerrada. -
+[20/08/2025 17:18:54] - [TFormDataManager.FormClose] - ------------------------------------------------------------------------------- -
+[20/08/2025 17:18:54] - [TFormDataManager.FormDestroy] - Form limpo da memória com sucesso -

@@ -4,9 +4,11 @@ uses
   Vcl.Forms,
   Vcl.Themes,
   vcl.Styles,
-  UnitDataManager in 'UnitDataManager.pas' {FormDataManager},
-  UnitBackupRestore in 'UnitBackupRestore.pas' {FormBackupRestore},
-  Vcl.Dialogs; //Para o Showmessage
+  TelaDataManager in 'TelaDataManager.pas' {FormDataManager},
+  TelaBackupRestore in 'TelaBackupRestore.pas' {FormBackupRestore},
+  Vcl.Dialogs;
+
+//Para o Showmessage
 
 {$R *.res}
 
