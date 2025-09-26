@@ -108,15 +108,15 @@ type
   // ===========================================================================
   // TFormBackupRestore - Seu formulário de Progresso
   // ===========================================================================
-  TFormBackupRestore = class(TForm)
+  TFrmBackupRestore = class(TForm)
     LblProgresso: TLabel;
-    ProgressBarBackupRestore: TProgressBar;
-    RichEditLog: TRichEdit;
+    PbarBackupRestore: TProgressBar;
+    RedtLog: TRichEdit;
     LblPorcentagem: TLabel;
     BtnCancelar: TButton; // Botão para cancelar a operação
 
     procedure FormShow(Sender: TObject);
-    procedure ProgressBarBackupRestoreChange(Sender: TObject);
+    procedure PbarBackupRestoreChange(Sender: TObject);
     procedure BtnCancelarClick(Sender: TObject); // Evento do botão cancelar
 
   private
@@ -158,7 +158,7 @@ type
   end;
 
 var
-  FormBackupRestore: TFormBackupRestore;
+  FrmBackupRestore: TFrmBackupRestore;
 
 implementation
 
@@ -171,19 +171,19 @@ uses
 // TFormBackupRestore - Implementação
 // ==============================================================================
 
-procedure TFormBackupRestore.FormShow(Sender: TObject);
+procedure TFrmBackupRestore.FormShow(Sender: TObject);
 var
   DumpRestorePath: string;
   LogSuffix: string;
   LogFilePath: string;
 begin
   // Inicializações da UI
-  RichEditLog.Clear;
+  RedtLog.Clear;
   LblProgresso.Caption := 'Iniciando...';
-  FormDataManager.RegistrarLogs('TFormBackupRestore.FormShow', 'Backup do banco de dados "' + FPNomeDoDatabase_Name + '" Iniciado');
-  ProgressBarBackupRestore.Position := 0;
-  ProgressBarBackupRestore.Min := 0;
-  ProgressBarBackupRestore.Max := 100;
+  FrmDataManager.RegistrarLogs('TFormBackupRestore.FormShow', 'Backup do banco de dados "' + FPNomeDoDatabase_Name + '" Iniciado');
+  PbarBackupRestore.Position := 0;
+  PbarBackupRestore.Min := 0;
+  PbarBackupRestore.Max := 100;
 
   // Inicializar controles do cancelamento
   FOperationCancelled := False;
@@ -220,9 +220,9 @@ begin
     FOutputFilePath,
     LogFilePath,
     PGAcao = Backup,
-    ProgressBarBackupRestore,
+    PbarBackupRestore,
     LblProgresso,
-    RichEditLog,
+    RedtLog,
     Connection,
     DumpRestorePath
   );
@@ -230,7 +230,7 @@ begin
   FWorkerThread.Start; // Inicia a thread
 end;
 
-procedure TFormBackupRestore.BtnCancelarClick(Sender: TObject);
+procedure TFrmBackupRestore.BtnCancelarClick(Sender: TObject);
 begin
   if Assigned(FWorkerThread) and not FWorkerThread.Finished then
   begin
@@ -249,7 +249,7 @@ begin
   end;
 end;
 
-procedure TFormBackupRestore.IniciarOperacao(const ACommand: string; const AOutputFilePath: string;
+procedure TFrmBackupRestore.IniciarOperacao(const ACommand: string; const AOutputFilePath: string;
                                               const ADumpPath, ARestorePath, AHost, APorta,
                                               ANomeDoDatabase, ASenha: string; AAcao: TEnumAcaoBackup;
                                               AConnection: TFDConnection);
@@ -271,12 +271,12 @@ begin
   Connection := AConnection;
 end;
 
-procedure TFormBackupRestore.ProgressBarBackupRestoreChange(Sender: TObject);
+procedure TFrmBackupRestore.PbarBackupRestoreChange(Sender: TObject);
 begin
-  LblPorcentagem.caption := IntToStr(ProgressBarBackupRestore.Position) + '%';
+  LblPorcentagem.caption := IntToStr(PbarBackupRestore.Position) + '%';
 end;
 
-procedure TFormBackupRestore.ThreadTerminated(Sender: TObject);
+procedure TFrmBackupRestore.ThreadTerminated(Sender: TObject);
 var
   ExitCode: LongWord;
 begin

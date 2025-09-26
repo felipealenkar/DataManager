@@ -4,8 +4,8 @@ uses
   Vcl.Forms,
   Vcl.Themes,
   vcl.Styles,
-  TelaDataManager in 'TelaDataManager.pas' {FormDataManager},
-  TelaBackupRestore in 'TelaBackupRestore.pas' {FormBackupRestore},
+  TelaDataManager in 'TelaDataManager.pas' {FrmDataManager},
+  TelaBackupRestore in 'TelaBackupRestore.pas' {FrmBackupRestore},
   Vcl.Dialogs;
 
 //Para o Showmessage
@@ -21,6 +21,6 @@ begin
   End;
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
-  Application.CreateForm(TFormDataManager, FormDataManager);
+  Application.CreateForm(TFrmDataManager, FrmDataManager);
   Application.Run;
 end.

@@ -135,10 +135,10 @@
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
         <DCCReference Include="TelaDataManager.pas">
-            <Form>FormDataManager</Form>
+            <Form>FrmDataManager</Form>
         </DCCReference>
         <DCCReference Include="TelaBackupRestore.pas">
-            <Form>FormBackupRestore</Form>
+            <Form>FrmBackupRestore</Form>
             <FormType>dfm</FormType>
         </DCCReference>
         <BuildConfiguration Include="Base">

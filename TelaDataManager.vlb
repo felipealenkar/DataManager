@@ -4,17 +4,11 @@ Coordinates=522,212,71,58
 [EdtPorta]
 Coordinates=416,10,65,58
 
-[ImageCollectionManager]
-Coordinates=640,1,158,36
-
 [EdtHost]
 Coordinates=460,144,60,58
 
 [BtnConectaBD]
 Coordinates=413,212,99,58
-
-[VirtualImageListManager]
-Coordinates=836,1,158,36
 
 [LblUsuario]
 Coordinates=10,280,76,58
@@ -55,7 +49,13 @@ Coordinates=503,1,89,36
 [FDPhysPgDriverLinkBD]
 Coordinates=836,56,141,36
 
-[CboxDriverBD]
+[ImgcolManager]
+Coordinates=640,1,158,36
+
+[VimglstManager]
+Coordinates=836,1,158,36
+
+[CbxDriverBD]
 Coordinates=10,10,101,124
 Visible=True
 

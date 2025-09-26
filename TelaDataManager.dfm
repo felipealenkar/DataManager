@@ -1,4 +1,4 @@
-object FormDataManager: TFormDataManager
+object FrmDataManager: TFrmDataManager
   Left = 0
   Top = 0
   BorderStyle = bsSingle
@@ -422,7 +422,7 @@ object FormDataManager: TFormDataManager
       ImageIndex = 0
       ImageName = 'ConectarBD'
       ImageMargins.Top = 10
-      Images = VirtualImageListManager
+      Images = VimglstManager
       ParentBiDiMode = False
       ParentShowHint = False
       ShowHint = False
@@ -440,21 +440,21 @@ object FormDataManager: TFormDataManager
       ImageIndex = 1
       ImageName = 'DesconectarBD'
       ImageMargins.Top = 10
-      Images = VirtualImageListManager
+      Images = VimglstManager
       ParentBiDiMode = False
       ParentShowHint = False
       ShowHint = False
       TabOrder = 5
       OnClick = BtnDesconectarClick
     end
-    object CboxDriverBD: TComboBox
+    object CbxDriverBD: TComboBox
       Left = 105
       Top = 25
       Width = 121
       Height = 23
       Style = csDropDownList
       TabOrder = 6
-      OnChange = CboxDriverBDChange
+      OnChange = CbxDriverBDChange
       Items.Strings = (
         'Firebird 5.0'
         'PostgreSQL 17')
@@ -470,7 +470,7 @@ object FormDataManager: TFormDataManager
       ImageIndex = 2
       ImageName = 'ProcurarBD'
       ImageMargins.Top = 10
-      Images = VirtualImageListManager
+      Images = VimglstManager
       ParentBiDiMode = False
       ParentShowHint = False
       ShowHint = False
@@ -495,7 +495,7 @@ object FormDataManager: TFormDataManager
       ImageIndex = 3
       ImageName = 'CriarBD'
       ImageMargins.Top = 5
-      Images = VirtualImageListManager
+      Images = VimglstManager
       ParentBiDiMode = False
       ParentShowHint = False
       ShowHint = False
@@ -514,7 +514,7 @@ object FormDataManager: TFormDataManager
       ImageIndex = 4
       ImageName = 'RenomearBD'
       ImageMargins.Top = 5
-      Images = VirtualImageListManager
+      Images = VimglstManager
       ParentBiDiMode = False
       ParentShowHint = False
       ShowHint = False
@@ -533,7 +533,7 @@ object FormDataManager: TFormDataManager
       ImageIndex = 5
       ImageName = 'ExcluirBD'
       ImageMargins.Top = 5
-      Images = VirtualImageListManager
+      Images = VimglstManager
       ParentBiDiMode = False
       ParentShowHint = False
       ShowHint = False
@@ -552,7 +552,7 @@ object FormDataManager: TFormDataManager
       ImageIndex = 6
       ImageName = 'DownBackupBD'
       ImageMargins.Top = 5
-      Images = VirtualImageListManager
+      Images = VimglstManager
       ParentBiDiMode = False
       ParentShowHint = False
       ShowHint = False
@@ -571,7 +571,7 @@ object FormDataManager: TFormDataManager
       ImageIndex = 7
       ImageName = 'UpBackupBD'
       ImageMargins.Top = 5
-      Images = VirtualImageListManager
+      Images = VimglstManager
       ParentBiDiMode = False
       ParentShowHint = False
       ShowHint = False
@@ -611,7 +611,7 @@ object FormDataManager: TFormDataManager
     Left = 627
     Top = 169
   end
-  object ImageCollectionManager: TImageCollection
+  object ImgcolManager: TImageCollection
     Images = <
       item
         Name = 'ConectarBD'
@@ -8402,7 +8402,7 @@ object FormDataManager: TFormDataManager
     Left = 514
     Top = 57
   end
-  object VirtualImageListManager: TVirtualImageList
+  object VimglstManager: TVirtualImageList
     Images = <
       item
         CollectionIndex = 0
@@ -8449,18 +8449,10 @@ object FormDataManager: TFormDataManager
         CollectionName = 'OutroBD'
         Name = 'OutroBD'
       end>
-    ImageCollection = ImageCollectionManager
+    ImageCollection = ImgcolManager
     Width = 40
     Height = 40
     Left = 513
     Top = 113
-  end
-  object SaveDialogBackup: TSaveDialog
-    Left = 512
-    Top = 225
-  end
-  object OpenDialogRestore: TOpenDialog
-    Left = 512
-    Top = 169
   end
 end

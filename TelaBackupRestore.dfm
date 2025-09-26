@@ -1,9 +1,9 @@
-object FormBackupRestore: TFormBackupRestore
+object FrmBackupRestore: TFrmBackupRestore
   Left = 0
   Top = 0
   BorderIcons = []
   BorderStyle = bsSingle
-  Caption = 'FormBackupRestore'
+  Caption = 'FrmBackupRestore'
   ClientHeight = 316
   ClientWidth = 422
   Color = clBtnFace
@@ -43,15 +43,15 @@ object FormBackupRestore: TFormBackupRestore
     Font.Style = []
     ParentFont = False
   end
-  object ProgressBarBackupRestore: TProgressBar
+  object PbarBackupRestore: TProgressBar
     Left = 4
     Top = 16
     Width = 411
     Height = 45
     TabOrder = 0
-    OnChange = ProgressBarBackupRestoreChange
+    OnChange = PbarBackupRestoreChange
   end
-  object RichEditLog: TRichEdit
+  object RedtLog: TRichEdit
     Left = 2
     Top = 77
     Width = 416
