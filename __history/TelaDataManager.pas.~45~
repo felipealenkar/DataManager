@@ -11,7 +11,7 @@ uses
   Vcl.StdCtrls, FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.DApt, FireDAC.Comp.DataSet, Vcl.Grids, Vcl.DBGrids, Vcl.ImgList,
   Vcl.VirtualImageList, Vcl.BaseImageCollection, Vcl.ImageCollection,  Vcl.ExtCtrls,
   //Adicionadas
-   System.IOUtils, ShellAPI, System.UITypes, Funcoes,
+   System.IOUtils, ShellAPI, System.UITypes, GerenciadorBackup,
   //Retirei e não deu erro
   Math, DateUtils, TypInfo, FireDAC.Phys.FBDef, FireDAC.Phys.IBBase, FireDAC.Phys.FB, Vcl.ComCtrls, StrUtils, System.SyncObjs, Vcl.DBCtrls,
   FireDAC.Comp.UI, Vcl.Buttons, FireDAC.Phys.IBWrapper, FireDAC.Phys.IB, System.RegularExpressions;
@@ -53,16 +53,16 @@ type
     procedure BtnDesconectarClick(Sender: TObject);
     procedure BtnNovoDataBaseClick(Sender: TObject);
     procedure BtnAtualizarClick(Sender: TObject);
-    procedure BtnRenomearDatabaseClick(Sender: TObject);
-    procedure BtnExcluirDatabaseClick(Sender: TObject);
-    procedure BtnFazerBackupDatabaseClick(Sender: TObject);
-    procedure BtnFazerRestoreDatabaseClick(Sender: TObject);
     procedure LbxDatabasesClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CbxDriverBDChange(Sender: TObject);
-
+    procedure BtnRenomearDatabaseClick(Sender: TObject);
+    procedure BtnExcluirDatabaseClick(Sender: TObject);
+    procedure BtnFazerBackupDatabaseClick(Sender: TObject);
+    procedure BtnFazerRestoreDatabaseClick(Sender: TObject);
   private
+    FGerenciadorBackup: TGerenciadorBackup;
     function VerificaVersaoPostgres(out PVersaoCompleta:string): Currency;
 
     type
@@ -75,39 +75,24 @@ type
     procedure CriarDroparRoles(PNomeDoDatabase: string; PAcao: TEnumAcao);
     procedure CriarDroparDataBase(PNomeDoDatabase: string; PAcao: TEnumAcao);
     procedure AdicionarOuRemoverPermissoesNosRoles(PNomeDoDatabase: string; PAcao: TEnumAcao);
-    procedure RenomearDatabase(PNomeDoDatabaseAntigo, PNomeDoDatabaseNovo: string);
+    procedure QueryRenomearDatabase(PNomeDoDatabaseAntigo, PNomeDoDatabaseNovo: string);
     function ValidaDatabaseExistente(PNomeDoDatabase: String): boolean;
     function CriaComando(PAcao: TEnumAcao; POutputFile, PDumpPath, PRestorePath,
                          PHost, PPorta, PNomeDoDatabase, PSenha: string): string;
     function ValidaOwnerDatabase(PNomeDoDatabase, POwnerPadrao: string; out POwnerBD: string): Boolean;
+    procedure CriarNovoDatabase;
+    procedure RenomearDatabase;
+    procedure ExcluirDatabase;
+    procedure FazerRestoreDatabase;
 
   public
+    procedure RegistrarLogs(PRotina: string; PLog: string);
     Const VersaoMinimaPostgre: currency = 17;
+    procedure FazerBackupDatabase;
 end;
-
-//Classe onde ficam todos os parâmetros do Driver que serão usados.
-type
-  TDriverBDConexao = class
-    procedure DefineParametros(PNomeDoDriverBD: String);
-  public
-    Driver: string;
-    Server: string;
-    Porta: string;
-    Usuario: string;
-    Biblioteca: string;
-    Dump: string;
-    Restore: string;
-    Database:String;
-    OwnerPadrao: string;
-    Senha: string;
-    Extensao: string;
-    TipoQueryDlg: string;
-    VersaoMinima: currency;
-End;
 
 var
   FrmDataManager: TFrmDataManager;
-  DriverBDConexao: TDriverBDConexao;
   CaminhoDoArquivoDeLog: string;
 
 implementation
@@ -160,7 +145,7 @@ begin
       begin
         FDConnectionDB.close;
         FDConnectionDB.Params.Clear;
-        DriverBDConexao.DefineParametros(CbxDriverBD.Text);
+        FGerenciadorBackup.DefineParametros(CbxDriverBD.Text);
         FDConnectionDB.DriverName := DriverBDConexao.Driver;
         FDPhysPgDriverLinkBD.VendorLib := DriverBDConexao.Biblioteca;
         FDConnectionDB.Params.Values['Server'] := DriverBDConexao.Server;
@@ -286,6 +271,125 @@ begin
   RegistrarLogs('TFormDataManager.CriarDroparRoles', 'Usuários padrão do database "' + PNomeDoDatabase + '" não puderam ser ' + TipoLog1 + '.');
 end;
 
+procedure TFrmDataManager.CriarNovoDatabase;
+//Método que cria um novo Database
+var
+  NomeDoDatabase: string;
+  NomeExiste: boolean;
+  Digitou: boolean;
+  Versao: string;
+begin
+  if not (VerificaVersaoPostgres(Versao) < DriverBDConexao.VersaoMinima) then
+  begin
+    RegistrarLogs('TFormDataManager.BtnAtualizarClick', 'Usuário clicou no botão "' + BtnNovoDatabase.Name + '".');
+    HabilitarDesabilitarElementos(True, False);
+    NomeDoDatabase := CapturarNomeDoDatabase(NomeDoDatabase, Criar, Digitou);
+    if not Digitou then
+    begin
+      RegistrarLogs('TFormDataManager.BtnNovoDataBaseClick', 'Usuário cancelou a operação.');
+      AtualizaListaBancos(True);
+      exit;
+    end
+    else
+    begin
+      repeat
+      begin
+        NomeExiste := ValidaDatabaseExistente(NomeDoDatabase);
+        if NomeExiste then
+        begin
+          RegistrarLogs('TFormDataManager.BtnNovoDataBaseClick', 'Usuário digitou o database "' + NomeDoDatabase + ' que já existe.');
+          MessageDlg('Já existe um database com o nome "' + NomeDoDatabase + '", digite um nome diferente', mtInformation, [mbOK], 0);
+
+          NomeDoDatabase := CapturarNomeDoDatabase(NomeDoDatabase, Criar, Digitou);
+          if not Digitou then
+          begin
+            RegistrarLogs('TFormDataManager.BtnNovoDataBaseClick', 'Novamente o usuário cancelou sem digitar o nome do banco.');
+            AtualizaListaBancos(True);
+            exit;
+          end;
+        end
+      end;
+      until not NomeExiste;
+
+      if NomeDoDatabase <> '' then
+      begin
+        RegistrarLogs('TFormDataManager.BtnNovoDataBaseClick', 'Usuário digitou o nome do banco de dados "' + NomeDoDatabase + '".');
+        CriarDroparRoles(NomeDoDatabase, Criar);
+        CriarDroparDataBase(NomeDoDatabase, Criar);
+        AdicionarOuRemoverPermissoesNosRoles(NomeDoDatabase, Adicionar);
+        MessageDlg('Database "' + NomeDoDatabase + '" criado com sucesso', TMsgDlgType.mtInformation, [mbOK], 0);
+        AtualizaListaBancos(True);
+      end
+      else
+        RegistrarLogs('TFormDataManager.BtnNovoDataBaseClick', 'Usuário não digitou o nome do banco de dados.');
+    end;
+  end
+  else
+  begin
+    RegistrarLogs('TFormDataManager.BtnNovoDataBaseClick', 'Função encerrada devido a tentativa de ' +
+                  'criar um banco de dados com a versão ' + CurrToStr(VerificaVersaoPostgres(Versao)) +
+                  ' que é inferior a versão ' + CurrToStr(DriverBDConexao.VersaoMinima) + ' .');
+    MessageDlg('O DataManager não cria banco de dados com versão inferior a versão ' +
+                CurrToStr(DriverBDConexao.VersaoMinima) + ' .', TMsgDlgType.mtWarning, [mbOK], 0);
+  end;
+  AtualizaListaBancos(True);
+end;
+
+procedure TFrmDataManager.ExcluirDatabase;
+//Método que exclúi um database
+var
+  NomeDoDatabase, POwnerBD, Versao: string;
+  ConfircamaoExcluirDatabase: TModalResult;
+begin
+  try
+    RegistrarLogs('TFormDataManager.BtnExcluirDatabaseClick', ' Usuário clicou no botão "' + BtnExcluirDatabase.Name + '".');
+    POwnerBD := '';
+    HabilitarDesabilitarElementos(True, False);
+    NomeDoDatabase := LbxDatabases.Items[LbxDatabases.ItemIndex];
+    if not (VerificaVersaoPostgres(Versao) < DriverBDConexao.VersaoMinima) then
+    begin
+      if ValidaOwnerDatabase(NomeDoDatabase, DriverBDConexao.OwnerPadrao, POwnerBD) then
+      begin
+        ConfircamaoExcluirDatabase := MessageDlg('Tem certeza que deseja excluir o Database "' + NomeDoDatabase + '" ?', TMsgDlgType.mtWarning, mbYesNo, 0);
+        if ConfircamaoExcluirDatabase = mryes then
+        begin
+          RegistrarLogs('TFormDataManager.BtnExcluirDatabaseClick', 'Usuário confirmou a exclusão do banco de dados "' + NomeDoDatabase + '".');
+          AdicionarOuRemoverPermissoesNosRoles(NomeDoDatabase, Remover);
+          CriarDroparRoles(NomeDoDatabase, Dropar);
+          CriarDroparDataBase(NomeDoDatabase, Dropar);
+          MessageDlg('Database "' + NomeDoDatabase + '" excluído com sucesso', TMsgDlgType.mtInformation, [mbOK], 0);
+          AtualizaListaBancos(True);
+          Exit;
+        end
+        else
+          RegistrarLogs('TFormDataManager.BtnExcluirDatabaseClick', 'Usuário cancelou a exclusão do banco de dados "' + NomeDoDatabase + '".');
+        AtualizaListaBancos(True);
+        Exit;
+      end
+      else
+      RegistrarLogs('TFormDataManager.BtnExcluirDatabaseClick', 'Função cancelada porquê o usuário tentou excluir um banco de dados de outro proprietário.');
+      Messagedlg('O DataManager não pode excluir o banco de dados "' + NomeDoDatabase + '", pois ele pertence ao proprietário "' +
+       POwnerBD + '". Torne-se o proprietário do banco para poder executar esta tarefa ou exclua o banco por outra ferramenta.'
+       , TMsgDlgType.mtWarning, [mbOk], 0);
+    end
+    else
+    begin
+      RegistrarLogs('TFormDataManager.BtnExcluirDatabaseClick', 'Função encerrada devido a tentativa de ' +
+                    'excluir um banco de dados com a versão ' + CurrToStr(VerificaVersaoPostgres(Versao)) +
+                    ' que é inferior a versão ' + CurrToStr(DriverBDConexao.VersaoMinima) + ' .');
+      MessageDlg('O DataManager não exclúi banco de dados com versão inferior a versão ' +
+                  CurrToStr(DriverBDConexao.VersaoMinima) + ' .', TMsgDlgType.mtWarning, [mbOK], 0);
+    end;
+    AtualizaListaBancos(True);
+  except
+    on E: Exception do
+      begin
+        RegistrarLogs('TFormDataManager.BtnExcluirDatabaseClick', E.ClassName + ' - ' + e.Message);
+        Showmessage(e.Message);
+      end;
+  end;
+end;
+
 procedure TFrmDataManager.CriarDroparDataBase(PNomeDoDatabase: string; PAcao: TEnumAcao);
 // Cria databases novos
 var
@@ -385,265 +489,12 @@ begin
   CaminhoDoArquivoDeLog := TPath.Combine(ExtractFilePath(ParamStr(0)), 'Logs.txt');
   RegistrarLogs('TFormDataManager.FormCreate', '-------------------------------------------------------------------------------');
   RegistrarLogs('TFormDataManager.FormCreate', 'Aplicação iniciada.');
-  DriverBDConexao := TDriverBDConexao.Create;
+  FGerenciadorBackup := TGerenciadorBackup.Create;
   HabilitarDesabilitarElementos(False, False);
 end;
 
-procedure TFrmDataManager.FormClose(Sender: TObject; var Action: TCloseAction);
-// Fecha a janela da aplicação
-begin
-  HabilitarDesabilitarElementos(False, False);
-  RegistrarLogs('TFormDataManager.FormClose', 'Aplicação Encerrada.');
-  RegistrarLogs('TFormDataManager.FormClose', '-------------------------------------------------------------------------------');
-end;
-
-procedure TFrmDataManager.FormDestroy(Sender: TObject);
-// Destrói a janela e classes da aplicação
-begin
-  DriverBDConexao.free;
-  RegistrarLogs('TFormDataManager.FormDestroy', 'Form limpo da memória com sucesso');
-end;
-
-procedure TFrmDataManager.BtnConectaBDClick(Sender: TObject);
-// Botão Conectar
-begin
-  RegistrarLogs('TFormDataManager.BtnConectaBDClick', 'Usuário clicou no botão "' + BtnConectaBD.Name + '".');
-  if CbxDriverBD.ItemIndex = -1 then
-  begin
-    RegistrarLogs('TFormDataManager.BtnConectaBDClick', 'Usuário não selecionou nenhum driver de Database.');
-    showmessage('Selecione um driver de Banco de dados para continuar.');
-  end
-  else
-  begin
-    RegistrarLogs('TFormDataManager.BtnConectaBDClick', 'Usuário com o driver ' +
-                  CbxDriverBD.Items.Strings[CbxDriverBD.ItemIndex] + ' selecionado.');
-    ConectarDesconectarDriverDoDatabase('postgres', Conectar);
-    HabilitarDesabilitarElementos(True, False);
-    AtualizaListaBancos(True);
-  end;
-end;
-
-procedure TFrmDataManager.BtnDesconectarClick(Sender: TObject);
-// Botão Desconectar
-begin
-  RegistrarLogs('TFormDataManager.BtnDesconectarClick', 'Usuário clicou no botão "' + BtnDesconectar.Name + '".');
-  ConectarDesconectarDriverDoDatabase('Postgres', Desconectar);
-  HabilitarDesabilitarElementos(False, False);
-  AtualizaListaBancos(False);
-end;
-
-procedure TFrmDataManager.BtnAtualizarClick(Sender: TObject);
-// Botão atualizar(Refresh)
-begin
-  RegistrarLogs('TFormDataManager.BtnAtualizarClick', 'Usuário clicou no botão "' + BtnAtualizar.Name + '".');
-  AtualizaListaBancos(True);
-  HabilitarDesabilitarElementos(True, False);
-end;
-
-procedure TFrmDataManager.BtnNovoDataBaseClick(Sender: TObject);
-// Botão novo database
-var
-  NomeDoDatabase: string;
-  NomeExiste: boolean;
-  Digitou: boolean;
-  Versao: string;
-begin
-  if not (VerificaVersaoPostgres(Versao) < DriverBDConexao.VersaoMinima) then
-  begin
-    RegistrarLogs('TFormDataManager.BtnAtualizarClick', 'Usuário clicou no botão "' + BtnNovoDatabase.Name + '".');
-    HabilitarDesabilitarElementos(True, False);
-    NomeDoDatabase := CapturarNomeDoDatabase(NomeDoDatabase, Criar, Digitou);
-    if not Digitou then
-    begin
-      RegistrarLogs('TFormDataManager.BtnNovoDataBaseClick', 'Usuário cancelou a operação.');
-      AtualizaListaBancos(True);
-      exit;
-    end
-    else
-    begin
-      repeat
-      begin
-        NomeExiste := ValidaDatabaseExistente(NomeDoDatabase);
-        if NomeExiste then
-        begin
-          RegistrarLogs('TFormDataManager.BtnNovoDataBaseClick', 'Usuário digitou o database "' + NomeDoDatabase + ' que já existe.');
-          MessageDlg('Já existe um database com o nome "' + NomeDoDatabase + '", digite um nome diferente', mtInformation, [mbOK], 0);
-
-          NomeDoDatabase := CapturarNomeDoDatabase(NomeDoDatabase, Criar, Digitou);
-          if not Digitou then
-          begin
-            RegistrarLogs('TFormDataManager.BtnNovoDataBaseClick', 'Novamente o usuário cancelou sem digitar o nome do banco.');
-            AtualizaListaBancos(True);
-            exit;
-          end;
-        end
-      end;
-      until not NomeExiste;
-
-      if NomeDoDatabase <> '' then
-      begin
-        RegistrarLogs('TFormDataManager.BtnNovoDataBaseClick', 'Usuário digitou o nome do banco de dados "' + NomeDoDatabase + '".');
-        CriarDroparRoles(NomeDoDatabase, Criar);
-        CriarDroparDataBase(NomeDoDatabase, Criar);
-        AdicionarOuRemoverPermissoesNosRoles(NomeDoDatabase, Adicionar);
-        MessageDlg('Database "' + NomeDoDatabase + '" criado com sucesso', TMsgDlgType.mtInformation, [mbOK], 0);
-        AtualizaListaBancos(True);
-      end
-      else
-        RegistrarLogs('TFormDataManager.BtnNovoDataBaseClick', 'Usuário não digitou o nome do banco de dados.');
-    end;
-  end
-  else
-  begin
-    RegistrarLogs('TFormDataManager.BtnNovoDataBaseClick', 'Função encerrada devido a tentativa de ' +
-                  'criar um banco de dados com a versão ' + CurrToStr(VerificaVersaoPostgres(Versao)) +
-                  ' que é inferior a versão ' + CurrToStr(DriverBDConexao.VersaoMinima) + ' .');
-    MessageDlg('O DataManager não cria banco de dados com versão inferior a versão ' +
-                CurrToStr(DriverBDConexao.VersaoMinima) + ' .', TMsgDlgType.mtWarning, [mbOK], 0);
-  end;
-  AtualizaListaBancos(True);
-end;
-
-procedure TFrmDataManager.BtnRenomearDatabaseClick(Sender: TObject);
-// Botão renomear database
-var
-  NomeDoDatabaseAntigo, NomeDoDatabaseNovo, POwnerBD, Versao: string; NomeExiste: boolean;
-  Digitou: boolean;
-begin
-  RegistrarLogs('TFormDataManager.BtnRenomearDatabaseClick', 'Usuário clicou no botão "' + BtnRenomearDatabase.Name + '".');
-  HabilitarDesabilitarElementos(True, False);
-  NomeDoDatabaseAntigo := LbxDatabases.Items[LbxDatabases.ItemIndex];
-  if not (VerificaVersaoPostgres(Versao) < DriverBDConexao.VersaoMinima) then
-  begin
-    if ValidaOwnerDatabase(NomeDoDatabaseAntigo, DriverBDConexao.OwnerPadrao, POwnerBD) then
-    begin
-      NomeDoDatabaseNovo := CapturarNomeDoDatabase(NomeDoDatabaseAntigo, Renomear, Digitou);
-      if not Digitou then
-      begin
-        RegistrarLogs('TFormDataManager.BtnRenomearDatabaseClick', 'Usuário cancelou a operação.');
-        AtualizaListaBancos(True);
-        exit
-      end
-      else
-      begin
-        if NomeDoDatabaseNovo <> NomeDoDatabaseAntigo then
-        begin
-          repeat
-          begin
-            NomeExiste := ValidaDatabaseExistente(NomeDoDatabaseNovo);
-            if NomeExiste then
-            begin
-              RegistrarLogs('TFormDataManager.BtnRenomearDatabaseClick', 'Usuário digitou o database "' + NomeDoDatabaseNovo + ' que já existe.');
-              MessageDlg('Já existe um database com o nome "' + NomeDoDatabaseNovo + '", digite um nome diferente', mtInformation, [mbOK], 0);
-              NomeDoDatabaseNovo := CapturarNomeDoDatabase(NomeDoDatabaseNovo, Criar, Digitou);
-              if not Digitou then
-              begin
-                RegistrarLogs('TFormDataManager.BtnRenomearDatabaseClick', 'usuário cancelou a operação.');
-                AtualizaListaBancos(True);
-                exit;
-              end;
-            end
-          end;
-          until not NomeExiste;
-
-          if NomeDoDatabaseNovo <> NomeDoDatabaseAntigo then
-          begin
-            RegistrarLogs('TFormDataManager.BtnRenomearDatabaseClick', 'Usuário digitou o nome do banco de dados "' + NomeDoDatabaseNovo + '".');
-            AdicionarOuRemoverPermissoesNosRoles(NomeDoDatabaseAntigo, Remover);
-            CriarDroparRoles(NomeDoDatabaseAntigo, Dropar);
-            RenomearDatabase(NomeDoDatabaseAntigo, NomeDoDatabaseNovo);
-            CriarDroparRoles(NomeDoDatabaseNovo, Criar);
-            AdicionarOuRemoverPermissoesNosRoles(NomeDoDatabaseNovo, Adicionar);
-            MessageDlg('Database "' + NomeDoDatabaseAntigo + '" renomeado com sucesso para "' + NomeDoDatabaseNovo + '.', TMsgDlgType.mtInformation, [mbOK], 0);
-            AtualizaListaBancos(True);
-          end
-          else
-            RegistrarLogs('TFormDataManager.BtnRenomearDatabaseClick', 'Usuário não digitou o nome do banco de dados.');
-          AtualizaListaBancos(True);
-          exit;
-        end
-        else
-        begin
-          RegistrarLogs('TFormDataManager.BtnRenomearDatabaseClick', 'Usuário digitou o mesmo nome de banco de dados.');
-          AtualizaListaBancos(True);
-          Exit;
-        end;
-      end
-    end;
-    RegistrarLogs('TFormDataManager.BtnRenomearDatabaseClick', 'Função cancelada porquê o usuário tentou renomear um banco de dados de outro proprietário.');
-    Messagedlg('O DataManager não pode renomear o banco de dados "' + NomeDoDatabaseAntigo + '", pois ele pertence ao proprietário "' +
-              POwnerBD + '". Torne-se o proprietário do banco para poder executar esta tarefa ou renomeie o banco por outra ferramenta.',
-              TMsgDlgType.mtWarning, [mbOk], 0);
-  end
-  else
-  begin
-    RegistrarLogs('TFormDataManager.BtnRenomearDatabaseClick', 'Função encerrada devido a tentativa de ' +
-                  'renomear um banco de dados com a versão ' + CurrToStr(VerificaVersaoPostgres(Versao)) +
-                  ' que é inferior a versão ' + CurrToStr(DriverBDConexao.VersaoMinima) + ' .');
-    MessageDlg('O DataManager não renomeia banco de dados com versão inferior a versão ' +
-                CurrToStr(DriverBDConexao.VersaoMinima) + ' .', TMsgDlgType.mtWarning, [mbOK], 0);
-  end;
-  AtualizaListaBancos(True);
-end;
-
-procedure TFrmDataManager.BtnExcluirDatabaseClick(Sender: TObject);
-// Botão excluir database
-var
-  NomeDoDatabase, POwnerBD, Versao: string;
-  ConfircamaoExcluirDatabase: TModalResult;
-begin
-  try
-    RegistrarLogs('TFormDataManager.BtnExcluirDatabaseClick', ' Usuário clicou no botão "' + BtnExcluirDatabase.Name + '".');
-    POwnerBD := '';
-    HabilitarDesabilitarElementos(True, False);
-    NomeDoDatabase := LbxDatabases.Items[LbxDatabases.ItemIndex];
-    if not (VerificaVersaoPostgres(Versao) < DriverBDConexao.VersaoMinima) then
-    begin
-      if ValidaOwnerDatabase(NomeDoDatabase, DriverBDConexao.OwnerPadrao, POwnerBD) then
-      begin
-        ConfircamaoExcluirDatabase := MessageDlg('Tem certeza que deseja excluir o Database "' + NomeDoDatabase + '" ?', TMsgDlgType.mtWarning, mbYesNo, 0);
-        if ConfircamaoExcluirDatabase = mryes then
-        begin
-          RegistrarLogs('TFormDataManager.BtnExcluirDatabaseClick', 'Usuário confirmou a exclusão do banco de dados "' + NomeDoDatabase + '".');
-          AdicionarOuRemoverPermissoesNosRoles(NomeDoDatabase, Remover);
-          CriarDroparRoles(NomeDoDatabase, Dropar);
-          CriarDroparDataBase(NomeDoDatabase, Dropar);
-          MessageDlg('Database "' + NomeDoDatabase + '" excluído com sucesso', TMsgDlgType.mtInformation, [mbOK], 0);
-          AtualizaListaBancos(True);
-          Exit;
-        end
-        else
-          RegistrarLogs('TFormDataManager.BtnExcluirDatabaseClick', 'Usuário cancelou a exclusão do banco de dados "' + NomeDoDatabase + '".');
-        AtualizaListaBancos(True);
-        Exit;
-      end
-      else
-      RegistrarLogs('TFormDataManager.BtnExcluirDatabaseClick', 'Função cancelada porquê o usuário tentou excluir um banco de dados de outro proprietário.');
-      Messagedlg('O DataManager não pode excluir o banco de dados "' + NomeDoDatabase + '", pois ele pertence ao proprietário "' +
-       POwnerBD + '". Torne-se o proprietário do banco para poder executar esta tarefa ou exclua o banco por outra ferramenta.'
-       , TMsgDlgType.mtWarning, [mbOk], 0);
-    end
-    else
-    begin
-      RegistrarLogs('TFormDataManager.BtnExcluirDatabaseClick', 'Função encerrada devido a tentativa de ' +
-                    'excluir um banco de dados com a versão ' + CurrToStr(VerificaVersaoPostgres(Versao)) +
-                    ' que é inferior a versão ' + CurrToStr(DriverBDConexao.VersaoMinima) + ' .');
-      MessageDlg('O DataManager não exclúi banco de dados com versão inferior a versão ' +
-                  CurrToStr(DriverBDConexao.VersaoMinima) + ' .', TMsgDlgType.mtWarning, [mbOK], 0);
-    end;
-    AtualizaListaBancos(True);
-  except
-    on E: Exception do
-      begin
-        RegistrarLogs('TFormDataManager.BtnExcluirDatabaseClick', E.ClassName + ' - ' + e.Message);
-        Showmessage(e.Message);
-      end;
-
-  end;
-end;
-
-procedure TFrmDataManager.BtnFazerBackupDatabaseClick(Sender: TObject);
-//Boatão fazer Backup
+procedure TFrmDataManager.FazerBackupDatabase;
+//Método que faz backup do database
 var
   FrmBackupRestore : TFrmBackupRestore; // Declara uma variável para o seu formulário de progresso
   NomeDoDatabase, OutputFile, Comando: string;
@@ -693,7 +544,7 @@ begin
   AtualizaListaBancos(True);
 end;
 
-procedure TFrmDataManager.BtnFazerRestoreDatabaseClick(Sender: TObject);
+procedure TFrmDataManager.FazerRestoreDatabase;
 var
   FrmBackupRestore : TFrmBackupRestore;
   NomeDoDatabase, InputFile, Comando, Versao, POwnerBD: string;
@@ -776,6 +627,84 @@ begin
   AtualizaListaBancos(True);
 end;
 
+procedure TFrmDataManager.FormClose(Sender: TObject; var Action: TCloseAction);
+// Fecha a janela da aplicação
+begin
+  HabilitarDesabilitarElementos(False, False);
+  RegistrarLogs('TFormDataManager.FormClose', 'Aplicação Encerrada.');
+  RegistrarLogs('TFormDataManager.FormClose', '-------------------------------------------------------------------------------');
+end;
+
+procedure TFrmDataManager.FormDestroy(Sender: TObject);
+// Destrói a janela e classes da aplicação
+begin
+  FGerenciadorBackup.free;
+  RegistrarLogs('TFormDataManager.FormDestroy', 'Form limpo da memória com sucesso');
+end;
+
+procedure TFrmDataManager.BtnConectaBDClick(Sender: TObject);
+// Botão Conectar
+begin
+  RegistrarLogs('TFormDataManager.BtnConectaBDClick', 'Usuário clicou no botão "' + BtnConectaBD.Name + '".');
+  if CbxDriverBD.ItemIndex = -1 then
+  begin
+    RegistrarLogs('TFormDataManager.BtnConectaBDClick', 'Usuário não selecionou nenhum driver de Database.');
+    showmessage('Selecione um driver de Banco de dados para continuar.');
+  end
+  else
+  begin
+    RegistrarLogs('TFormDataManager.BtnConectaBDClick', 'Usuário com o driver ' +
+                  CbxDriverBD.Items.Strings[CbxDriverBD.ItemIndex] + ' selecionado.');
+    ConectarDesconectarDriverDoDatabase('postgres', Conectar);
+    HabilitarDesabilitarElementos(True, False);
+    AtualizaListaBancos(True);
+  end;
+end;
+
+procedure TFrmDataManager.BtnDesconectarClick(Sender: TObject);
+// Botão Desconectar
+begin
+  RegistrarLogs('TFormDataManager.BtnDesconectarClick', 'Usuário clicou no botão "' + BtnDesconectar.Name + '".');
+  ConectarDesconectarDriverDoDatabase('Postgres', Desconectar);
+  HabilitarDesabilitarElementos(False, False);
+  AtualizaListaBancos(False);
+end;
+
+procedure TFrmDataManager.BtnExcluirDatabaseClick(Sender: TObject);
+begin
+  ExcluirDatabase;
+end;
+
+procedure TFrmDataManager.BtnAtualizarClick(Sender: TObject);
+// Botão atualizar(Refresh)
+begin
+  RegistrarLogs('TFormDataManager.BtnAtualizarClick', 'Usuário clicou no botão "' + BtnAtualizar.Name + '".');
+  AtualizaListaBancos(True);
+  HabilitarDesabilitarElementos(True, False);
+end;
+
+procedure TFrmDataManager.BtnNovoDataBaseClick(Sender: TObject);
+// Botão novo database
+begin
+  CriarNovoDatabase;
+end;
+
+procedure TFrmDataManager.BtnRenomearDatabaseClick(Sender: TObject);
+// Botão renomear database
+begin
+  RenomearDatabase;
+end;
+
+procedure TFrmDataManager.BtnFazerBackupDatabaseClick(Sender: TObject);
+begin
+  FazerBackupDatabase;
+end;
+
+procedure TFrmDataManager.BtnFazerRestoreDatabaseClick(Sender: TObject);
+begin
+  FazerRestoreDatabase;
+end;
+
 procedure TFrmDataManager.LbxDatabasesClick(Sender: TObject);
 // procedimento de clicar na lista de databases
 begin
@@ -786,7 +715,109 @@ begin
   end;
 end;
 
-procedure TFrmDataManager.RenomearDatabase(PNomeDoDatabaseAntigo, PNomeDoDatabaseNovo: string);
+procedure TFrmDataManager.RegistrarLogs(PRotina: string;PLog: string);
+// Registra os acontecimentos do sistema em logs
+Var
+  ArquivoDeTexto: TextFile;
+begin
+  try
+    AssignFile(ArquivoDeTexto, CaminhoDoArquivoDeLog);
+    if FileExists(CaminhoDoArquivoDeLog) then
+      Append(ArquivoDeTexto)
+    else
+      begin
+        Rewrite(ArquivoDeTexto);
+        PLog := ('-------------------------------------------------------------------------------' + sLineBreak + '[' + DateTimeToStr(Now()) + '] - [Abertura do sistema] - Foi criado o arquivo "Logs.txt", pois o mesmo não foi encontrado no diretório da aplicação.');
+      end;
+    Writeln(ArquivoDeTexto, '[' + DateTimeToStr(Now()) + '] - [' + PRotina + '] - ' + PLog + ' -');
+  finally
+    CloseFile(ArquivoDeTexto);
+  end;
+end;
+
+procedure TFrmDataManager.RenomearDatabase;
+//Método que renomeia um database
+var
+  NomeDoDatabaseAntigo, NomeDoDatabaseNovo, POwnerBD, Versao: string; NomeExiste: boolean;
+  Digitou: boolean;
+begin
+  RegistrarLogs('TFormDataManager.BtnRenomearDatabaseClick', 'Usuário clicou no botão "' + BtnRenomearDatabase.Name + '".');
+  HabilitarDesabilitarElementos(True, False);
+  NomeDoDatabaseAntigo := LbxDatabases.Items[LbxDatabases.ItemIndex];
+  if not (VerificaVersaoPostgres(Versao) < DriverBDConexao.VersaoMinima) then
+  begin
+    if ValidaOwnerDatabase(NomeDoDatabaseAntigo, DriverBDConexao.OwnerPadrao, POwnerBD) then
+    begin
+      NomeDoDatabaseNovo := CapturarNomeDoDatabase(NomeDoDatabaseAntigo, Renomear, Digitou);
+      if not Digitou then
+      begin
+        RegistrarLogs('TFormDataManager.BtnRenomearDatabaseClick', 'Usuário cancelou a operação.');
+        AtualizaListaBancos(True);
+        exit
+      end
+      else
+      begin
+        if NomeDoDatabaseNovo <> NomeDoDatabaseAntigo then
+        begin
+          repeat
+          begin
+            NomeExiste := ValidaDatabaseExistente(NomeDoDatabaseNovo);
+            if NomeExiste then
+            begin
+              RegistrarLogs('TFormDataManager.BtnRenomearDatabaseClick', 'Usuário digitou o database "' + NomeDoDatabaseNovo + ' que já existe.');
+              MessageDlg('Já existe um database com o nome "' + NomeDoDatabaseNovo + '", digite um nome diferente', mtInformation, [mbOK], 0);
+              NomeDoDatabaseNovo := CapturarNomeDoDatabase(NomeDoDatabaseNovo, Criar, Digitou);
+              if not Digitou then
+              begin
+                RegistrarLogs('TFormDataManager.BtnRenomearDatabaseClick', 'usuário cancelou a operação.');
+                AtualizaListaBancos(True);
+                exit;
+              end;
+            end
+          end;
+          until not NomeExiste;
+
+          if NomeDoDatabaseNovo <> NomeDoDatabaseAntigo then
+          begin
+            RegistrarLogs('TFormDataManager.BtnRenomearDatabaseClick', 'Usuário digitou o nome do banco de dados "' + NomeDoDatabaseNovo + '".');
+            AdicionarOuRemoverPermissoesNosRoles(NomeDoDatabaseAntigo, Remover);
+            CriarDroparRoles(NomeDoDatabaseAntigo, Dropar);
+            QueryRenomearDatabase(NomeDoDatabaseAntigo, NomeDoDatabaseNovo);
+            CriarDroparRoles(NomeDoDatabaseNovo, Criar);
+            AdicionarOuRemoverPermissoesNosRoles(NomeDoDatabaseNovo, Adicionar);
+            MessageDlg('Database "' + NomeDoDatabaseAntigo + '" renomeado com sucesso para "' + NomeDoDatabaseNovo + '.', TMsgDlgType.mtInformation, [mbOK], 0);
+            AtualizaListaBancos(True);
+          end
+          else
+            RegistrarLogs('TFormDataManager.BtnRenomearDatabaseClick', 'Usuário não digitou o nome do banco de dados.');
+          AtualizaListaBancos(True);
+          exit;
+        end
+        else
+        begin
+          RegistrarLogs('TFormDataManager.BtnRenomearDatabaseClick', 'Usuário digitou o mesmo nome de banco de dados.');
+          AtualizaListaBancos(True);
+          Exit;
+        end;
+      end
+    end;
+    RegistrarLogs('TFormDataManager.BtnRenomearDatabaseClick', 'Função cancelada porquê o usuário tentou renomear um banco de dados de outro proprietário.');
+    Messagedlg('O DataManager não pode renomear o banco de dados "' + NomeDoDatabaseAntigo + '", pois ele pertence ao proprietário "' +
+              POwnerBD + '". Torne-se o proprietário do banco para poder executar esta tarefa ou renomeie o banco por outra ferramenta.',
+              TMsgDlgType.mtWarning, [mbOk], 0);
+  end
+  else
+  begin
+    RegistrarLogs('TFormDataManager.BtnRenomearDatabaseClick', 'Função encerrada devido a tentativa de ' +
+                  'renomear um banco de dados com a versão ' + CurrToStr(VerificaVersaoPostgres(Versao)) +
+                  ' que é inferior a versão ' + CurrToStr(DriverBDConexao.VersaoMinima) + ' .');
+    MessageDlg('O DataManager não renomeia banco de dados com versão inferior a versão ' +
+                CurrToStr(DriverBDConexao.VersaoMinima) + ' .', TMsgDlgType.mtWarning, [mbOK], 0);
+  end;
+  AtualizaListaBancos(True);
+end;
+
+procedure TFrmDataManager.QueryRenomearDatabase(PNomeDoDatabaseAntigo, PNomeDoDatabaseNovo: string);
 // Renomeia o database
 begin
   try
@@ -956,7 +987,7 @@ begin
       Dump := 'C:\Program Files\PostgreSQL\17\bin\pg_dump.exe';
       Restore := 'C:\Program Files\PostgreSQL\17\bin\pg_restore.exe';
     end;
-  RegistrarLogs('TDriverBDConexao.DefineParametros', 'Parâmetros de conexão definidos.'
+  FrmDataManager.RegistrarLogs('TDriverBDConexao.DefineParametros', 'Parâmetros de conexão definidos.'
                                 + sLineBreak
                                 + sLineBreak
                                 + 'Driver e versão: ' + FrmDataManager.CbxDriverBD.Text + sLineBreak

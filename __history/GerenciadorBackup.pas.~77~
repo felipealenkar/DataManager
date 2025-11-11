@@ -1,0 +1,148 @@
+unit GerenciadorBackup;
+
+interface
+
+uses
+  FireDAC.Phys.PG, FireDAC.Phys.PGDef, FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.UI.Intf,
+  FireDAC.Phys.Intf, FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async, Data.DB, FireDAC.Phys, FireDAC.VCLUI.Wait,
+  FireDAC.Comp.Client, FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.DApt, FireDAC.Comp.DataSet,
+
+  System.SysUtils, Vcl.Dialogs, Vcl.StdCtrls;
+
+type
+  TEnumAcao = (Conectar, Desconectar, Criar, Dropar, Adicionar, Remover, Renomear, Backup, Restaurar, CmdBackup, CmdRestore);
+
+  TGerenciadorBackup = class (TObject)
+    private
+      FPgDriver: TFDPhysPgDriverLink;
+      FConnection: TFDConnection;
+      FQuery: TFDQuery;
+    public
+      Driver: string;
+      Server: string;
+      Porta: string;
+      Usuario: string;
+      Biblioteca: string;
+      Dump: string;
+      Restore: string;
+      Database:String;
+      OwnerPadrao: string;
+      Senha: string;
+      Extensao: string;
+      TipoQueryDlg: string;
+      VersaoMinima: currency;
+
+    constructor Create;
+    destructor Destroy; override;
+
+    procedure ConectarDesconectar(PAcao: TEnumAcao);
+    function CriarComando(PAcao: TEnumAcao; POutputFile, PDumpPath,
+      PRestorePath, PHost, PPorta, PNomeDoDatabase, PSenha: string): string;
+    procedure DefinirParametros(PNomeDoDriverDB, PServer, PPorta, PUsuario, PBiblioteca, PDump, PRestore, PDatabase,
+                                POwnerPadrao, PSenha, PExtensao, PTipoQueryDlg: String; PVersaoMinima: Currency);
+end;
+
+implementation
+
+uses
+  Funcoes;
+
+procedure TGerenciadorBackup.ConectarDesconectar(PAcao: TEnumAcao);
+// Inicia ou encerra a conexão com o BD Selecionado
+// PostgreSQL password #abc123#
+begin
+  case PAcao of
+    Conectar:
+      begin
+        FConnection.close;
+        FConnection.Params.Clear;
+        FConnection.DriverName := Driver;
+        FPgDriver.VendorLib := Biblioteca;
+        FConnection.Params.Values['Server'] := Server;
+        FConnection.Params.Values['Port'] := Porta;
+        FConnection.Params.Values['User_Name'] := Usuario;
+        FConnection.Params.Values['Password'] := Senha;
+        FConnection.Params.Values['Database'] := Database;
+        FConnection.Params.Values['CharacterSet'] := 'UTF8';
+        FConnection.LoginPrompt := False;
+        FConnection.Params.Values['SSLMode'] := 'disable';
+        FConnection.Open;
+        RegistrarLogs('TGerenciadorBackup.ConectarDesconectar', 'Banco de dados "' + FConnection.DriverName + '" conectado.');
+      end;
+    Desconectar:
+      begin
+        FConnection.close;
+        RegistrarLogs('TGerenciadorBackup.ConectarDesconectar', 'Banco de dados "' + FConnection.DriverName + '" desconectado.');
+      end;
+  end;
+end;
+
+constructor TGerenciadorBackup.Create;
+begin
+  FPgDriver := TFDPhysPgDriverLink.Create(nil);
+  FConnection := TFDConnection.Create(nil);
+  FQuery := TFDQuery.Create(nil);
+end;
+
+function TGerenciadorBackup.CriarComando(PAcao: TEnumAcao; POutputFile, PDumpPath, PRestorePath,
+                                      PHost, PPorta, PNomeDoDatabase, PSenha: string): string;
+var
+  DumpRestorePath: string;
+begin
+  Result := ''; // Default
+
+  case PAcao of
+    CmdBackup:
+      begin
+        DumpRestorePath := PDumpPath;
+        Result := Format('"%s" -U postgres -h %s -p %s -F c -b -v -f "%s" %s',
+                         [DumpRestorePath, PHost, PPorta, POutputFile, PNomeDoDatabase]);
+      end;
+    CmdRestore:
+      begin
+        DumpRestorePath := PRestorePath;
+        Result := Format('"%s" -U postgres -h %s -p %s -d %s -v --no-owner --no-acl "%s"',
+                           [DumpRestorePath, PHost, PPorta, PNomeDoDatabase, POutputFile]);
+      end;
+  end;
+  RegistrarLogs('TGerenciadorBackup.CriaComando', 'Comando ' + Result + ' criado com sucesso.');
+end;
+
+procedure TGerenciadorBackup.DefinirParametros(PNomeDoDriverDB, PServer, PPorta, PUsuario, PBiblioteca, PDump, PRestore,
+                                               PDatabase, POwnerPadrao, PSenha, PExtensao, PTipoQueryDlg: String; PVersaoMinima: Currency);
+// Método que recebe os parâmetros e atribúi na classe.
+begin
+  Server := PServer;
+  Usuario := PUsuario;
+  Senha := PSenha;
+  Porta := PPorta;
+  OwnerPadrao := POwnerPadrao;
+  Extensao := 'postgresql';
+  TipoQueryDlg := 'Backup PostgreSQL';
+  VersaoMinima := PVersaoMinima;
+  if PDatabase <> '' then Database := PDatabase;
+
+
+  if PNomeDoDriverDB = 'Firebird 5.0' then
+    begin
+       Driver := 'FB';
+       Biblioteca := 'C:\Program Files\Firebird\Firebird_5_0\fbclient.dll';
+    end
+  else if (PNomeDoDriverDB = 'PostgreSQL 17') then
+    begin
+      Driver := 'PG';
+      Biblioteca := 'C:\Program Files\PostgreSQL\17\bin\libpq.dll';
+      Dump := 'C:\Program Files\PostgreSQL\17\bin\pg_dump.exe';
+      Restore := 'C:\Program Files\PostgreSQL\17\bin\pg_restore.exe';
+    end;
+  RegistrarLogs('TGerenciadorBackup.DefineParametros', 'Parâmetros de conexão definidos.');
+end;
+
+destructor TGerenciadorBackup.Destroy;
+begin
+  FConnection.Free;
+  FPgDriver.Free;
+  FQuery.Free;
+  inherited;
+end;
+end.

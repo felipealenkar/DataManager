@@ -10,7 +10,7 @@ uses
   //Retirei e não deu erro
   System.Threading, System.SyncObjs, Data.DB, FireDAC.Stan.Intf, System.UITypes,
   //Adicionadas
-  System.RegularExpressions, FireDAC.Comp.Client, System.IOUtils, TypInfo, Vcl.ExtCtrls, Funcoes;
+  System.RegularExpressions, FireDAC.Comp.Client, System.IOUtils, TypInfo, Vcl.ExtCtrls;
 
 type
   TEnumAcaoBackup = (Backup, Restore);
@@ -157,6 +157,9 @@ type
     property Connection: TFDConnection read FConnection_Ref write FConnection_Ref;
   end;
 
+var
+  FrmBackupRestore: TFrmBackupRestore;
+
 implementation
 
 uses
@@ -177,7 +180,7 @@ begin
   // Inicializações da UI
   RedtLog.Clear;
   LblProgresso.Caption := 'Iniciando...';
-  RegistrarLogs('TFormBackupRestore.FormShow', 'Backup do banco de dados "' + FPNomeDoDatabase_Name + '" Iniciado');
+  FrmDataManager.RegistrarLogs('TFormBackupRestore.FormShow', 'Backup do banco de dados "' + FPNomeDoDatabase_Name + '" Iniciado');
   PbarBackupRestore.Position := 0;
   PbarBackupRestore.Min := 0;
   PbarBackupRestore.Max := 100;

@@ -1,0 +1,241 @@
+﻿unit GerenciadorBackup;
+
+interface
+
+uses
+  FireDAC.Phys.PG, FireDAC.Phys.PGDef, FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.UI.Intf,
+  FireDAC.Phys.Intf, FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async, Data.DB, FireDAC.Phys, FireDAC.VCLUI.Wait,
+  FireDAC.Comp.Client, FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.DApt, FireDAC.Comp.DataSet,
+
+  System.SysUtils, Vcl.Dialogs;
+
+type
+  TEnumAcao = (Conectar, Desconectar, Criar, Dropar, Adicionar, Remover, Renomear, Backup, Restaurar);
+
+  TGerenciadorBackup = class (TObject)
+    private
+      FPgDriver: TFDPhysPgDriverLink;
+      FConnection: TFDConnection;
+      FQuery: TFDQuery;
+    public
+      Driver: string;
+      Server: string;
+      Porta: string;
+      Usuario: string;
+      Biblioteca: string;
+      Dump: string;
+      Restore: string;
+      Database:String;
+      OwnerPadrao: string;
+      Senha: string;
+      Extensao: string;
+      TipoQueryDlg: string;
+      VersaoMinima: currency;
+
+    constructor Create;
+    destructor Destroy; override;
+
+    function CapturarNomeDoDatabase(PNomeDoDatabase: string; PAcao: TEnumAcao; out PDigitou: boolean): string;
+    procedure ConectarDesconectar(PAcao: TEnumAcao; PNomeDoDriverDB, PServer, PPorta, PUsuario, PBiblioteca,
+              PDump, PRestore, PDatabase, POwnerPadrao, PSenha, PExtensao, PTipoQueryDlg: String; PVersaoMinima: Currency);
+    function CriarComando(PAcao: TEnumAcao; POutputFile, PDumpPath,
+      PRestorePath, PHost, PPorta, PNomeDoDatabase, PSenha: string): string;
+    procedure CriarDroparRoles(PNomeDoDatabase: string; PAcao: TEnumAcao);
+    procedure DefinirParametros(PNomeDoDriverDB, PServer, PPorta, PUsuario,
+      PBiblioteca, PDump, PRestore, PDatabase, POwnerPadrao, PSenha, PExtensao,
+      PTipoQueryDlg: String; PVersaoMinima: Currency);
+
+
+
+end;
+
+implementation
+
+uses
+  Funcoes;
+
+function TGerenciadorBackup.CapturarNomeDoDatabase(PNomeDoDatabase: string; PAcao: TEnumAcao; OUT PDigitou: boolean): string;
+// Colhe o nome do database dejesado e o retorna
+Var
+  Mensagem: string;
+begin
+  if PAcao = Criar then
+  Mensagem := 'Criação de novo database'
+  else if PAcao = Renomear then
+  Mensagem := 'Renomear database';
+
+  repeat
+    begin
+      PDigitou := InputQuery(Mensagem, 'Digite o nome do novo banco de dados', PNomeDoDatabase);
+      if PDigitou and (PNomeDoDatabase = '') then
+      MessageDlg('O nome do banco de dados não pode ser vazio.', TMsgDlgType.mtWarning, [TMsgDlgBtn.mbOK], 0);
+    end;
+  until (not PDigitou) or (PNomeDoDatabase <> '');
+  Result:= PNomeDoDatabase;
+  RegistrarLogs('TFormDataManager.CapturarNomeDoDatabase', 'Nome do database "' + PNomeDoDatabase +
+                '" capturado - Parâmetro Out foi "' + BoolToStr(PDigitou) + '"');
+end;
+
+procedure TGerenciadorBackup.ConectarDesconectar(PAcao: TEnumAcao; PNomeDoDriverDB, PServer, PPorta, PUsuario, PBiblioteca,
+                PDump, PRestore, PDatabase, POwnerPadrao, PSenha, PExtensao, PTipoQueryDlg: String; PVersaoMinima: Currency);
+// Inicia ou encerra a conexão com o BD Selecionado
+// PostgreSQL password #abc123#
+begin
+  case PAcao of
+    Conectar:
+      begin
+        FConnection.close;
+        FConnection.Params.Clear;
+        FConnection.DriverName := PNomeDoDriverDB;
+        FPgDriver.VendorLib := PBiblioteca;
+        FConnection.Params.Values['Server'] := PServer;
+        FConnection.Params.Values['Port'] := PPorta;
+        FConnection.Params.Values['User_Name'] := PUsuario;
+        FConnection.Params.Values['Password'] := PSenha;
+        FConnection.Params.Values['Database'] := PDatabase;
+        FConnection.Params.Values['CharacterSet'] := 'UTF8';
+        FConnection.LoginPrompt := False;
+        FConnection.Params.Values['SSLMode'] := 'disable';
+        FConnection.Open;
+        RegistrarLogs('TGerenciadorBackup.ConectarDesconectar', 'Banco de dados "' + FConnection.DriverName + '" conectado.');
+      end;
+    Desconectar:
+      begin
+        FConnection.close;
+        RegistrarLogs('TGerenciadorBackup.ConectarDesconectar', 'Banco de dados "' + FConnection.DriverName + '" desconectado.');
+      end;
+  end;
+end;
+
+constructor TGerenciadorBackup.Create;
+begin
+  FPgDriver := TFDPhysPgDriverLink.Create(nil);
+  FConnection := TFDConnection.Create(nil);
+  FQuery := TFDQuery.Create(nil);
+end;
+
+function TGerenciadorBackup.CriarComando(PAcao: TEnumAcao; POutputFile, PDumpPath, PRestorePath,
+                                      PHost, PPorta, PNomeDoDatabase, PSenha: string): string;
+var
+  DumpRestorePath: string;
+begin
+  Result := ''; // Default
+
+  case PAcao of
+    Backup:
+      begin
+        DumpRestorePath := PDumpPath;
+        Result := Format('"%s" -U postgres -h %s -p %s -F c -b -v -f "%s" %s',
+                         [DumpRestorePath, PHost, PPorta, POutputFile, PNomeDoDatabase]);
+      end;
+    Restaurar:
+      begin
+        DumpRestorePath := PRestorePath;
+        Result := Format('"%s" -U postgres -h %s -p %s -d %s -v --no-owner --no-acl "%s"',
+                           [DumpRestorePath, PHost, PPorta, PNomeDoDatabase, POutputFile]);
+      end;
+  end;
+  RegistrarLogs('TFormDataManager.CriaComando', 'Comando ' + Result + ' criado com sucesso.');
+end;
+
+
+procedure TGerenciadorBackup.CriarDroparRoles(PNomeDoDatabase: string; PAcao: TEnumAcao);
+// Cria Roles para o banco de dados
+Var
+  TipoLog1: string;
+  Sucesso: integer;
+begin
+  Sucesso := 0;
+  FQuery.close;
+  FQuery.sql.Clear;
+  case PAcao of
+    Criar: FDQueryBD.sql.Add('CREATE ROLE "' + FGerenciadorBackup.OwnerPadrao + '" LOGIN PASSWORD ''#abc123#''');
+    Dropar: FDQueryBD.sql.Add('DROP ROLE "' + FGerenciadorBackup.OwnerPadrao + '" LOGIN PASSWORD ''#abc123#''');
+  end;
+  try
+    FDQueryBD.ExecSQL;
+    FDQueryBD.close;
+    Inc(Sucesso);
+  Except
+    FDQueryBD.close;
+  END;
+  FDQueryBD.sql.Clear;
+
+  case PAcao of
+    Criar: FDQueryBD.sql.Add('CREATE ROLE "PRODFAB_GROUP"');
+    Dropar: FDQueryBD.sql.Add('DROP ROLE "PRODFAB_GROUP"');
+  end;
+  TRY
+    FDQueryBD.ExecSQL;
+    FDQueryBD.close;
+    Inc(Sucesso);
+  Except
+    FDQueryBD.close;
+  END;
+  FDQueryBD.sql.Clear;
+
+  case PAcao of
+    Criar:
+      begin
+        FDQueryBD.sql.Add('CREATE ROLE "PRODFAB_GROUP_' + PNomeDoDatabase + '"');
+        TipoLog1 := 'cadastrados';
+      end;
+    Dropar:
+      begin
+        FDQueryBD.sql.Add('DROP ROLE "PRODFAB_GROUP_' + PNomeDoDatabase + '"');
+        TipoLog1 := 'excluídos';
+      end;
+  end;
+  TRY
+    FDQueryBD.ExecSQL;
+    FDQueryBD.close;
+    Inc(Sucesso);
+  Except
+    FDQueryBD.close;
+  END;
+
+  if Sucesso = 3 then
+  RegistrarLogs('TFormDataManager.CriarDroparRoles', 'Usuários padrão do database "' + PNomeDoDatabase + '" ' + TipoLog1 + ' com sucesso.')
+  else if Sucesso > 0 then
+  RegistrarLogs('TFormDataManager.CriarDroparRoles', 'Alguns usuários padrão do database não foram ' + TipoLog1 + ', pois já existiam.')
+  else
+  RegistrarLogs('TFormDataManager.CriarDroparRoles', 'Usuários padrão do database "' + PNomeDoDatabase + '" não puderam ser ' + TipoLog1 + '.');
+end;
+
+procedure TGerenciadorBackup.DefinirParametros(PNomeDoDriverDB, PServer, PPorta, PUsuario, PBiblioteca, PDump, PRestore,
+                                               PDatabase, POwnerPadrao, PSenha, PExtensao, PTipoQueryDlg: String; PVersaoMinima: Currency);
+// Método que recebe os parâmetros e atribúi na classe.
+begin
+  Server := PServer;
+  Usuario := PUsuario;
+  Senha := PSenha;
+  Porta := PPorta;
+  OwnerPadrao := POwnerPadrao;
+  Extensao := 'postgresql';
+  TipoQueryDlg := 'Backup PostgreSQL';
+  VersaoMinima := PVersaoMinima;
+
+  if PNomeDoDriverDB = 'Firebird 5.0' then
+    begin
+       Driver := 'FB';
+       Biblioteca := 'C:\Program Files\Firebird\Firebird_5_0\fbclient.dll';
+    end
+  else if (PNomeDoDriverDB = 'PostgreSQL 17') then
+    begin
+      Driver := 'PG';
+      Biblioteca := 'C:\Program Files\PostgreSQL\17\bin\libpq.dll';
+      Dump := 'C:\Program Files\PostgreSQL\17\bin\pg_dump.exe';
+      Restore := 'C:\Program Files\PostgreSQL\17\bin\pg_restore.exe';
+    end;
+  RegistrarLogs('TDriverBDConexao.DefineParametros', 'Parâmetros de conexão definidos.');
+end;
+
+
+destructor TGerenciadorBackup.Destroy;
+begin
+  FConnection.Free;
+  FPgDriver.Free;
+  FQuery.Free;
+  inherited;
+end;
+end.

@@ -4,13 +4,14 @@ interface
 
 uses
   //Padrão do VCL form
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics, Vcl.Controls,
+  Vcl.Forms, Vcl.Dialogs,
   //Automáticas
   Vcl.StdCtrls, Vcl.ComCtrls,
   //Retirei e não deu erro
   System.Threading, System.SyncObjs, Data.DB, FireDAC.Stan.Intf, System.UITypes,
   //Adicionadas
-  System.RegularExpressions, FireDAC.Comp.Client, System.IOUtils, TypInfo, Vcl.ExtCtrls, Funcoes;
+  System.RegularExpressions, FireDAC.Comp.Client, System.IOUtils, TypInfo, Vcl.ExtCtrls;
 
 type
   TEnumAcaoBackup = (Backup, Restore);
@@ -157,10 +158,13 @@ type
     property Connection: TFDConnection read FConnection_Ref write FConnection_Ref;
   end;
 
+var
+  FrmBackupRestore: TFrmBackupRestore;
+
 implementation
 
 uses
-  TelaDataManager;
+  Funcoes;// TelaDataManager;
 
 {$R *.dfm}
 

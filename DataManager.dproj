@@ -129,6 +129,7 @@
         <Icon_MainIcon>DataManager_Icon1.ico</Icon_MainIcon>
         <VerInfo_MinorVer>1</VerInfo_MinorVer>
         <VerInfo_Keys>CompanyName=Felipe Neves Vieira Alencar;FileDescription=$(DataManager);FileVersion=1.1.0.0;InternalName=Data Manager;LegalCopyright=;LegalTrademarks=;OriginalFilename=DataManager;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(Data Manager);ProductVersion=1.1;Comments=</VerInfo_Keys>
+        <DCC_UnitSearchPath>C:\Program Files\ProjetosDelphi\ProdFab\Units\Recursos;C:\Program Files\ProjetosDelphi\ProdFab\Units\Inicio;C:\Program Files\ProjetosDelphi\ProdFab\Units\Usuarios;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">
@@ -141,6 +142,7 @@
             <Form>FrmBackupRestore</Form>
             <FormType>dfm</FormType>
         </DCCReference>
+        <DCCReference Include="GerenciadorBackup.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -183,12 +185,6 @@
                 <DeployFile LocalName="Win64\Debug\DataManager.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win64">
                         <RemoteName>DataManager.exe</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="Win64\Debug\DataManager.rsm" Configuration="Debug" Class="DebugSymbols">
-                    <Platform Name="Win64">
-                        <RemoteName>DataManager.rsm</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

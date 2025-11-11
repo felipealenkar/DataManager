@@ -6,8 +6,7 @@ uses
   vcl.Styles,
   TelaDataManager in 'TelaDataManager.pas' {FrmDataManager},
   TelaBackupRestore in 'TelaBackupRestore.pas' {FrmBackupRestore},
-  Vcl.Dialogs,
-  GerenciadorBackup in 'GerenciadorBackup.pas';
+  Vcl.Dialogs;
 
 //Para o Showmessage
 
