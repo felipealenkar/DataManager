@@ -142,7 +142,7 @@
             <Form>FrmBackupRestore</Form>
             <FormType>dfm</FormType>
         </DCCReference>
-        <DCCReference Include="GerenciadorBackup.pas"/>
+        <DCCReference Include="Database.GerenciadorBackup.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

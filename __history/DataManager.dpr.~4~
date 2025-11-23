@@ -7,7 +7,7 @@ uses
   TelaDataManager in 'TelaDataManager.pas' {FrmDataManager},
   TelaBackupRestore in 'TelaBackupRestore.pas' {FrmBackupRestore},
   Vcl.Dialogs,
-  Database.GerenciadorBackup in 'Database.GerenciadorBackup.pas';
+  GerenciadorBackup in 'GerenciadorBackup.pas';
 
 //Para o Showmessage
 

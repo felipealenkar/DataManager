@@ -32,6 +32,11 @@ type
       TipoQueryDlg: string;
       VersaoMinima: currency;
 
+    const
+      CVersaoMinimaPg: String = 'PostgreSQL 17';
+      CBibliotecaPg64: String = 'C:\Program Files\PostgreSQL\17\bin\libpq.dll';
+
+
     constructor Create;
     destructor Destroy; override;
 
@@ -68,7 +73,7 @@ begin
           FConnection.LoginPrompt := False;
           FConnection.Params.Values['SSLMode'] := 'disable';
           FConnection.Open;
-          //RegistrarLogs('TGerenciadorBackup.ConectarDesconectar', 'Banco de dados "' + FConnection.DriverName + '" conectado.');
+          RegistrarLogs('TGerenciadorBackup.ConectarDesconectar', 'Banco de dados "' + FConnection.DriverName + '" conectado.');
         except
           on E: Exception do
           begin
@@ -79,7 +84,7 @@ begin
     Desconectar:
       begin
         FConnection.close;
-       // RegistrarLogs('TGerenciadorBackup.ConectarDesconectar', 'Banco de dados "' + FConnection.DriverName + '" desconectado.');
+        RegistrarLogs('TGerenciadorBackup.ConectarDesconectar', 'Banco de dados "' + FConnection.DriverName + '" desconectado.');
       end;
   end;
 end;
@@ -112,7 +117,7 @@ begin
                            [DumpRestorePath, PHost, PPorta, PNomeDoDatabase, POutputFile]);
       end;
   end;
-  //RegistrarLogs('TGerenciadorBackup.CriaComando', 'Comando ' + Result + ' criado com sucesso.');
+  RegistrarLogs('TGerenciadorBackup.CriaComando', 'Comando ' + Result + ' criado com sucesso.');
 end;
 
 procedure TGerenciadorBackup.DefinirParametros(PNomeDoDriverDB, PServer, PPorta, PUsuario, PBiblioteca, PDump, PRestore,
@@ -129,20 +134,19 @@ begin
   VersaoMinima := PVersaoMinima;
   if PDatabase <> '' then Database := PDatabase;
 
-
   if PNomeDoDriverDB = 'Firebird 5.0' then
     begin
        Driver := 'FB';
        Biblioteca := 'C:\Program Files\Firebird\Firebird_5_0\fbclient.dll';
     end
   else if (PNomeDoDriverDB = 'PostgreSQL 17') then
-    begin
-      Driver := 'PG';
-      Biblioteca := 'C:\Program Files\PostgreSQL\17\bin\libpq.dll';
-      Dump := 'C:\Program Files\PostgreSQL\17\bin\pg_dump.exe';
-      Restore := 'C:\Program Files\PostgreSQL\17\bin\pg_restore.exe';
-    end;
-  //RegistrarLogs('TGerenciadorBackup.DefineParametros', 'Parâmetros de conexão definidos.');
+  begin
+    Driver := 'PG';
+    Biblioteca := 'C:\Program Files\PostgreSQL\17\bin\libpq.dll';
+    Dump := 'C:\Program Files\PostgreSQL\17\bin\pg_dump.exe';
+    Restore := 'C:\Program Files\PostgreSQL\17\bin\pg_restore.exe';
+  end;
+  RegistrarLogs('TGerenciadorBackup.DefineParametros', 'Parâmetros de conexão definidos.');
 end;
 
 destructor TGerenciadorBackup.Destroy;

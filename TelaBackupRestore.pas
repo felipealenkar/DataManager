@@ -10,7 +10,7 @@ uses
   //Retirei e não deu erro
   System.Threading, System.SyncObjs, Data.DB, FireDAC.Stan.Intf, System.UITypes,
   //Adicionadas
-  System.RegularExpressions, FireDAC.Comp.Client, System.IOUtils, TypInfo, Vcl.ExtCtrls, Funcoes;
+  System.RegularExpressions, FireDAC.Comp.Client, System.IOUtils, TypInfo, Vcl.ExtCtrls, Utils.Funcoes;
 
 type
   TEnumAcaoBackup = (Backup, Restore);

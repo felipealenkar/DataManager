@@ -1,0 +1,71 @@
+[22/11/2025 23:52:02] - [TFormDataManager.FormCreate] - -------------------------------------------------------------------------------
+[22/11/2025 23:52:02] - [Funcoes.RegistrarLogs] - Na abertura do sistema foi criado o arquivo "22-11-2025-Logs.txt", pois o mesmo não foi encontrado no diretório de logs. -
+[22/11/2025 23:52:02] - [TFormDataManager.FormCreate] - Aplicação iniciada. -
+[22/11/2025 23:52:02] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[22/11/2025 23:52:04] - [TFormDataManager.CbxDriverBDChange] - Foi atribuído o driver PostgreSQL 17 -
+[22/11/2025 23:52:04] - [TFormDataManager.BtnConectaBDClick] - Usuário clicou no botão "BtnConectaBD". -
+[22/11/2025 23:52:04] - [TFormDataManager.BtnConectaBDClick] - Usuário com o driver PostgreSQL 17 selecionado. -
+[22/11/2025 23:52:04] - [TDriverBDConexao.DefineParametros] - Parâmetros de conexão definidos.
+
+Driver e versão: PostgreSQL 17
+Diretório biblioteca: C:\Program Files\PostgreSQL\17\bin\libpq.dll
+Diretório dump: C:\Program Files\PostgreSQL\17\bin\pg_dump.exe
+Diretório restore: C:\Program Files\PostgreSQL\17\bin\pg_restore.exe
+Porta: 5433
+Usuário: postgres
+Senha: *******
+Owner do BD principal: PRODFAB_ADMIN
+Extensao dos backups: postgresql
+TipoQueryDlg: Backup PostgreSQL
+ -
+[22/11/2025 23:52:04] - [TFormDataManager.VerificaVersaoPostgres] - Conectado ao banco de dados PostgreSQL 17.5 on x86_64-windows, compiled by msvc-19.44.35209, 64-bit -
+[22/11/2025 23:52:04] - [TFormDataManager.ConectarDesconectarDriverDoDatabase] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[22/11/2025 23:52:05] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[22/11/2025 23:52:05] - [TFrmDataManager.AtualizaListaBancos] - Lista de bancos de dados atualizada. -
+[22/11/2025 23:52:06] - [TFormDataManager.VerificaVersaoPostgres] - Conectado ao banco de dados PostgreSQL 17.5 on x86_64-windows, compiled by msvc-19.44.35209, 64-bit -
+[22/11/2025 23:52:06] - [TFormDataManager.BtnAtualizarClick] - Usuário clicou no botão "BtnNovoDataBase". -
+[22/11/2025 23:52:06] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[22/11/2025 23:52:09] - [TFormDataManager.CapturarNomeDoDatabase] - Nome do database "VAZIO" capturado - Parâmetro Out foi "-1" -
+[22/11/2025 23:52:09] - [TFormDataManager.ValidaDatabaseExistente] - Database "VAZIO" não existe -
+[22/11/2025 23:52:09] - [TFormDataManager.BtnNovoDataBaseClick] - Usuário digitou o nome do banco de dados "VAZIO". -
+[22/11/2025 23:52:09] - [TFormDataManager.CriarDroparRoles] - Alguns usuários padrão do database não foram cadastrados, pois já existiam. -
+[22/11/2025 23:52:10] - [TFormDataManager.CriarDroparDataBase] - Query de criação de database executada:
+
+CREATE DATABASE "VAZIO"
+WITH OWNER = "PRODFAB_ADMIN"
+ENCODING = 'UTF8'
+TABLESPACE = pg_default
+LC_COLLATE = 'Portuguese_Brazil.1252'
+LC_CTYPE = 'Portuguese_Brazil.1252'
+CONNECTION LIMIT = -1
+ -
+[22/11/2025 23:52:10] - [TFormDataManager.CriarDroparDataBase] - Database "VAZIO" criado com sucesso. -
+[22/11/2025 23:52:10] - [TFormDataManager.AdicionarOuRemoverPermissoesNosRoles] - Permissões adicionadas aos usuários do database "VAZIO". -
+[22/11/2025 23:52:11] - [TFrmDataManager.AtualizaListaBancos] - Lista de bancos de dados atualizada. -
+[22/11/2025 23:52:11] - [TFrmDataManager.AtualizaListaBancos] - Lista de bancos de dados atualizada. -
+[22/11/2025 23:55:19] - [TFormDataManager.BtnAtualizarClick] - Usuário clicou no botão "BtnAtualizar". -
+[22/11/2025 23:55:19] - [TFrmDataManager.AtualizaListaBancos] - Lista de bancos de dados atualizada. -
+[22/11/2025 23:55:19] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[22/11/2025 23:55:21] - [TFormDataManager.VerificaVersaoPostgres] - Conectado ao banco de dados PostgreSQL 17.5 on x86_64-windows, compiled by msvc-19.44.35209, 64-bit -
+[22/11/2025 23:55:21] - [TFormDataManager.BtnAtualizarClick] - Usuário clicou no botão "BtnNovoDataBase". -
+[22/11/2025 23:55:21] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[22/11/2025 23:55:30] - [TFormDataManager.CapturarNomeDoDatabase] - Nome do database "VAZIO" capturado - Parâmetro Out foi "-1" -
+[22/11/2025 23:55:30] - [TFormDataManager.ValidaDatabaseExistente] - Database "VAZIO" não existe -
+[22/11/2025 23:55:30] - [TFormDataManager.BtnNovoDataBaseClick] - Usuário digitou o nome do banco de dados "VAZIO". -
+[22/11/2025 23:55:30] - [TFormDataManager.CriarDroparRoles] - Usuários padrão do database "VAZIO" não puderam ser cadastrados. -
+[22/11/2025 23:55:31] - [TFormDataManager.CriarDroparDataBase] - Query de criação de database executada:
+
+CREATE DATABASE "VAZIO"
+WITH OWNER = "PRODFAB_ADMIN"
+ENCODING = 'UTF8'
+TABLESPACE = pg_default
+LC_COLLATE = 'Portuguese_Brazil.1252'
+LC_CTYPE = 'Portuguese_Brazil.1252'
+CONNECTION LIMIT = -1
+ -
+[22/11/2025 23:55:31] - [TFormDataManager.CriarDroparDataBase] - Database "VAZIO" criado com sucesso. -
+[22/11/2025 23:55:31] - [TFormDataManager.AdicionarOuRemoverPermissoesNosRoles] - Permissões adicionadas aos usuários do database "VAZIO". -
+[22/11/2025 23:55:32] - [TFrmDataManager.AtualizaListaBancos] - Lista de bancos de dados atualizada. -
+[22/11/2025 23:55:32] - [TFrmDataManager.AtualizaListaBancos] - Lista de bancos de dados atualizada. -
+[22/11/2025 23:55:33] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "VAZIO". -
+[22/11/2025 23:55:33] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -

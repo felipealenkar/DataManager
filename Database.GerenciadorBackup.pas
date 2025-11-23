@@ -1,4 +1,4 @@
-unit GerenciadorBackup;
+unit Database.GerenciadorBackup;
 
 interface
 
@@ -32,6 +32,16 @@ type
       TipoQueryDlg: string;
       VersaoMinima: currency;
 
+    const
+      PgVersaoMinima: String = 'PostgreSQL 17';
+      PgBiblioteca: String = 'C:\Program Files\PostgreSQL\17\bin\libpq.dll';
+      PgDump: String = 'C:\Program Files\PostgreSQL\17\bin\pg_dump.exe';
+      PgRestore: String = 'C:\Program Files\PostgreSQL\17\bin\pg_restore.exe';
+      PgOwnerPadrao: String = 'PRODFAB_ADMIN';
+      PgExtensao: String = 'postgresql';
+
+
+
     constructor Create;
     destructor Destroy; override;
 
@@ -45,7 +55,7 @@ end;
 implementation
 
 uses
-  Funcoes;
+  Utils.Funcoes;
 
 procedure TGerenciadorBackup.ConectarDesconectar(PAcao: TEnumAcao);
 // Inicia ou encerra a conexão com o BD Selecionado
@@ -129,19 +139,18 @@ begin
   VersaoMinima := PVersaoMinima;
   if PDatabase <> '' then Database := PDatabase;
 
-
   if PNomeDoDriverDB = 'Firebird 5.0' then
     begin
        Driver := 'FB';
        Biblioteca := 'C:\Program Files\Firebird\Firebird_5_0\fbclient.dll';
     end
   else if (PNomeDoDriverDB = 'PostgreSQL 17') then
-    begin
-      Driver := 'PG';
-      Biblioteca := 'C:\Program Files\PostgreSQL\17\bin\libpq.dll';
-      Dump := 'C:\Program Files\PostgreSQL\17\bin\pg_dump.exe';
-      Restore := 'C:\Program Files\PostgreSQL\17\bin\pg_restore.exe';
-    end;
+  begin
+    Driver := 'PG';
+    Biblioteca := 'C:\Program Files\PostgreSQL\17\bin\libpq.dll';
+    Dump := 'C:\Program Files\PostgreSQL\17\bin\pg_dump.exe';
+    Restore := 'C:\Program Files\PostgreSQL\17\bin\pg_restore.exe';
+  end;
   RegistrarLogs('TGerenciadorBackup.DefineParametros', 'Parâmetros de conexão definidos.');
 end;
 
