@@ -50,7 +50,6 @@ type
     LblDriverConectado: TLabel;
     LblVersao: TLabel;
     CbxVersao: TComboBox;
-    PnlDatabases: TPanel;
     procedure FormCreate(Sender: TObject);
     procedure BtnConectaBDClick(Sender: TObject);
     procedure BtnDesconectarClick(Sender: TObject);
@@ -106,7 +105,6 @@ type
     Extensao: string;
     TipoQueryDlg: string;
     VersaoMinima: currency;
-    VersaoAtual: currency;
 End;
 
 var
@@ -218,16 +216,13 @@ procedure TFrmDataManager.CbxDriverBDChange(Sender: TObject);
 //Mensagem de recurso não implementado e em seguida limpa o CboxDriverBDChange
 begin
   if CbxDriverBD.Text = 'Firebird 5.0' then
-  begin
-    RegistrarLogs('TFormDataManager.CbxDriverBDChange', 'Foi tentado atribuir o driver Firebird 5.0 que ainda não está implementado');
-    Showmessage('Recurso não implementado');
-    CbxDriverBD.ItemIndex := -1;
-  end
-  else
-  begin
-    CbxVersao.Enabled := True;
-    RegistrarLogs('TFormDataManager.CbxDriverBDChange', 'Foi atribuído o driver ' + CbxDriverBD.text + ' versão: ' + CbxVersao.Text);
-  end;
+    begin
+      RegistrarLogs('TFormDataManager.CbxDriverBDChange', 'Foi tentado atribuir o driver Firebird 5.0 que ainda não está implementado');
+      Showmessage('Recurso não implementado');
+      CbxDriverBD.ItemIndex := -1;
+    end
+    else
+    RegistrarLogs('TFormDataManager.CbxDriverBDChange', 'Foi atribuído o driver ' + CbxDriverBD.text);
 end;
 
 procedure TFrmDataManager.CriarDroparRoles(PNomeDoDatabase: string; PAcao: TEnumAcao);
@@ -950,7 +945,6 @@ begin
   Extensao := 'postgresql';
   TipoQueryDlg := 'Backup PostgreSQL';
   VersaoMinima := FrmDataManager.VersaoMinimaPostgre;
-  VersaoAtual := StrToCurr(FrmDataManager.CbxVersao.Text);
 
   if PNomeDoDriverBD = 'Firebird 5.0' then
     begin
@@ -960,9 +954,9 @@ begin
   else if (PNomeDoDriverBD = 'PostgreSQL') then
     begin
       Driver := 'PG';
-      Biblioteca := 'C:\Program Files\PostgreSQL\' + VersaoAtual.ToString + '\bin\libpq.dll';
-      Dump := 'C:\Program Files\PostgreSQL\' + VersaoAtual.ToString + '\bin\pg_dump.exe';
-      Restore := 'C:\Program Files\PostgreSQL\' + VersaoAtual.ToString + '\bin\pg_restore.exe';
+      Biblioteca := 'C:\Program Files\PostgreSQL\18\bin\libpq.dll';
+      Dump := 'C:\Program Files\PostgreSQL\18\bin\pg_dump.exe';
+      Restore := 'C:\Program Files\PostgreSQL\18\bin\pg_restore.exe';
     end;
   RegistrarLogs('TDriverBDConexao.DefineParametros', 'Parâmetros de conexão definidos.'
                                 + sLineBreak

@@ -1,11 +1,25 @@
-[23/11/2025 01:07:43] - [TFormDataManager.FormCreate] - -------------------------------------------------------------------------------
-[23/11/2025 01:07:43] - [Abertura do sistema] - Foi criado o arquivo "Logs.txt", pois o mesmo não foi encontrado no diretório da aplicação. -
-[23/11/2025 01:07:43] - [TFormDataManager.FormCreate] - Aplicação iniciada. -
-[23/11/2025 01:07:43] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
-[23/11/2025 01:07:46] - [TFormDataManager.CbxDriverBDChange] - Foi atribuído o driver PostgreSQL 17 -
-[23/11/2025 01:07:47] - [TFormDataManager.BtnConectaBDClick] - Usuário clicou no botão "BtnConectaBD". -
-[23/11/2025 01:07:47] - [TFormDataManager.BtnConectaBDClick] - Usuário com o driver PostgreSQL 17 selecionado. -
-[23/11/2025 01:07:47] - [TDriverBDConexao.DefineParametros] - Parâmetros de conexão definidos.
+[26/11/2025 19:00:30] - [TFormDataManager.FormCreate] - -------------------------------------------------------------------------------
+[26/11/2025 19:00:30] - [Abertura do sistema] - Foi criado o arquivo "Logs.txt", pois o mesmo não foi encontrado no diretório da aplicação. -
+[26/11/2025 19:00:30] - [TFormDataManager.FormCreate] - Aplicação iniciada. -
+[26/11/2025 19:00:30] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[26/11/2025 19:00:32] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[26/11/2025 19:00:32] - [TFormDataManager.FormClose] - Aplicação Encerrada. -
+[26/11/2025 19:00:32] - [TFormDataManager.FormClose] - ------------------------------------------------------------------------------- -
+[26/11/2025 19:00:32] - [TFormDataManager.FormDestroy] - Form limpo da memória com sucesso -
+[26/11/2025 20:27:50] - [TFormDataManager.FormCreate] - ------------------------------------------------------------------------------- -
+[26/11/2025 20:27:50] - [TFormDataManager.FormCreate] - Aplicação iniciada. -
+[26/11/2025 20:27:50] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[26/11/2025 20:27:52] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[26/11/2025 20:27:52] - [TFormDataManager.FormClose] - Aplicação Encerrada. -
+[26/11/2025 20:27:52] - [TFormDataManager.FormClose] - ------------------------------------------------------------------------------- -
+[26/11/2025 20:27:52] - [TFormDataManager.FormDestroy] - Form limpo da memória com sucesso -
+[27/11/2025 12:38:06] - [TFormDataManager.FormCreate] - ------------------------------------------------------------------------------- -
+[27/11/2025 12:38:06] - [TFormDataManager.FormCreate] - Aplicação iniciada. -
+[27/11/2025 12:38:06] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[27/11/2025 12:38:09] - [TFormDataManager.CbxDriverBDChange] - Foi atribuído o driver PostgreSQL 17 -
+[27/11/2025 12:38:09] - [TFormDataManager.BtnConectaBDClick] - Usuário clicou no botão "BtnConectaBD". -
+[27/11/2025 12:38:09] - [TFormDataManager.BtnConectaBDClick] - Usuário com o driver PostgreSQL 17 selecionado. -
+[27/11/2025 12:38:09] - [TDriverBDConexao.DefineParametros] - Parâmetros de conexão definidos.
 
 Driver e versão: PostgreSQL 17
 Diretório biblioteca: C:\Program Files\PostgreSQL\17\bin\libpq.dll
@@ -18,7 +32,25 @@ Owner do BD principal: PRODFAB_ADMIN
 Extensao dos backups: postgresql
 TipoQueryDlg: Backup PostgreSQL
  -
-[23/11/2025 01:07:53] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
-[23/11/2025 01:07:53] - [TFormDataManager.FormClose] - Aplicação Encerrada. -
-[23/11/2025 01:07:53] - [TFormDataManager.FormClose] - ------------------------------------------------------------------------------- -
-[23/11/2025 01:07:53] - [TFormDataManager.FormDestroy] - Form limpo da memória com sucesso -
+[27/11/2025 12:38:10] - [TFormDataManager.VerificaVersaoPostgres] - Conectado ao banco de dados PostgreSQL 17.5 on x86_64-windows, compiled by msvc-19.44.35209, 64-bit -
+[27/11/2025 12:38:10] - [TFormDataManager.ConectarDesconectarDriverDoDatabase] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[27/11/2025 12:38:10] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[27/11/2025 12:38:10] - [TFrmDataManager.AtualizaListaBancos] - Lista de bancos de dados atualizada. -
+[27/11/2025 12:38:11] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[27/11/2025 12:38:11] - [TFormDataManager.FormClose] - Aplicação Encerrada. -
+[27/11/2025 12:38:11] - [TFormDataManager.FormClose] - ------------------------------------------------------------------------------- -
+[27/11/2025 12:38:11] - [TFormDataManager.FormDestroy] - Form limpo da memória com sucesso -
+[27/11/2025 12:44:36] - [TFormDataManager.FormCreate] - ------------------------------------------------------------------------------- -
+[27/11/2025 12:44:36] - [TFormDataManager.FormCreate] - Aplicação iniciada. -
+[27/11/2025 12:44:36] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[27/11/2025 12:44:38] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[27/11/2025 12:44:38] - [TFormDataManager.FormClose] - Aplicação Encerrada. -
+[27/11/2025 12:44:38] - [TFormDataManager.FormClose] - ------------------------------------------------------------------------------- -
+[27/11/2025 12:44:38] - [TFormDataManager.FormDestroy] - Form limpo da memória com sucesso -
+[28/11/2025 12:02:27] - [TFormDataManager.FormCreate] - ------------------------------------------------------------------------------- -
+[28/11/2025 12:02:28] - [TFormDataManager.FormCreate] - Aplicação iniciada. -
+[28/11/2025 12:02:28] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 12:02:29] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 12:02:29] - [TFormDataManager.FormClose] - Aplicação Encerrada. -
+[28/11/2025 12:02:29] - [TFormDataManager.FormClose] - ------------------------------------------------------------------------------- -
+[28/11/2025 12:02:29] - [TFormDataManager.FormDestroy] - Form limpo da memória com sucesso -

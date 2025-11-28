@@ -106,7 +106,6 @@ type
     Extensao: string;
     TipoQueryDlg: string;
     VersaoMinima: currency;
-    VersaoAtual: currency;
 End;
 
 var
@@ -950,7 +949,6 @@ begin
   Extensao := 'postgresql';
   TipoQueryDlg := 'Backup PostgreSQL';
   VersaoMinima := FrmDataManager.VersaoMinimaPostgre;
-  VersaoAtual := StrToCurr(FrmDataManager.CbxVersao.Text);
 
   if PNomeDoDriverBD = 'Firebird 5.0' then
     begin
@@ -960,9 +958,9 @@ begin
   else if (PNomeDoDriverBD = 'PostgreSQL') then
     begin
       Driver := 'PG';
-      Biblioteca := 'C:\Program Files\PostgreSQL\' + VersaoAtual.ToString + '\bin\libpq.dll';
-      Dump := 'C:\Program Files\PostgreSQL\' + VersaoAtual.ToString + '\bin\pg_dump.exe';
-      Restore := 'C:\Program Files\PostgreSQL\' + VersaoAtual.ToString + '\bin\pg_restore.exe';
+      Biblioteca := 'C:\Program Files\PostgreSQL\18\bin\libpq.dll';
+      Dump := 'C:\Program Files\PostgreSQL\18\bin\pg_dump.exe';
+      Restore := 'C:\Program Files\PostgreSQL\18\bin\pg_restore.exe';
     end;
   RegistrarLogs('TDriverBDConexao.DefineParametros', 'Parâmetros de conexão definidos.'
                                 + sLineBreak

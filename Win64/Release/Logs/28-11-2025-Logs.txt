@@ -1,0 +1,421 @@
+[28/11/2025 10:00:54] - [TFormDataManager.FormCreate] - -------------------------------------------------------------------------------
+[28/11/2025 10:00:54] - [Funcoes.RegistrarLogs] - Na abertura do sistema foi criado o arquivo "28-11-2025-Logs.txt", pois o mesmo não foi encontrado no diretório de logs. -
+[28/11/2025 10:00:54] - [TFormDataManager.FormCreate] - Aplicação iniciada. -
+[28/11/2025 10:00:54] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 10:00:56] - [TFormDataManager.CbxDriverBDChange] - Foi atribuído o driver PostgreSQL 17 -
+[28/11/2025 10:00:57] - [TFormDataManager.BtnConectaBDClick] - Usuário clicou no botão "BtnConectaBD". -
+[28/11/2025 10:00:57] - [TFormDataManager.BtnConectaBDClick] - Usuário com o driver PostgreSQL 17 selecionado. -
+[28/11/2025 10:00:57] - [TDriverBDConexao.DefineParametros] - Parâmetros de conexão definidos.
+
+Driver e versão: PostgreSQL 17
+Diretório biblioteca: C:\Program Files\PostgreSQL\17\bin\libpq.dll
+Diretório dump: C:\Program Files\PostgreSQL\17\bin\pg_dump.exe
+Diretório restore: C:\Program Files\PostgreSQL\17\bin\pg_restore.exe
+Porta: 5433
+Usuário: postgres
+Senha: *******
+Owner do BD principal: PRODFAB_ADMIN
+Extensao dos backups: postgresql
+TipoQueryDlg: Backup PostgreSQL
+ -
+[28/11/2025 10:00:59] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 10:00:59] - [TFormDataManager.FormClose] - Aplicação Encerrada. -
+[28/11/2025 10:00:59] - [TFormDataManager.FormClose] - ------------------------------------------------------------------------------- -
+[28/11/2025 10:00:59] - [TFormDataManager.FormDestroy] - Form limpo da memória com sucesso -
+[28/11/2025 10:14:56] - [TFormDataManager.FormCreate] - ------------------------------------------------------------------------------- -
+[28/11/2025 10:14:56] - [TFormDataManager.FormCreate] - Aplicação iniciada. -
+[28/11/2025 10:14:56] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 10:14:59] - [TFormDataManager.CbxDriverBDChange] - Foi atribuído o driver PostgreSQL -
+[28/11/2025 10:15:00] - [TFormDataManager.BtnConectaBDClick] - Usuário clicou no botão "BtnConectaBD". -
+[28/11/2025 10:15:00] - [TFormDataManager.BtnConectaBDClick] - Usuário com o driver PostgreSQL selecionado. -
+[28/11/2025 10:15:00] - [TDriverBDConexao.DefineParametros] - Parâmetros de conexão definidos.
+
+Driver e versão: PostgreSQL
+Diretório biblioteca: 
+Diretório dump: 
+Diretório restore: 
+Porta: 5433
+Usuário: postgres
+Senha: *******
+Owner do BD principal: PRODFAB_ADMIN
+Extensao dos backups: postgresql
+TipoQueryDlg: Backup PostgreSQL
+ -
+[28/11/2025 10:15:13] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 10:15:13] - [TFormDataManager.FormClose] - Aplicação Encerrada. -
+[28/11/2025 10:15:14] - [TFormDataManager.FormClose] - ------------------------------------------------------------------------------- -
+[28/11/2025 10:15:14] - [TFormDataManager.FormDestroy] - Form limpo da memória com sucesso -
+[28/11/2025 10:23:35] - [TFormDataManager.FormCreate] - ------------------------------------------------------------------------------- -
+[28/11/2025 10:23:35] - [TFormDataManager.FormCreate] - Aplicação iniciada. -
+[28/11/2025 10:23:35] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 10:23:38] - [TFormDataManager.CbxDriverBDChange] - Foi atribuído o driver PostgreSQL -
+[28/11/2025 10:23:39] - [TFormDataManager.CbxDriverBDChange] - Foi tentado atribuir o driver Firebird 5.0 que ainda não está implementado -
+[28/11/2025 10:23:42] - [TFormDataManager.CbxDriverBDChange] - Foi atribuído o driver PostgreSQL -
+[28/11/2025 10:23:43] - [TFormDataManager.BtnConectaBDClick] - Usuário clicou no botão "BtnConectaBD". -
+[28/11/2025 10:23:43] - [TFormDataManager.BtnConectaBDClick] - Usuário com o driver PostgreSQL selecionado. -
+[28/11/2025 10:23:43] - [TDriverBDConexao.DefineParametros] - Parâmetros de conexão definidos.
+
+Driver e versão: PostgreSQL
+Diretório biblioteca: C:\Program Files\PostgreSQL\18\bin\libpq.dll
+Diretório dump: C:\Program Files\PostgreSQL\18\bin\pg_dump.exe
+Diretório restore: C:\Program Files\PostgreSQL\18\bin\pg_restore.exe
+Porta: 5433
+Usuário: postgres
+Senha: *******
+Owner do BD principal: PRODFAB_ADMIN
+Extensao dos backups: postgresql
+TipoQueryDlg: Backup PostgreSQL
+ -
+[28/11/2025 10:23:44] - [TFormDataManager.VerificaVersaoPostgres] - Conectado ao banco de dados PostgreSQL 18.1 on x86_64-windows, compiled by msvc-19.44.35219, 64-bit -
+[28/11/2025 10:23:44] - [TFormDataManager.ConectarDesconectarDriverDoDatabase] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[28/11/2025 10:23:44] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 10:23:44] - [TFrmDataManager.AtualizaListaBancos] - Lista de bancos de dados atualizada. -
+[28/11/2025 10:23:48] - [TFormDataManager.VerificaVersaoPostgres] - Conectado ao banco de dados PostgreSQL 18.1 on x86_64-windows, compiled by msvc-19.44.35219, 64-bit -
+[28/11/2025 10:23:48] - [TFormDataManager.BtnAtualizarClick] - Usuário clicou no botão "BtnNovoDataBase". -
+[28/11/2025 10:23:48] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 10:23:52] - [TFormDataManager.CapturarNomeDoDatabase] - Nome do database "" capturado - Parâmetro Out foi "0" -
+[28/11/2025 10:23:52] - [TFormDataManager.BtnNovoDataBaseClick] - Usuário cancelou a operação. -
+[28/11/2025 10:23:52] - [TFrmDataManager.AtualizaListaBancos] - Lista de bancos de dados atualizada. -
+[28/11/2025 10:23:59] - [TFormDataManager.BtnDesconectarClick] - Usuário clicou no botão "BtnDesconectar". -
+[28/11/2025 10:23:59] - [TFormDataManager.ConectarDesconectarDriverDoDatabase] - Conexão com o banco de dados "PG" encerrada com sucesso. -
+[28/11/2025 10:23:59] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 10:23:59] - [TFrmDataManager.AtualizaListaBancos] - Lista de bancos de dados atualizada. -
+[28/11/2025 10:25:21] - [TFormDataManager.BtnConectaBDClick] - Usuário clicou no botão "BtnConectaBD". -
+[28/11/2025 10:25:21] - [TFormDataManager.BtnConectaBDClick] - Usuário com o driver PostgreSQL selecionado. -
+[28/11/2025 10:25:21] - [TDriverBDConexao.DefineParametros] - Parâmetros de conexão definidos.
+
+Driver e versão: PostgreSQL
+Diretório biblioteca: C:\Program Files\PostgreSQL\18\bin\libpq.dll
+Diretório dump: C:\Program Files\PostgreSQL\18\bin\pg_dump.exe
+Diretório restore: C:\Program Files\PostgreSQL\18\bin\pg_restore.exe
+Porta: 5433
+Usuário: postgres
+Senha: *******
+Owner do BD principal: PRODFAB_ADMIN
+Extensao dos backups: postgresql
+TipoQueryDlg: Backup PostgreSQL
+ -
+[28/11/2025 10:25:50] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 10:25:50] - [TFormDataManager.FormClose] - Aplicação Encerrada. -
+[28/11/2025 10:25:50] - [TFormDataManager.FormClose] - ------------------------------------------------------------------------------- -
+[28/11/2025 10:25:50] - [TFormDataManager.FormDestroy] - Form limpo da memória com sucesso -
+[28/11/2025 10:29:30] - [TFormDataManager.FormCreate] - ------------------------------------------------------------------------------- -
+[28/11/2025 10:29:30] - [TFormDataManager.FormCreate] - Aplicação iniciada. -
+[28/11/2025 10:29:30] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 10:29:35] - [TFormDataManager.CbxDriverBDChange] - Foi atribuído o driver PostgreSQL -
+[28/11/2025 10:29:45] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 10:29:45] - [TFormDataManager.FormClose] - Aplicação Encerrada. -
+[28/11/2025 10:29:45] - [TFormDataManager.FormClose] - ------------------------------------------------------------------------------- -
+[28/11/2025 10:29:45] - [TFormDataManager.FormDestroy] - Form limpo da memória com sucesso -
+[28/11/2025 10:29:50] - [TFormDataManager.FormCreate] - ------------------------------------------------------------------------------- -
+[28/11/2025 10:29:50] - [TFormDataManager.FormCreate] - Aplicação iniciada. -
+[28/11/2025 10:29:51] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 10:29:52] - [TFormDataManager.BtnConectaBDClick] - Usuário clicou no botão "BtnConectaBD". -
+[28/11/2025 10:29:52] - [TFormDataManager.BtnConectaBDClick] - Usuário não selecionou nenhum driver de Database. -
+[28/11/2025 10:29:54] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 10:29:54] - [TFormDataManager.FormClose] - Aplicação Encerrada. -
+[28/11/2025 10:29:54] - [TFormDataManager.FormClose] - ------------------------------------------------------------------------------- -
+[28/11/2025 10:29:54] - [TFormDataManager.FormDestroy] - Form limpo da memória com sucesso -
+[28/11/2025 10:30:47] - [TFormDataManager.FormCreate] - ------------------------------------------------------------------------------- -
+[28/11/2025 10:30:47] - [TFormDataManager.FormCreate] - Aplicação iniciada. -
+[28/11/2025 10:30:47] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 10:30:48] - [TFormDataManager.BtnConectaBDClick] - Usuário clicou no botão "BtnConectaBD". -
+[28/11/2025 10:30:48] - [TFormDataManager.BtnConectaBDClick] - Usuário não selecionou nenhum driver de Database. -
+[28/11/2025 10:30:51] - [TFormDataManager.CbxDriverBDChange] - Foi atribuído o driver  -
+[28/11/2025 10:30:51] - [TFormDataManager.BtnConectaBDClick] - Usuário clicou no botão "BtnConectaBD". -
+[28/11/2025 10:30:51] - [TFormDataManager.BtnConectaBDClick] - Usuário não selecionou nenhum driver de Database. -
+[28/11/2025 10:30:56] - [TFormDataManager.CbxDriverBDChange] - Foi atribuído o driver PostgreSQL -
+[28/11/2025 10:30:57] - [TFormDataManager.BtnConectaBDClick] - Usuário clicou no botão "BtnConectaBD". -
+[28/11/2025 10:30:57] - [TFormDataManager.BtnConectaBDClick] - Usuário com o driver PostgreSQL selecionado. -
+[28/11/2025 10:30:57] - [TDriverBDConexao.DefineParametros] - Parâmetros de conexão definidos.
+
+Driver e versão: PostgreSQL
+Diretório biblioteca: C:\Program Files\PostgreSQL\18\bin\libpq.dll
+Diretório dump: C:\Program Files\PostgreSQL\18\bin\pg_dump.exe
+Diretório restore: C:\Program Files\PostgreSQL\18\bin\pg_restore.exe
+Porta: 5433
+Usuário: postgres
+Senha: *******
+Owner do BD principal: PRODFAB_ADMIN
+Extensao dos backups: postgresql
+TipoQueryDlg: Backup PostgreSQL
+ -
+[28/11/2025 10:30:57] - [TFormDataManager.VerificaVersaoPostgres] - Conectado ao banco de dados PostgreSQL 18.1 on x86_64-windows, compiled by msvc-19.44.35219, 64-bit -
+[28/11/2025 10:30:57] - [TFormDataManager.ConectarDesconectarDriverDoDatabase] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[28/11/2025 10:30:57] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 10:30:57] - [TFrmDataManager.AtualizaListaBancos] - Lista de bancos de dados atualizada. -
+[28/11/2025 10:30:58] - [TFormDataManager.BtnDesconectarClick] - Usuário clicou no botão "BtnDesconectar". -
+[28/11/2025 10:30:58] - [TFormDataManager.ConectarDesconectarDriverDoDatabase] - Conexão com o banco de dados "PG" encerrada com sucesso. -
+[28/11/2025 10:30:58] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 10:30:58] - [TFrmDataManager.AtualizaListaBancos] - Lista de bancos de dados atualizada. -
+[28/11/2025 10:31:00] - [TFormDataManager.BtnConectaBDClick] - Usuário clicou no botão "BtnConectaBD". -
+[28/11/2025 10:31:00] - [TFormDataManager.BtnConectaBDClick] - Usuário com o driver PostgreSQL selecionado. -
+[28/11/2025 10:31:00] - [TDriverBDConexao.DefineParametros] - Parâmetros de conexão definidos.
+
+Driver e versão: PostgreSQL
+Diretório biblioteca: C:\Program Files\PostgreSQL\18\bin\libpq.dll
+Diretório dump: C:\Program Files\PostgreSQL\18\bin\pg_dump.exe
+Diretório restore: C:\Program Files\PostgreSQL\18\bin\pg_restore.exe
+Porta: 5433
+Usuário: postgres
+Senha: *******
+Owner do BD principal: PRODFAB_ADMIN
+Extensao dos backups: postgresql
+TipoQueryDlg: Backup PostgreSQL
+ -
+[28/11/2025 10:31:00] - [TFormDataManager.VerificaVersaoPostgres] - Conectado ao banco de dados PostgreSQL 18.1 on x86_64-windows, compiled by msvc-19.44.35219, 64-bit -
+[28/11/2025 10:31:00] - [TFormDataManager.ConectarDesconectarDriverDoDatabase] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[28/11/2025 10:31:00] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 10:31:00] - [TFrmDataManager.AtualizaListaBancos] - Lista de bancos de dados atualizada. -
+[28/11/2025 10:31:01] - [TFormDataManager.BtnDesconectarClick] - Usuário clicou no botão "BtnDesconectar". -
+[28/11/2025 10:31:01] - [TFormDataManager.ConectarDesconectarDriverDoDatabase] - Conexão com o banco de dados "PG" encerrada com sucesso. -
+[28/11/2025 10:31:01] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 10:31:01] - [TFrmDataManager.AtualizaListaBancos] - Lista de bancos de dados atualizada. -
+[28/11/2025 10:31:08] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 10:31:08] - [TFormDataManager.FormClose] - Aplicação Encerrada. -
+[28/11/2025 10:31:08] - [TFormDataManager.FormClose] - ------------------------------------------------------------------------------- -
+[28/11/2025 10:31:08] - [TFormDataManager.FormDestroy] - Form limpo da memória com sucesso -
+[28/11/2025 10:31:09] - [TFormDataManager.FormCreate] - ------------------------------------------------------------------------------- -
+[28/11/2025 10:31:09] - [TFormDataManager.FormCreate] - Aplicação iniciada. -
+[28/11/2025 10:31:09] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 10:31:11] - [TFormDataManager.CbxDriverBDChange] - Foi atribuído o driver PostgreSQL -
+[28/11/2025 10:31:11] - [TFormDataManager.BtnConectaBDClick] - Usuário clicou no botão "BtnConectaBD". -
+[28/11/2025 10:31:12] - [TFormDataManager.BtnConectaBDClick] - Usuário não selecionou nenhum driver de Database. -
+[28/11/2025 10:31:14] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 10:31:14] - [TFormDataManager.FormClose] - Aplicação Encerrada. -
+[28/11/2025 10:31:14] - [TFormDataManager.FormClose] - ------------------------------------------------------------------------------- -
+[28/11/2025 10:31:14] - [TFormDataManager.FormDestroy] - Form limpo da memória com sucesso -
+[28/11/2025 10:36:58] - [TFormDataManager.FormCreate] - ------------------------------------------------------------------------------- -
+[28/11/2025 10:36:58] - [TFormDataManager.FormCreate] - Aplicação iniciada. -
+[28/11/2025 10:36:58] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 10:37:04] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 10:37:04] - [TFormDataManager.FormClose] - Aplicação Encerrada. -
+[28/11/2025 10:37:04] - [TFormDataManager.FormClose] - ------------------------------------------------------------------------------- -
+[28/11/2025 10:37:04] - [TFormDataManager.FormDestroy] - Form limpo da memória com sucesso -
+[28/11/2025 10:39:11] - [TFormDataManager.FormCreate] - ------------------------------------------------------------------------------- -
+[28/11/2025 10:39:11] - [TFormDataManager.FormCreate] - Aplicação iniciada. -
+[28/11/2025 10:39:11] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 10:39:17] - [TFormDataManager.CbxDriverBDChange] - Foi atribuído o driver PostgreSQL versão:  -
+[28/11/2025 10:39:26] - [TFormDataManager.BtnConectaBDClick] - Usuário clicou no botão "BtnConectaBD". -
+[28/11/2025 10:39:26] - [TFormDataManager.BtnConectaBDClick] - Usuário não selecionou nenhum driver de Database. -
+[28/11/2025 10:39:29] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 10:39:29] - [TFormDataManager.FormClose] - Aplicação Encerrada. -
+[28/11/2025 10:39:29] - [TFormDataManager.FormClose] - ------------------------------------------------------------------------------- -
+[28/11/2025 10:39:29] - [TFormDataManager.FormDestroy] - Form limpo da memória com sucesso -
+[28/11/2025 10:44:31] - [TFormDataManager.FormCreate] - ------------------------------------------------------------------------------- -
+[28/11/2025 10:44:31] - [TFormDataManager.FormCreate] - Aplicação iniciada. -
+[28/11/2025 10:44:31] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 10:44:34] - [TFormDataManager.CbxDriverBDChange] - Foi atribuído o driver PostgreSQL versão:  -
+[28/11/2025 10:44:35] - [TFormDataManager.CbxDriverBDChange] - Foi atribuído o driver PostgreSQL versão: 17 -
+[28/11/2025 10:44:36] - [TFormDataManager.BtnConectaBDClick] - Usuário clicou no botão "BtnConectaBD". -
+[28/11/2025 10:44:36] - [TFormDataManager.BtnConectaBDClick] - Usuário com o driver PostgreSQL selecionado. -
+[28/11/2025 10:44:36] - [TDriverBDConexao.DefineParametros] - Parâmetros de conexão definidos.
+
+Driver e versão: PostgreSQL
+Diretório biblioteca: C:\Program Files\PostgreSQL\17\bin\libpq.dll
+Diretório dump: C:\Program Files\PostgreSQL\17\bin\pg_dump.exe
+Diretório restore: C:\Program Files\PostgreSQL\17\bin\pg_restore.exe
+Porta: 5433
+Usuário: postgres
+Senha: *******
+Owner do BD principal: PRODFAB_ADMIN
+Extensao dos backups: postgresql
+TipoQueryDlg: Backup PostgreSQL
+ -
+[28/11/2025 10:44:41] - [TFormDataManager.CbxDriverBDChange] - Foi atribuído o driver PostgreSQL versão: 18 -
+[28/11/2025 10:44:42] - [TFormDataManager.BtnConectaBDClick] - Usuário clicou no botão "BtnConectaBD". -
+[28/11/2025 10:44:42] - [TFormDataManager.BtnConectaBDClick] - Usuário com o driver PostgreSQL selecionado. -
+[28/11/2025 10:44:42] - [TDriverBDConexao.DefineParametros] - Parâmetros de conexão definidos.
+
+Driver e versão: PostgreSQL
+Diretório biblioteca: C:\Program Files\PostgreSQL\18\bin\libpq.dll
+Diretório dump: C:\Program Files\PostgreSQL\18\bin\pg_dump.exe
+Diretório restore: C:\Program Files\PostgreSQL\18\bin\pg_restore.exe
+Porta: 5433
+Usuário: postgres
+Senha: *******
+Owner do BD principal: PRODFAB_ADMIN
+Extensao dos backups: postgresql
+TipoQueryDlg: Backup PostgreSQL
+ -
+[28/11/2025 10:44:42] - [TFormDataManager.VerificaVersaoPostgres] - Conectado ao banco de dados PostgreSQL 18.1 on x86_64-windows, compiled by msvc-19.44.35219, 64-bit -
+[28/11/2025 10:44:42] - [TFormDataManager.ConectarDesconectarDriverDoDatabase] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[28/11/2025 10:44:42] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 10:44:42] - [TFrmDataManager.AtualizaListaBancos] - Lista de bancos de dados atualizada. -
+[28/11/2025 10:45:02] - [TFormDataManager.CbxDriverBDChange] - Foi atribuído o driver PostgreSQL versão: 17 -
+[28/11/2025 10:45:05] - [TFormDataManager.CbxDriverBDChange] - Foi atribuído o driver PostgreSQL versão: 18 -
+[28/11/2025 10:45:18] - [TFormDataManager.VerificaVersaoPostgres] - Conectado ao banco de dados PostgreSQL 18.1 on x86_64-windows, compiled by msvc-19.44.35219, 64-bit -
+[28/11/2025 10:45:18] - [TFormDataManager.BtnAtualizarClick] - Usuário clicou no botão "BtnNovoDataBase". -
+[28/11/2025 10:45:18] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 10:45:28] - [TFormDataManager.CapturarNomeDoDatabase] - Nome do database "PRODFAB_TESTE" capturado - Parâmetro Out foi "-1" -
+[28/11/2025 10:45:28] - [TFormDataManager.ValidaDatabaseExistente] - Database "PRODFAB_TESTE" não existe -
+[28/11/2025 10:45:28] - [TFormDataManager.BtnNovoDataBaseClick] - Usuário digitou o nome do banco de dados "PRODFAB_TESTE". -
+[28/11/2025 10:45:28] - [TFormDataManager.CriarDroparRoles] - Usuários padrão do database "PRODFAB_TESTE" cadastrados com sucesso. -
+[28/11/2025 10:45:29] - [TFormDataManager.CriarDroparDataBase] - Query de criação de database executada:
+
+CREATE DATABASE "PRODFAB_TESTE"
+WITH OWNER = "PRODFAB_ADMIN"
+ENCODING = 'UTF8'
+TABLESPACE = pg_default
+LC_COLLATE = 'Portuguese_Brazil.1252'
+LC_CTYPE = 'Portuguese_Brazil.1252'
+CONNECTION LIMIT = -1
+ -
+[28/11/2025 10:45:29] - [TFormDataManager.CriarDroparDataBase] - Database "PRODFAB_TESTE" criado com sucesso. -
+[28/11/2025 10:45:29] - [TFormDataManager.AdicionarOuRemoverPermissoesNosRoles] - Permissões adicionadas aos usuários do database "PRODFAB_TESTE". -
+[28/11/2025 10:45:30] - [TFrmDataManager.AtualizaListaBancos] - Lista de bancos de dados atualizada. -
+[28/11/2025 10:45:30] - [TFrmDataManager.AtualizaListaBancos] - Lista de bancos de dados atualizada. -
+[28/11/2025 10:45:31] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "PRODFAB_TESTE". -
+[28/11/2025 10:45:31] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 10:45:33] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 10:45:33] - [TFormDataManager.FormClose] - Aplicação Encerrada. -
+[28/11/2025 10:45:33] - [TFormDataManager.FormClose] - ------------------------------------------------------------------------------- -
+[28/11/2025 10:45:33] - [TFormDataManager.FormDestroy] - Form limpo da memória com sucesso -
+[28/11/2025 11:27:03] - [TFormDataManager.FormCreate] - ------------------------------------------------------------------------------- -
+[28/11/2025 11:27:03] - [TFormDataManager.FormCreate] - Aplicação iniciada. -
+[28/11/2025 11:27:03] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 11:27:06] - [TFormDataManager.CbxDriverBDChange] - Foi atribuído o driver PostgreSQL versão:  -
+[28/11/2025 11:27:07] - [TFormDataManager.CbxDriverBDChange] - Foi atribuído o driver PostgreSQL versão: 17 -
+[28/11/2025 11:27:08] - [TFormDataManager.BtnConectaBDClick] - Usuário clicou no botão "BtnConectaBD". -
+[28/11/2025 11:27:08] - [TFormDataManager.BtnConectaBDClick] - Usuário com o driver PostgreSQL selecionado. -
+[28/11/2025 11:27:08] - [TDriverBDConexao.DefineParametros] - Parâmetros de conexão definidos.
+
+Driver e versão: PostgreSQL
+Diretório biblioteca: C:\Program Files\PostgreSQL\17\bin\libpq.dll
+Diretório dump: C:\Program Files\PostgreSQL\17\bin\pg_dump.exe
+Diretório restore: C:\Program Files\PostgreSQL\17\bin\pg_restore.exe
+Porta: 5433
+Usuário: postgres
+Senha: *******
+Owner do BD principal: PRODFAB_ADMIN
+Extensao dos backups: postgresql
+TipoQueryDlg: Backup PostgreSQL
+ -
+[28/11/2025 11:27:11] - [TFormDataManager.CbxDriverBDChange] - Foi atribuído o driver PostgreSQL versão: 18 -
+[28/11/2025 11:27:12] - [TFormDataManager.BtnConectaBDClick] - Usuário clicou no botão "BtnConectaBD". -
+[28/11/2025 11:27:12] - [TFormDataManager.BtnConectaBDClick] - Usuário com o driver PostgreSQL selecionado. -
+[28/11/2025 11:27:12] - [TDriverBDConexao.DefineParametros] - Parâmetros de conexão definidos.
+
+Driver e versão: PostgreSQL
+Diretório biblioteca: C:\Program Files\PostgreSQL\18\bin\libpq.dll
+Diretório dump: C:\Program Files\PostgreSQL\18\bin\pg_dump.exe
+Diretório restore: C:\Program Files\PostgreSQL\18\bin\pg_restore.exe
+Porta: 5433
+Usuário: postgres
+Senha: *******
+Owner do BD principal: PRODFAB_ADMIN
+Extensao dos backups: postgresql
+TipoQueryDlg: Backup PostgreSQL
+ -
+[28/11/2025 11:27:12] - [TFormDataManager.VerificaVersaoPostgres] - Conectado ao banco de dados PostgreSQL 18.1 on x86_64-windows, compiled by msvc-19.44.35219, 64-bit -
+[28/11/2025 11:27:12] - [TFormDataManager.ConectarDesconectarDriverDoDatabase] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[28/11/2025 11:27:12] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 11:27:12] - [TFrmDataManager.AtualizaListaBancos] - Lista de bancos de dados atualizada. -
+[28/11/2025 11:27:13] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "PRODFAB_TESTE". -
+[28/11/2025 11:27:13] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 11:27:18] - [TFormDataManager.BtnFazerBackupDatabaseClick] - Usuário clicou no botão "BtnFazerBackupDatabase". -
+[28/11/2025 11:27:18] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 11:27:18] - [TDriverBDConexao.DefineParametros] - Parâmetros de conexão definidos.
+
+Driver e versão: PostgreSQL
+Diretório biblioteca: C:\Program Files\PostgreSQL\18\bin\libpq.dll
+Diretório dump: C:\Program Files\PostgreSQL\18\bin\pg_dump.exe
+Diretório restore: C:\Program Files\PostgreSQL\18\bin\pg_restore.exe
+Porta: 5433
+Usuário: postgres
+Senha: *******
+Owner do BD principal: PRODFAB_ADMIN
+Extensao dos backups: postgresql
+TipoQueryDlg: Backup PostgreSQL
+ -
+[28/11/2025 11:27:18] - [TFormDataManager.VerificaVersaoPostgres] - Conectado ao banco de dados PostgreSQL 18.1 on x86_64-windows, compiled by msvc-19.44.35219, 64-bit -
+[28/11/2025 11:27:18] - [TFormDataManager.ConectarDesconectarDriverDoDatabase] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[28/11/2025 11:27:37] - [TFormDataManager.BtnFazerBackupDatabaseClick] - Usuário cancelou sem decidir salvar o backup". -
+[28/11/2025 11:27:37] - [TFrmDataManager.AtualizaListaBancos] - Lista de bancos de dados atualizada. -
+[28/11/2025 11:27:38] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "PRODFAB_TESTE". -
+[28/11/2025 11:27:38] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 11:27:40] - [TFormDataManager.BtnFazerRestoreDatabaseClick] - Usuário clicou no botão "BtnFazerRestoreDatabase". -
+[28/11/2025 11:27:40] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 11:27:40] - [TFormDataManager.VerificaVersaoPostgres] - Conectado ao banco de dados PostgreSQL 18.1 on x86_64-windows, compiled by msvc-19.44.35219, 64-bit -
+[28/11/2025 11:27:40] - [TFormDataManager.ValidaOwnerDatabase] - O usuário é o proprietário do banco de dados -
+[28/11/2025 11:27:43] - [TFormDataManager.BtnFazerRestoreDatabaseClick] - Usuário abriu o arquivo de backup C:\Program Files\ProdFab\Backup\TESTE_PRODFAB_[23.11.2025_01.03.33].postgresql. -
+[28/11/2025 11:27:43] - [TFormDataManager.CriaComando] - Comando "C:\Program Files\PostgreSQL\18\bin\pg_restore.exe" -U postgres -h localhost -p 5433 -d PRODFAB_TESTE -v --no-owner --no-acl "C:\Program Files\ProdFab\Backup\TESTE_PRODFAB_[23.11.2025_01.03.33].postgresql" criado com sucesso. -
+[28/11/2025 11:27:43] - [TFormDataManager.BtnFazerRestoreDatabaseClick] - Comando recebido: "C:\Program Files\PostgreSQL\18\bin\pg_restore.exe" -U postgres -h localhost -p 5433 -d PRODFAB_TESTE -v --no-owner --no-acl "C:\Program Files\ProdFab\Backup\TESTE_PRODFAB_[23.11.2025_01.03.33].postgresql" -
+[28/11/2025 11:27:43] - [TFormDataManager.AdicionarOuRemoverPermissoesNosRoles] - Permissões removidas dos usuários do database "PRODFAB_TESTE". -
+[28/11/2025 11:27:43] - [TFormDataManager.CriarDroparRoles] - Alguns usuários padrão do database não foram excluídos, pois já existiam. -
+[28/11/2025 11:27:50] - [TFormDataManager.BtnDesconectarClick] - Usuário clicou no botão "BtnDesconectar". -
+[28/11/2025 11:27:50] - [TFormDataManager.ConectarDesconectarDriverDoDatabase] - Conexão com o banco de dados "PG" encerrada com sucesso. -
+[28/11/2025 11:27:50] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 11:27:50] - [TFrmDataManager.AtualizaListaBancos] - Lista de bancos de dados atualizada. -
+[28/11/2025 11:27:51] - [TFormDataManager.BtnConectaBDClick] - Usuário clicou no botão "BtnConectaBD". -
+[28/11/2025 11:27:51] - [TFormDataManager.BtnConectaBDClick] - Usuário com o driver PostgreSQL selecionado. -
+[28/11/2025 11:27:51] - [TDriverBDConexao.DefineParametros] - Parâmetros de conexão definidos.
+
+Driver e versão: PostgreSQL
+Diretório biblioteca: C:\Program Files\PostgreSQL\18\bin\libpq.dll
+Diretório dump: C:\Program Files\PostgreSQL\18\bin\pg_dump.exe
+Diretório restore: C:\Program Files\PostgreSQL\18\bin\pg_restore.exe
+Porta: 5433
+Usuário: postgres
+Senha: *******
+Owner do BD principal: PRODFAB_ADMIN
+Extensao dos backups: postgresql
+TipoQueryDlg: Backup PostgreSQL
+ -
+[28/11/2025 11:27:51] - [TFormDataManager.VerificaVersaoPostgres] - Conectado ao banco de dados PostgreSQL 18.1 on x86_64-windows, compiled by msvc-19.44.35219, 64-bit -
+[28/11/2025 11:27:51] - [TFormDataManager.ConectarDesconectarDriverDoDatabase] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[28/11/2025 11:27:51] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 11:27:51] - [TFrmDataManager.AtualizaListaBancos] - Lista de bancos de dados atualizada. -
+[28/11/2025 11:27:53] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "PRODFAB_TESTE". -
+[28/11/2025 11:27:53] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 11:27:54] - [TFormDataManager.BtnFazerRestoreDatabaseClick] - Usuário clicou no botão "BtnFazerRestoreDatabase". -
+[28/11/2025 11:27:54] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 11:27:54] - [TFormDataManager.VerificaVersaoPostgres] - Conectado ao banco de dados PostgreSQL 18.1 on x86_64-windows, compiled by msvc-19.44.35219, 64-bit -
+[28/11/2025 11:27:54] - [TFormDataManager.ValidaOwnerDatabase] - O usuário é o proprietário do banco de dados -
+[28/11/2025 11:27:56] - [TFormDataManager.BtnFazerRestoreDatabaseClick] - Usuário abriu o arquivo de backup C:\Program Files\ProdFab\Backup\TESTE_PRODFAB_[23.11.2025_01.03.33].postgresql. -
+[28/11/2025 11:27:56] - [TFormDataManager.CriaComando] - Comando "C:\Program Files\PostgreSQL\18\bin\pg_restore.exe" -U postgres -h localhost -p 5433 -d PRODFAB_TESTE -v --no-owner --no-acl "C:\Program Files\ProdFab\Backup\TESTE_PRODFAB_[23.11.2025_01.03.33].postgresql" criado com sucesso. -
+[28/11/2025 11:27:56] - [TFormDataManager.BtnFazerRestoreDatabaseClick] - Comando recebido: "C:\Program Files\PostgreSQL\18\bin\pg_restore.exe" -U postgres -h localhost -p 5433 -d PRODFAB_TESTE -v --no-owner --no-acl "C:\Program Files\ProdFab\Backup\TESTE_PRODFAB_[23.11.2025_01.03.33].postgresql" -
+[28/11/2025 11:27:57] - [TFormDataManager.AdicionarOuRemoverPermissoesNosRoles] - Algumas permissões não foram atribuídas pois já existiam. -
+[28/11/2025 11:27:57] - [TFormDataManager.CriarDroparRoles] - Usuários padrão do database "PRODFAB_TESTE" não puderam ser excluídos. -
+[28/11/2025 11:27:57] - [TFormDataManager.CriarDroparDataBase] - Query de exclusão de database executada:
+
+DROP DATABASE "PRODFAB_TESTE"
+ -
+[28/11/2025 11:27:57] - [TFormDataManager.CriarDroparDataBase] - Database "PRODFAB_TESTE" excluído com sucesso. -
+[28/11/2025 11:27:57] - [TFormDataManager.BtnFazerRestoreDatabaseClick] - Excluído o banco de dados existente. -
+[28/11/2025 11:27:57] - [TFormDataManager.CriarDroparDataBase] - Query de criação de database executada:
+
+CREATE DATABASE "PRODFAB_TESTE"
+WITH OWNER = "PRODFAB_ADMIN"
+ENCODING = 'UTF8'
+TABLESPACE = pg_default
+LC_COLLATE = 'Portuguese_Brazil.1252'
+LC_CTYPE = 'Portuguese_Brazil.1252'
+CONNECTION LIMIT = -1
+ -
+[28/11/2025 11:27:57] - [TFormDataManager.CriarDroparDataBase] - Database "PRODFAB_TESTE" criado com sucesso. -
+[28/11/2025 11:27:57] - [TFormDataManager.CriarDroparRoles] - Alguns usuários padrão do database não foram cadastrados, pois já existiam. -
+[28/11/2025 11:27:57] - [TFormDataManager.AdicionarOuRemoverPermissoesNosRoles] - Permissões adicionadas aos usuários do database "PRODFAB_TESTE". -
+[28/11/2025 11:27:57] - [TFormDataManager.BtnFazerRestoreDatabaseClick] - Recriado o banco de dados vazio. -
+[28/11/2025 11:27:57] - [TFormBackupRestore.FormShow] - Backup do banco de dados "PRODFAB_TESTE" Iniciado -
+[28/11/2025 11:28:00] - [TFormDataManager.BtnFazerRestoreDatabaseClick] - Form "" foi fechado. -
+[28/11/2025 11:28:00] - [TDriverBDConexao.DefineParametros] - Parâmetros de conexão definidos.
+
+Driver e versão: PostgreSQL
+Diretório biblioteca: C:\Program Files\PostgreSQL\18\bin\libpq.dll
+Diretório dump: C:\Program Files\PostgreSQL\18\bin\pg_dump.exe
+Diretório restore: C:\Program Files\PostgreSQL\18\bin\pg_restore.exe
+Porta: 5433
+Usuário: postgres
+Senha: *******
+Owner do BD principal: PRODFAB_ADMIN
+Extensao dos backups: postgresql
+TipoQueryDlg: Backup PostgreSQL
+ -
+[28/11/2025 11:28:00] - [TFormDataManager.VerificaVersaoPostgres] - Conectado ao banco de dados PostgreSQL 18.1 on x86_64-windows, compiled by msvc-19.44.35219, 64-bit -
+[28/11/2025 11:28:00] - [TFormDataManager.ConectarDesconectarDriverDoDatabase] - Conexão com o banco de dados "PG" iniciada com sucesso. -
+[28/11/2025 11:28:00] - [TFrmDataManager.AtualizaListaBancos] - Lista de bancos de dados atualizada. -
+[28/11/2025 11:28:01] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[28/11/2025 11:28:01] - [TFormDataManager.FormClose] - Aplicação Encerrada. -
+[28/11/2025 11:28:01] - [TFormDataManager.FormClose] - ------------------------------------------------------------------------------- -
+[28/11/2025 11:28:01] - [TFormDataManager.FormDestroy] - Form limpo da memória com sucesso -

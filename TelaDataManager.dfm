@@ -3,8 +3,8 @@ object FrmDataManager: TFrmDataManager
   Top = 0
   BorderStyle = bsSingle
   Caption = 'Data Manager 1.2'
-  ClientHeight = 286
-  ClientWidth = 698
+  ClientHeight = 305
+  ClientWidth = 773
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -318,28 +318,15 @@ object FrmDataManager: TFrmDataManager
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  DesignSize = (
+    773
+    305)
   TextHeight = 15
-  object LblDriverConectado: TLabel
-    Left = 450
-    Top = 8
-    Width = 225
-    Height = 38
-    AutoSize = False
-    Caption = 'Nenhum banco de dados conectado'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clRed
-    Font.Height = -12
-    Font.Name = 'Segoe UI'
-    Font.Style = []
-    ParentFont = False
-    WordWrap = True
-    StyleElements = [seClient, seBorder]
-  end
   object PnlConexao: TPanel
     Left = 8
     Top = 8
-    Width = 241
-    Height = 270
+    Width = 289
+    Height = 290
     TabOrder = 0
     object LblHost: TLabel
       Left = 105
@@ -375,6 +362,13 @@ object FrmDataManager: TFrmDataManager
       Width = 15
       Height = 15
       Caption = 'BD'
+    end
+    object LblVersao: TLabel
+      Left = 232
+      Top = 8
+      Width = 34
+      Height = 15
+      Caption = 'Vers'#227'o'
     end
     object EdtHost: TEdit
       Left = 105
@@ -413,7 +407,7 @@ object FrmDataManager: TFrmDataManager
     end
     object BtnConectaBD: TButton
       Left = 8
-      Top = 8
+      Top = 10
       Width = 80
       Height = 80
       BiDiMode = bdLeftToRight
@@ -431,7 +425,7 @@ object FrmDataManager: TFrmDataManager
     end
     object BtnDesconectar: TButton
       Left = 8
-      Top = 95
+      Top = 104
       Width = 80
       Height = 80
       BiDiMode = bdLeftToRight
@@ -457,11 +451,11 @@ object FrmDataManager: TFrmDataManager
       OnChange = CbxDriverBDChange
       Items.Strings = (
         'Firebird 5.0'
-        'PostgreSQL 17')
+        'PostgreSQL')
     end
     object BtnAtualizar: TButton
       Left = 8
-      Top = 182
+      Top = 198
       Width = 80
       Height = 80
       BiDiMode = bdLeftToRight
@@ -477,16 +471,31 @@ object FrmDataManager: TFrmDataManager
       TabOrder = 7
       OnClick = BtnAtualizarClick
     end
+    object CbxVersao: TComboBox
+      Left = 232
+      Top = 25
+      Width = 49
+      Height = 23
+      Style = csDropDownList
+      Enabled = False
+      TabOrder = 8
+      OnChange = CbxDriverBDChange
+      Items.Strings = (
+        '17'
+        '18')
+    end
   end
   object PnlGerenciar: TPanel
-    Left = 255
+    Left = 305
     Top = 8
     Width = 188
-    Height = 270
+    Height = 290
+    Anchors = [akTop, akRight]
     TabOrder = 1
+    ExplicitLeft = 309
     object BtnNovoDataBase: TButton
       Left = 9
-      Top = 8
+      Top = 10
       Width = 80
       Height = 80
       BiDiMode = bdLeftToRight
@@ -505,7 +514,7 @@ object FrmDataManager: TFrmDataManager
     end
     object BtnRenomearDatabase: TButton
       Left = 98
-      Top = 8
+      Top = 10
       Width = 80
       Height = 80
       BiDiMode = bdLeftToRight
@@ -524,7 +533,7 @@ object FrmDataManager: TFrmDataManager
     end
     object BtnExcluirDatabase: TButton
       Left = 54
-      Top = 182
+      Top = 198
       Width = 80
       Height = 80
       BiDiMode = bdLeftToRight
@@ -543,7 +552,7 @@ object FrmDataManager: TFrmDataManager
     end
     object BtnFazerBackupDatabase: TButton
       Left = 9
-      Top = 95
+      Top = 104
       Width = 80
       Height = 80
       BiDiMode = bdLeftToRight
@@ -562,7 +571,7 @@ object FrmDataManager: TFrmDataManager
     end
     object BtnFazerRestoreDatabase: TButton
       Left = 98
-      Top = 95
+      Top = 104
       Width = 80
       Height = 80
       BiDiMode = bdLeftToRight
@@ -580,14 +589,39 @@ object FrmDataManager: TFrmDataManager
       OnClick = BtnFazerRestoreDatabaseClick
     end
   end
-  object LbxDatabases: TListBox
-    Left = 450
-    Top = 52
-    Width = 241
-    Height = 226
-    ItemHeight = 15
+  object PnlDatabases: TPanel
+    Left = 502
+    Top = 8
+    Width = 263
+    Height = 290
+    Anchors = [akTop, akRight]
     TabOrder = 2
-    OnClick = LbxDatabasesClick
+    ExplicitLeft = 506
+    object LblDriverConectado: TLabel
+      Left = 20
+      Top = 8
+      Width = 225
+      Height = 38
+      AutoSize = False
+      Caption = 'Nenhum banco de dados conectado'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clRed
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+      WordWrap = True
+      StyleElements = [seClient, seBorder]
+    end
+    object LbxDatabases: TListBox
+      Left = 11
+      Top = 52
+      Width = 241
+      Height = 226
+      ItemHeight = 15
+      TabOrder = 0
+      OnClick = LbxDatabasesClick
+    end
   end
   object FDConnectionDB: TFDConnection
     Params.Strings = (
@@ -8399,7 +8433,7 @@ object FrmDataManager: TFrmDataManager
               F61AC03FA0AF8FFF007247749D4AD1EFD30000000049454E44AE426082}
           end>
       end>
-    Left = 514
+    Left = 538
     Top = 57
   end
   object VimglstManager: TVirtualImageList
@@ -8452,7 +8486,7 @@ object FrmDataManager: TFrmDataManager
     ImageCollection = ImgcolManager
     Width = 40
     Height = 40
-    Left = 513
+    Left = 537
     Top = 113
   end
 end

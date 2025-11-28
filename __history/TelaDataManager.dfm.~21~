@@ -457,7 +457,7 @@ object FrmDataManager: TFrmDataManager
       OnChange = CbxDriverBDChange
       Items.Strings = (
         'Firebird 5.0'
-        'PostgreSQL 17')
+        'PostgreSQL')
     end
     object BtnAtualizar: TButton
       Left = 8
@@ -520,6 +520,7 @@ object FrmDataManager: TFrmDataManager
       ShowHint = False
       TabOrder = 1
       WordWrap = True
+      OnClick = BtnRenomearDatabaseClick
     end
     object BtnExcluirDatabase: TButton
       Left = 54

@@ -11,7 +11,7 @@ uses
   Vcl.StdCtrls, FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.DApt, FireDAC.Comp.DataSet, Vcl.Grids, Vcl.DBGrids, Vcl.ImgList,
   Vcl.VirtualImageList, Vcl.BaseImageCollection, Vcl.ImageCollection,  Vcl.ExtCtrls,
   //Adicionadas
-   System.IOUtils, ShellAPI, System.UITypes,
+   System.IOUtils, ShellAPI, System.UITypes, Utils.Funcoes,
   //Retirei e não deu erro
   Math, DateUtils, TypInfo, FireDAC.Phys.FBDef, FireDAC.Phys.IBBase, FireDAC.Phys.FB, Vcl.ComCtrls, StrUtils, System.SyncObjs, Vcl.DBCtrls,
   FireDAC.Comp.UI, Vcl.Buttons, FireDAC.Phys.IBWrapper, FireDAC.Phys.IB, System.RegularExpressions;
@@ -48,6 +48,8 @@ type
     BtnFazerRestoreDatabase: TButton;
     LbxDatabases: TListBox;
     LblDriverConectado: TLabel;
+    LblVersao: TLabel;
+    CbxVersao: TComboBox;
     procedure FormCreate(Sender: TObject);
     procedure BtnConectaBDClick(Sender: TObject);
     procedure BtnDesconectarClick(Sender: TObject);
@@ -82,7 +84,6 @@ type
     function ValidaOwnerDatabase(PNomeDoDatabase, POwnerPadrao: string; out POwnerBD: string): Boolean;
 
   public
-    procedure RegistrarLogs(PRotina: string; PLog: string);
     Const VersaoMinimaPostgre: currency = 17;
 end;
 
@@ -787,26 +788,6 @@ begin
   end;
 end;
 
-procedure TFrmDataManager.RegistrarLogs(PRotina: string;PLog: string);
-// Registra os acontecimentos do sistema em logs
-Var
-  ArquivoDeTexto: TextFile;
-begin
-  try
-    AssignFile(ArquivoDeTexto, CaminhoDoArquivoDeLog);
-    if FileExists(CaminhoDoArquivoDeLog) then
-      Append(ArquivoDeTexto)
-    else
-      begin
-        Rewrite(ArquivoDeTexto);
-        PLog := ('-------------------------------------------------------------------------------' + sLineBreak + '[' + DateTimeToStr(Now()) + '] - [Abertura do sistema] - Foi criado o arquivo "Logs.txt", pois o mesmo não foi encontrado no diretório da aplicação.');
-      end;
-    Writeln(ArquivoDeTexto, '[' + DateTimeToStr(Now()) + '] - [' + PRotina + '] - ' + PLog + ' -');
-  finally
-    CloseFile(ArquivoDeTexto);
-  end;
-end;
-
 procedure TFrmDataManager.RenomearDatabase(PNomeDoDatabaseAntigo, PNomeDoDatabaseNovo: string);
 // Renomeia o database
 begin
@@ -970,14 +951,14 @@ begin
        Driver := 'FB';
        Biblioteca := 'C:\Program Files\Firebird\Firebird_5_0\fbclient.dll';
     end
-  else if (PNomeDoDriverBD = 'PostgreSQL 17') then
+  else if (PNomeDoDriverBD = 'PostgreSQL') then
     begin
       Driver := 'PG';
-      Biblioteca := 'C:\Program Files\PostgreSQL\17\bin\libpq.dll';
-      Dump := 'C:\Program Files\PostgreSQL\17\bin\pg_dump.exe';
-      Restore := 'C:\Program Files\PostgreSQL\17\bin\pg_restore.exe';
+      Biblioteca := 'C:\Program Files\PostgreSQL\18\bin\libpq.dll';
+      Dump := 'C:\Program Files\PostgreSQL\18\bin\pg_dump.exe';
+      Restore := 'C:\Program Files\PostgreSQL\18\bin\pg_restore.exe';
     end;
-  FrmDataManager.RegistrarLogs('TDriverBDConexao.DefineParametros', 'Parâmetros de conexão definidos.'
+  RegistrarLogs('TDriverBDConexao.DefineParametros', 'Parâmetros de conexão definidos.'
                                 + sLineBreak
                                 + sLineBreak
                                 + 'Driver e versão: ' + FrmDataManager.CbxDriverBD.Text + sLineBreak
