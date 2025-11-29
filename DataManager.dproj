@@ -4,7 +4,7 @@
         <ProjectVersion>20.1</ProjectVersion>
         <FrameworkType>VCL</FrameworkType>
         <Base>True</Base>
-        <Config Condition="'$(Config)'==''">Release</Config>
+        <Config Condition="'$(Config)'==''">Debug</Config>
         <Platform Condition="'$(Platform)'==''">Win64</Platform>
         <ProjectName Condition="'$(ProjectName)'==''">DataManager</ProjectName>
         <TargetedPlatforms>3</TargetedPlatforms>
@@ -110,6 +110,7 @@
         <VerInfo_Locale>1033</VerInfo_Locale>
         <VerInfo_MinorVer>2</VerInfo_MinorVer>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.2.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.2;Comments=</VerInfo_Keys>
+        <DCC_UnitSearchPath>C:\Program Files\ProjetosDelphi\ProdFab\Units\Recursos;C:\Program Files\ProjetosDelphi\ProdFab\Units\Modelos;C:\Program Files\ProjetosDelphi\ProdFab\Units\Repositorios;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
@@ -135,10 +136,10 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
-        <DCCReference Include="TelaDataManager.pas">
+        <DCCReference Include="Tela.DataManager.pas">
             <Form>FrmDataManager</Form>
         </DCCReference>
-        <DCCReference Include="TelaBackupRestore.pas">
+        <DCCReference Include="Tela.BackupRestore.pas">
             <Form>FrmBackupRestore</Form>
             <FormType>dfm</FormType>
         </DCCReference>

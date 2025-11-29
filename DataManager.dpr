@@ -4,8 +4,8 @@ uses
   Vcl.Forms,
   Vcl.Themes,
   vcl.Styles,
-  TelaDataManager in 'TelaDataManager.pas' {FrmDataManager},
-  TelaBackupRestore in 'TelaBackupRestore.pas' {FrmBackupRestore},
+  Tela.DataManager in 'Tela.DataManager.pas' {FrmDataManager},
+  Tela.BackupRestore in 'Tela.BackupRestore.pas' {FrmBackupRestore},
   Vcl.Dialogs,
   Database.GerenciadorBackup in 'Database.GerenciadorBackup.pas';
 
