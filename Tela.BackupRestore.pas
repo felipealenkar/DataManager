@@ -233,8 +233,10 @@ procedure TFrmBackupRestore.BtnCancelarClick(Sender: TObject);
 begin
   if Assigned(FWorkerThread) and not FWorkerThread.Finished then
   begin
-    if MessageDlg('Tem certeza que deseja cancelar a operação?',
-                  mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+    if MessageBox(Application.Handle,
+                  PChar('Tem certeza que deseja cancelar a operação?'),
+                  PChar('Cancelamento do processo.'),
+                  MB_YESNO or MB_ICONQUESTION) = IDYES then
     begin
       FOperationCancelled := True;
       BtnCancelar.Enabled := False;
@@ -285,7 +287,10 @@ begin
 
     if FOperationCancelled then
     begin
-      ShowMessage('Operação cancelada pelo usuário.');
+      MessageBox(Application.Handle,
+                PChar('Operação cancelada pelo usuário.'),
+                PChar('Cancelamento de operação.'),
+                MB_OK or MB_ICONINFORMATION);
     end
     else
     begin
@@ -294,17 +299,26 @@ begin
       if FIsOperationSuccessful then
       begin
         if PGAcao = CmdBackup then
-          ShowMessage('Backup concluído com sucesso!' + sLineBreak + 'Arquivo salvo em: ' + TPath.GetFileName(FOutputFilePath)
-                      + sLineBreak + 'Log salvo em: ' + FWorkerThread.FLogFilePath)
+          MessageBox(Application.Handle,
+                    PChar('Backup concluído com sucesso!' + sLineBreak + 'Arquivo salvo em: ' + TPath.GetFileName(FOutputFilePath)
+                          + sLineBreak + 'Log salvo em: ' + FWorkerThread.FLogFilePath),
+                    PChar('Conclusão de backup.'),
+                    MB_OK or MB_ICONINFORMATION)
         else
-          ShowMessage('Restauração concluída com sucesso!' + sLineBreak + 'Database: ' + PGNomeDoDatabase + sLineBreak +
-                      'Dados restaurados com sucesso.' + sLineBreak + 'Log salvo em: ' + FWorkerThread.FLogFilePath);
+          MessageBox(Application.Handle,
+                    PChar('Restauração concluída com sucesso!' + sLineBreak + 'Database: ' + PGNomeDoDatabase + sLineBreak +
+                          'Dados restaurados com sucesso.' + sLineBreak + 'Log salvo em: ' + FWorkerThread.FLogFilePath),
+                    PChar('Conclusão de restauração.'),
+                    MB_OK or MB_ICONINFORMATION);
       end
       else
       begin
-        ShowMessage(Format('Ocorreu um erro durante a operação de %s. Código de saída: %d' + sLineBreak +
-                          'Verifique o arquivo de log para mais detalhes: %s', [GetEnumName(TypeInfo(TEnumAcao), Ord(PGAcao)),
-                          ExitCode, FWorkerThread.FLogFilePath]));
+        MessageBox(Application.Handle,
+                  PChar(Format('Ocorreu um erro durante a operação de %s. Código de saída: %d' + sLineBreak +
+                        'Verifique o arquivo de log para mais detalhes: %s', [GetEnumName(TypeInfo(TEnumAcao), Ord(PGAcao)),
+                        ExitCode, FWorkerThread.FLogFilePath])),
+                  PChar('Erro na operação.'),
+                  MB_OK or MB_ICONERROR);
       end;
     end;
 

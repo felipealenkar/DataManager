@@ -398,7 +398,7 @@ object FrmDataManager: TFrmDataManager
       TabOrder = 3
       Text = 'postgres'
     end
-    object BtnConectaBD: TButton
+    object BtnConectarBD: TButton
       Left = 8
       Top = 10
       Width = 80
@@ -414,7 +414,7 @@ object FrmDataManager: TFrmDataManager
       ParentShowHint = False
       ShowHint = False
       TabOrder = 4
-      OnClick = BtnConectaBDClick
+      OnClick = BtnConectarBDClick
     end
     object BtnDesconectar: TButton
       Left = 8

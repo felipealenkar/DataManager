@@ -10,8 +10,7 @@ uses
   System.SysUtils, Vcl.Dialogs, Vcl.StdCtrls;
 
 type
-  TEnumAcao = (AdicionarPermissao, CmdBackup, CmdRestore, Conectar, CriarDatabase, CriarRole,
-               Desconectar, DroparDatabase, DroparRole, RemoverPermissao, RenomearDatabase);
+  TEnumAcao = (CmdBackup, CmdRestore);
 
   TGerenciadorBackup = class (TObject)
     private
@@ -39,11 +38,15 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    procedure AdicionarOuRemoverPermissoesNosRoles(PNomeDoDatabase: string; PAcao: TEnumAcao);
-    procedure ConectarDesconectar(PAcao: TEnumAcao);
-    procedure CriarDroparDataBase(PNomeDoDatabase: string; PAcao: TEnumAcao);
-    procedure CriarDroparRoles(PNomeDoDatabase: string; PAcao: TEnumAcao);
+    procedure AdicionarPermissoesNosRoles(PNomeDoDatabase: string);
+    procedure Conectar;
+    procedure CriarDataBase(PNomeDoDatabase: string);
+    procedure CriarRoles(PNomeDoDatabase: string);
     procedure DefinirParametros(PServer, PPorta, PUsuario, PDatabase, PSenha: String; PVersaoPg: Currency);
+    procedure Desconectar;
+    procedure DroparDatabase(PNomeDoDatabase: String);
+    procedure DroparRoles(PNomeDoDatabase: string);
+    procedure RemoverPermissoesNosRoles(PNomeDoDatabase: string);
     procedure RenomearDatabase(PNomeDoDatabaseAntigo, PNomeDoDatabaseNovo: string);
     procedure SelectTodosDatabases;
 
@@ -59,99 +62,97 @@ implementation
 uses
   Utils.Funcoes;
 
-procedure TGerenciadorBackup.AdicionarOuRemoverPermissoesNosRoles(PNomeDoDatabase: string; PAcao: TEnumAcao);
+procedure TGerenciadorBackup.AdicionarPermissoesNosRoles(PNomeDoDatabase: string);
 // Atribúi permissão nos roles
 Var
-  Sucesso: integer;
-  TipoLog1 : string;
+  Falha: integer;
+  Mensagem: String;
 begin
-  Sucesso := 0;
+  Falha := 0;
   try
+    {Concede permissões ao public:
+      - (CONNECT) Conectar ao database
+      - (TEMPORARY) Criar tabelas temporárias no database}
     Query.close;
     Query.sql.Clear;
-    case PAcao of
-      AdicionarPermissao: Query.sql.Add('GRANT CONNECT, TEMPORARY ON DATABASE "' + PNomeDoDatabase + '" TO public');
-      RemoverPermissao: Query.sql.Add('REVOKE CONNECT, TEMPORARY ON DATABASE "' + PNomeDoDatabase + '" FROM public');
-    end;
+    Query.sql.Add('GRANT CONNECT, TEMPORARY ON DATABASE "' + PNomeDoDatabase + '" TO public');
     Query.ExecSQL;
-    Query.close;
-    Query.sql.Clear;
-    Inc(Sucesso);
-  Except
+  except
+    On E: Exception do
+    begin
+      Mensagem := 'Não foi possível conceder permissões "Grant" e "Temporary" do database '
+                  + PNomeDoDatabase  + ' para o role "public".' + sLineBreak;
+      Inc(Falha);
+    end;
   end;
 
   try
-    case PAcao of
-    AdicionarPermissao: Query.sql.Add('GRANT ALL ON DATABASE "' + PNomeDoDatabase + '" TO "' + OwnerPadrao + '"');
-    RemoverPermissao: Query.sql.Add('REVOKE ALL ON DATABASE "' + PNomeDoDatabase + '" FROM "' + OwnerPadrao + '"');
-    end;
-    Query.ExecSQL;
+    {Concede permissões ao OwnerPadrao:
+      - (CONNECT) Conectar ao database
+      - (CREATE) Criar Schemas
+      - (TEMPORARY) Criar tabelas temporárias no database}
     Query.close;
     Query.sql.Clear;
-    Inc(Sucesso);
-  Except
+    Query.sql.Add('GRANT ALL ON DATABASE "' + PNomeDoDatabase + '" TO "' + OwnerPadrao + '"');
+    Query.ExecSQL;
+  except
+    On E: Exception do
+    begin
+      Mensagem := Mensagem + 'Não foi possível conceder todas as permissões do database '
+                              + PNomeDoDatabase  + ' para o role "' + OwnerPadrao + '".' + sLineBreak + '.' + sLineBreak;
+      Inc(Falha);
+    end;
   end;
 
   try
-    case PAcao of
-      AdicionarPermissao:
-        begin
-          Query.sql.Add('GRANT ALL ON DATABASE "' + PNomeDoDatabase + '" TO "PRODFAB_GROUP_' + PNomeDoDatabase + '"');
-          TipoLog1 := 'adicionadas aos';
-        end;
-      RemoverPermissao:
-        begin
-          Query.sql.Add('REVOKE ALL ON DATABASE "' + PNomeDoDatabase + '" FROM "PRODFAB_GROUP_' + PNomeDoDatabase + '"');
-          TipoLog1 := 'removidas dos';
-        end;
-    end;
-    Query.ExecSQL;
+    {Concede permissões ao grouprole PRODFAB_GROUP_PNomeDoDatabase:
+      - (CONNECT) Conectar ao database
+      - (CREATE) Criar Schemas
+      - (TEMPORARY) Criar tabelas temporárias no database}
     Query.close;
     Query.sql.Clear;
-    Inc(Sucesso);
-  Except
+    Query.sql.Add('GRANT ALL ON DATABASE "' + PNomeDoDatabase + '" TO "PRODFAB_GROUP_' + PNomeDoDatabase + '"');
+    Query.ExecSQL;
+  except
+    On E: Exception do
+    begin
+      Mensagem := Mensagem + 'Não foi possível conceder todas as permissões do database '
+                              + PNomeDoDatabase  + ' para o role "PRODFAB_GROUP_' + PNomeDoDatabase + '".';
+      Inc(Falha);
+    end;
   end;
-  if Sucesso = 3 then
-    RegistrarLogs('TGerenciadorBackup.AdicionarOuRemoverPermissoesNosRoles', 'Permissões ' + TipoLog1 + ' usuários do database "' + PNomeDoDatabase + '".')
-  else if Sucesso > 0 then
-    RegistrarLogs('TGerenciadorBackup.AdicionarOuRemoverPermissoesNosRoles', 'Algumas permissões não foram atribuídas pois já existiam.')
+
+  Query.close;
+  Query.sql.Clear;
+  if Falha > 0 then
+    RegistrarLogs('TGerenciadorBackup.AdicionarPermissoesNosRoles', Mensagem)
   else
-    RegistrarLogs('TGerenciadorBackup.AdicionarOuRemoverPermissoesNosRoles', 'As permissões não puderam ser ' + TipoLog1 + ' usuários do database "' + PNomeDoDatabase + '".');
+    RegistrarLogs('TGerenciadorBackup.AdicionarPermissoesNosRoles', 'Permissões concedidas aos usuários do database "' + PNomeDoDatabase + '".');
 end;
 
-procedure TGerenciadorBackup.ConectarDesconectar(PAcao: TEnumAcao);
+procedure TGerenciadorBackup.Conectar;
 // Inicia ou encerra a conexão com o BD Selecionado
 begin
-  case PAcao of
-    Conectar:
-      begin
-        try
-          Connection.close;
-          Connection.Params.Clear;
-          Connection.DriverName := Driver;
-          PgDriver.VendorLib := Biblioteca;
-          Connection.Params.Values['Server'] := Server;
-          Connection.Params.Values['Port'] := Porta;
-          Connection.Params.Values['User_Name'] := Usuario;
-          Connection.Params.Values['Password'] := Senha;
-          Connection.Params.Values['Database'] := Database;
-          Connection.Params.Values['CharacterSet'] := 'UTF8';
-          Connection.LoginPrompt := False;
-          Connection.Params.Values['SSLMode'] := 'disable';
-          Connection.Open;
-          RegistrarLogs('TGerenciadorBackup.ConectarDesconectar', 'Banco de dados "' + Connection.DriverName + '" conectado.');
-        except
-          on E: Exception do
-          begin
-            raise;
-          end;
-        end;
-      end;
-    Desconectar:
-      begin
-        Connection.close;
-        RegistrarLogs('TGerenciadorBackup.ConectarDesconectar', 'Banco de dados "' + Connection.DriverName + '" desconectado.');
-      end;
+  try
+    Connection.close;
+    Connection.Params.Clear;
+    Connection.DriverName := Driver;
+    PgDriver.VendorLib := Biblioteca;
+    Connection.Params.Values['Server'] := Server;
+    Connection.Params.Values['Port'] := Porta;
+    Connection.Params.Values['User_Name'] := Usuario;
+    Connection.Params.Values['Password'] := Senha;
+    Connection.Params.Values['Database'] := Database;
+    Connection.Params.Values['CharacterSet'] := 'UTF8';
+    Connection.LoginPrompt := False;
+    Connection.Params.Values['SSLMode'] := 'disable';
+    Connection.Open;
+    RegistrarLogs('TGerenciadorBackup.Conectar', 'Banco de dados "' + Connection.DriverName + '" conectado.');
+  except
+    on E: Exception do
+    begin
+      raise;
+    end;
   end;
 end;
 
@@ -184,104 +185,86 @@ begin
                            [DumpRestorePath, PHost, PPorta, PNomeDoDatabase, POutputFile]);
       end;
   end;
-  RegistrarLogs('TGerenciadorBackup.CriarComando', 'Comando ' + Result + ' criado com sucesso.');
+  RegistrarLogs('TGerenciadorBackup.CriarComando', 'Comando criado com sucesso:' + sLineBreak + sLineBreak + Result);
 end;
 
-procedure TGerenciadorBackup.CriarDroparDataBase(PNomeDoDatabase: string; PAcao: TEnumAcao);
+procedure TGerenciadorBackup.CriarDataBase(PNomeDoDatabase: string);
 // Cria databases novos
-var
-  TipoLog1, TipoLog2: string;
 begin
-  Query.close;
-  Query.sql.Clear;
-  case PAcao of
-    CriarDatabase:
-      begin
-        Query.sql.Add('CREATE DATABASE "' + PNomeDoDatabase + '"');
-        Query.sql.Add('WITH OWNER = "' + OwnerPadrao + '"');
-        Query.sql.Add('ENCODING = ''UTF8''');
-        Query.sql.Add('TABLESPACE = pg_default');
-        Query.sql.Add('LC_COLLATE = ''Portuguese_Brazil.1252''');
-        Query.sql.Add('LC_CTYPE = ''Portuguese_Brazil.1252''');
-        Query.sql.Add('CONNECTION LIMIT = -1');
-        TipoLog1 := 'criação';
-        TipoLog2 := 'criado';
-      end;
-    DroparDatabase:
-      begin
-        Query.sql.Add('DROP DATABASE "' + PNomeDoDatabase + '"');
-        TipoLog1 := 'exclusão';
-        TipoLog2 := 'excluído';
-      end;
+  try
+    Query.close;
+    Query.sql.Clear;
+    Query.sql.Add('CREATE DATABASE "' + PNomeDoDatabase + '"');
+    Query.sql.Add('WITH OWNER = "' + OwnerPadrao + '"');
+    Query.sql.Add('ENCODING = ''UTF8''');
+    Query.sql.Add('TABLESPACE = pg_default');
+    Query.sql.Add('LC_COLLATE = ''Portuguese_Brazil.1252''');
+    Query.sql.Add('LC_CTYPE = ''Portuguese_Brazil.1252''');
+    Query.sql.Add('CONNECTION LIMIT = -1');
+    Query.ExecSQL;
+    RegistrarLogs('TGerenciadorBackup.CriarDataBase', 'Database "' + PNomeDoDatabase + '" criado com sucesso.');
+    Query.close;
+  except
+    On E: Exception do
+    begin
+      RegistrarLogs('TGerenciadorBackup.CriarDataBase', E.ClassName + ' ' + E.Message);
+      raise;
+    end;
   end;
-  Query.ExecSQL;
-  RegistrarLogs('TGerenciadorBackup.CriarDroparDataBase', 'Query de ' + TipoLog1 + ' de database executada:' + sLineBreak + sLineBreak + Query.sql.Text + sLineBreak);
-  RegistrarLogs('TGerenciadorBackup.CriarDroparDataBase', 'Database "' + PNomeDoDatabase + '" ' + TipoLog2 + ' com sucesso.');
-  Query.close;
 end;
 
-procedure TGerenciadorBackup.CriarDroparRoles(PNomeDoDatabase: string;
-  PAcao: TEnumAcao);
+procedure TGerenciadorBackup.CriarRoles(PNomeDoDatabase: string);
 // Cria Roles para o banco de dados
 Var
-  TipoLog1: string;
-  Sucesso: integer;
+  Falha: integer;
+  Mensagem: String;
 begin
-  Sucesso := 0;
-  Query.close;
-  Query.sql.Clear;
-  case PAcao of
-    CriarRole: Query.sql.Add('CREATE ROLE "' + OwnerPadrao + '" LOGIN PASSWORD ''#abc123#''');
-    DroparRole: Query.sql.Add('DROP ROLE "' + OwnerPadrao + '" LOGIN PASSWORD ''#abc123#''');
-  end;
+  Falha := 0;
   try
+    Query.close;
+    Query.sql.Clear;
+    Query.sql.Add('CREATE ROLE "' + OwnerPadrao + '" LOGIN PASSWORD ''#abc123#''');
     Query.ExecSQL;
-    Query.close;
-    Inc(Sucesso);
-  Except
-    Query.close;
-  END;
-  Query.sql.Clear;
-
-  case PAcao of
-    CriarRole: Query.sql.Add('CREATE ROLE "PRODFAB_GROUP"');
-    DroparRole: Query.sql.Add('DROP ROLE "PRODFAB_GROUP"');
+  except
+    On E: Exception do
+    begin
+      Mensagem := 'Não foi possível criar o role "' + OwnerPadrao + '", pois já existia' + sLineBreak;
+      Inc(Falha);
+    end;
   end;
-  TRY
-    Query.ExecSQL;
-    Query.close;
-    Inc(Sucesso);
-  Except
-    Query.close;
-  END;
-  Query.sql.Clear;
 
-  case PAcao of
-    CriarRole:
-      begin
-        Query.sql.Add('CREATE ROLE "PRODFAB_GROUP_' + PNomeDoDatabase + '"');
-        TipoLog1 := 'cadastrados';
-      end;
-    DroparRole:
-      begin
-        Query.sql.Add('DROP ROLE "PRODFAB_GROUP_' + PNomeDoDatabase + '"');
-        TipoLog1 := 'excluídos';
-      end;
+  try
+    Query.close;
+    Query.sql.Clear;
+    Query.sql.Add('CREATE ROLE "PRODFAB_GROUP"');
+    Query.ExecSQL;
+  except
+    On E: Exception do
+    begin
+      Mensagem := Mensagem + 'Não foi possível criar o role "PRODFAB_GROUP", pois já existia' + sLineBreak;
+      Inc(Falha);
+    end;
   end;
-  TRY
-    Query.ExecSQL;
-    Query.close;
-    Inc(Sucesso);
-  Except
-    Query.close;
-  END;
 
-  if Sucesso = 3 then
-  RegistrarLogs('TFormDataManager.CriarDroparRoles', 'Usuários padrão do database "' + PNomeDoDatabase + '" ' + TipoLog1 + ' com sucesso.')
-  else if Sucesso > 0 then
-  RegistrarLogs('TFormDataManager.CriarDroparRoles', 'Alguns usuários padrão do database não foram ' + TipoLog1 + ', pois já existiam.')
+  try
+    Query.close;
+    Query.sql.Clear;
+    Query.sql.Add('CREATE ROLE "PRODFAB_GROUP_' + PNomeDoDatabase + '"');
+    Query.ExecSQL;
+  except
+    On E: Exception do
+    begin
+      Mensagem := Mensagem + 'Não foi possível criar o role "PRODFAB_GROUP_"' + PNomeDoDatabase + '", pois já existia';
+      Inc(Falha);
+    end;
+  end;
+  Query.close;
+  Query.SQL.Clear;
+
+  if Falha > 0 then
+    RegistrarLogs('TGerenciadorBackup.CriarRoles', Mensagem)
   else
-  RegistrarLogs('TFormDataManager.CriarDroparRoles', 'Usuários padrão do database "' + PNomeDoDatabase + '" não puderam ser ' + TipoLog1 + '.');
+    RegistrarLogs('TGerenciadorBackup.CriarRoles', 'Usuários padrão do database "' + PNomeDoDatabase + ' criados com sucesso.');
 end;
 
 procedure TGerenciadorBackup.DefinirParametros(PServer, PPorta, PUsuario, PDatabase, PSenha: String; PVersaoPg: Currency);
@@ -302,19 +285,14 @@ begin
   Dump := 'C:\Program Files\PostgreSQL\' + Versao.ToString + '\bin\pg_dump.exe';
   Restore := 'C:\Program Files\PostgreSQL\' + Versao.ToString + '\bin\pg_restore.exe';
 
-  RegistrarLogs('TGerenciadorBackup.DefineParametros', 'Parâmetros de conexão definidos.'
-                                + sLineBreak
-                                + sLineBreak
-                                + 'Versão: ' + Versao.ToString + sLineBreak
-                                + 'Diretório biblioteca: ' + Biblioteca + sLineBreak
-                                + 'Diretório dump: ' + Dump + sLineBreak
-                                + 'Diretório restore: ' + Restore + sLineBreak
-                                + 'Porta: ' + Porta + sLineBreak
-                                + 'Usuário: ' + Usuario + sLineBreak
-                                + 'Senha: ' + '*******' + sLineBreak
-                                + 'Owner do BD principal: ' + OwnerPadrao + sLineBreak
-                                + 'Extensao dos backups: ' + Extensao + sLineBreak
-                                + 'TipoQueryDlg: ' + TipoArquivoDlg + sLineBreak);
+  RegistrarLogs('TGerenciadorBackup.DefinirParametros', 'Parâmetros de conexão definidos.');
+end;
+
+procedure TGerenciadorBackup.Desconectar;
+//método que desconectao Database
+begin
+  Connection.close;
+  RegistrarLogs('TGerenciadorBackup.Desconectar', 'Banco de dados "' + Connection.DriverName + '" desconectado.');
 end;
 
 destructor TGerenciadorBackup.Destroy;
@@ -324,6 +302,142 @@ begin
   Query.Free;
   inherited;
 end;
+
+procedure TGerenciadorBackup.DroparDatabase(PNomeDoDatabase: String);
+// Dropa databases
+begin
+  try
+    Query.close;
+    Query.sql.Clear;
+    Query.sql.Add('DROP DATABASE "' + PNomeDoDatabase + '"');
+    Query.ExecSQL;
+    RegistrarLogs('TGerenciadorBackup.DroparDatabase', 'Database "' + PNomeDoDatabase + '" excluído com sucesso.');
+    Query.close;
+  except
+    On E: Exception do
+    begin
+      RegistrarLogs('TGerenciadorBackup.DroparDatabase', E.ClassName + ' ' + E.Message);
+      raise;
+    end;
+  end;
+end;
+
+procedure TGerenciadorBackup.DroparRoles(PNomeDoDatabase: string);
+//Método que remove usuários padrão do database
+Var
+  Falha: integer;
+  Mensagem: String;
+begin
+  Falha := 0;
+  try
+    Query.close;
+    Query.sql.Clear;
+    Query.sql.Add('DROP ROLE "' + OwnerPadrao + '" LOGIN PASSWORD ''#abc123#''');
+    Query.ExecSQL;
+  except
+    On E: Exception do
+    begin
+       Mensagem := 'Não foi possível excluir o role "' + OwnerPadrao + '", ' +
+                   'pois ou ele não existe ou existe mas ainda está vinculado a algum database' + sLineBreak;
+      Inc(Falha);
+    end;
+  end;
+
+  try
+    Query.close;
+    Query.sql.Clear;
+    Query.sql.Add('DROP ROLE "PRODFAB_GROUP"');
+    Query.ExecSQL;
+  except
+    On E: Exception do
+    begin
+       Mensagem := Mensagem + 'Não foi possível excluir o role "PRODFAB_GROUP", ' +
+                              'pois ou ele não existe ou existe mas ainda está vinculado a algum database' + sLineBreak;
+      Inc(Falha);
+    end;
+  end;
+
+  try
+    Query.close;
+    Query.sql.Clear;
+    Query.sql.Add('DROP ROLE "PRODFAB_GROUP_' + PNomeDoDatabase + '"');
+    Query.ExecSQL;
+  except
+    On E: Exception do
+    begin
+       Mensagem := Mensagem + 'Não foi possível excluir o role "PRODFAB_GROUP_' + PNomeDoDatabase + '", ' +
+                              'pois ou ele não existe ou existe mas ainda está vinculado a algum database' + sLineBreak;
+      Inc(Falha);
+    end;
+  end;
+
+  Query.close;
+  Query.SQL.Clear;
+
+  if Falha > 0 then
+    RegistrarLogs('TGerenciadorBackup.CriarRoles', Mensagem)
+  else
+    RegistrarLogs('TGerenciadorBackup.CriarRoles', 'Usuários padrão do database "' + PNomeDoDatabase + ' Excluídos com sucesso.');
+end;
+
+procedure TGerenciadorBackup.RemoverPermissoesNosRoles(PNomeDoDatabase: string);
+// Método que remove as permissões nos roles
+Var
+  Falha: integer;
+  Mensagem: String;
+begin
+  Falha := 0;
+  try
+    Query.close;
+    Query.sql.Clear;
+    Query.sql.Add('REVOKE CONNECT, TEMPORARY ON DATABASE "' + PNomeDoDatabase + '" FROM public');
+    Query.ExecSQL;
+  except
+    On E: Exception do
+    begin
+      Mensagem := 'Não foi possível remover permissões "Grant" e "Temporary" do database '
+                  + PNomeDoDatabase  + ' do role "public".' + sLineBreak;
+      Inc(Falha);
+    end;
+  end;
+
+  try
+    Query.close;
+    Query.sql.Clear;
+    Query.sql.Add('REVOKE ALL ON DATABASE "' + PNomeDoDatabase + '" FROM "' + OwnerPadrao + '"');
+    Query.ExecSQL;
+  except
+    On E: Exception do
+    begin
+      Mensagem := Mensagem + 'Não foi possível remover todas as permissões do database '
+                              + PNomeDoDatabase  + ' do role "' + OwnerPadrao + '".' + '.' + sLineBreak;
+      Inc(Falha);
+    end;
+  end;
+
+  try
+    Query.close;
+    Query.sql.Clear;
+    Query.sql.Add('REVOKE ALL ON DATABASE "' + PNomeDoDatabase + '" FROM "PRODFAB_GROUP_' + PNomeDoDatabase + '"');
+    Query.ExecSQL;
+  except
+    On E: Exception do
+    begin
+      Mensagem := Mensagem + 'Não foi possível remover todas as permissões do database '
+                              + PNomeDoDatabase  + ' do role "PRODFAB_GROUP_' + PNomeDoDatabase + '".';
+      Inc(Falha);
+    end;
+  end;
+
+  Query.close;
+  Query.sql.Clear;
+
+  if Falha > 0 then
+    RegistrarLogs('TGerenciadorBackup.AdicionarPermissoesNosRoles', Mensagem)
+  else
+    RegistrarLogs('TGerenciadorBackup.AdicionarPermissoesNosRoles', 'Permissões removidas  dos usuários do database "' + PNomeDoDatabase + '".');
+end;
+
 procedure TGerenciadorBackup.RenomearDatabase(PNomeDoDatabaseAntigo, PNomeDoDatabaseNovo: string);
 // Renomeia o database
 begin
@@ -337,6 +451,7 @@ begin
   except
     RegistrarLogs('TGerenciadorBackup.RenomearDatabase', 'Não foi possível renomear o database "' +
                   PNomeDoDatabaseAntigo + '" para "' + PNomeDoDatabaseNovo + '".');
+    raise;
   end;
 end;
 
@@ -357,22 +472,30 @@ begin
 end;
 
 function TGerenciadorBackup.ValidarOwnerDatabase(PNomeDoDatabase, POwnerPadrao: string; out POwnerBD: string): Boolean;
-//Função para validar se o Owner do banco selecionado é = POwner
+//Função para validar se o Owner do banco selecionado é = POwnerBD
 begin
-  Query.close;
-  Query.sql.Clear;
-  Query.sql.add('SELECT pg_catalog.pg_get_userbyid(datdba) AS owner FROM pg_database where datname = ''' + PNomeDoDatabase + '''');
-  Query.Open;
-  POwnerBD := Query.FieldByName('owner').AsString;
-  if POwnerPadrao = POwnerBD then
-  begin
-    RegistrarLogs('TGerenciadorBackup.ValidaOwnerDatabase', 'O usuário é o proprietário do banco de dados');
-    Result := True;
-  end
-  else
-  begin
-    RegistrarLogs('TGerenciadorBackup.ValidaOwnerDatabase', 'O usuário não é o proprietário do banco de dados');
-    Result := False;
+  try
+    Query.close;
+    Query.sql.Clear;
+    Query.sql.add('SELECT pg_catalog.pg_get_userbyid(datdba) AS owner FROM pg_database where datname = ''' + PNomeDoDatabase + '''');
+    Query.Open;
+    POwnerBD := Query.FieldByName('owner').AsString;
+    if POwnerPadrao = POwnerBD then
+    begin
+      RegistrarLogs('TGerenciadorBackup.ValidarOwnerDatabase', 'O usuário é o proprietário do banco de dados');
+      Result := True;
+    end
+    else
+    begin
+      RegistrarLogs('TGerenciadorBackup.ValidarOwnerDatabase', 'O usuário não é o proprietário do banco de dados');
+      Result := False;
+    end;
+  except
+    On E: Exception do
+    begin
+      RegistrarLogs('TGerenciadorBackup.ValidarOwnerDatabase', E.ClassName + ' ' + E.Message);
+      raise;
+    end;
   end;
 end;
 
@@ -382,43 +505,51 @@ Var
   VersaoResumida, VersaoMaiorOuMenor: string;
   PosicaoPonto: Integer;
 begin
-  Query.Close;
-  Query.sql.Clear;
-  Query.sql.add('SELECT version()');
-  Query.Open;
-  if not Query.IsEmpty then
-    PVersaoCompleta := Query.Fields[0].AsString
-  else
-    PVersaoCompleta := '';
-
-  Query.Close;
-  Query.sql.Clear;
-  Query.sql.add('SHOW server_version');
-  Query.Open;
-  if not Query.IsEmpty then
-    VersaoResumida := Query.Fields[0].AsString
-  else
-    VersaoResumida := '';
-
-  VersaoMaiorOuMenor := VersaoResumida; // Inicializa com a VersaoResumida
-
-  PosicaoPonto := Pos('.', VersaoResumida); // Encontra o primeiro ponto
-  if PosicaoPonto > 0 then
-  begin
-    PosicaoPonto := Pos('.', VersaoResumida, PosicaoPonto + 1); // Encontra o segundo ponto, começando a busca APÓS o primeiro ponto
-    if PosicaoPonto > 0 then
-      VersaoMaiorOuMenor := Copy(VersaoResumida, 1, PosicaoPonto - 1) // Se encontrou o segundo ponto, copia a string até ele
+  try
+    Query.Close;
+    Query.sql.Clear;
+    Query.sql.add('SELECT version()');
+    Query.Open;
+    if not Query.IsEmpty then
+      PVersaoCompleta := Query.Fields[0].AsString
     else
-      VersaoMaiorOuMenor := VersaoResumida; // Se só tem um ponto ou nenhum, já foi inicializado acima
-  end
-  else
-  begin
-    VersaoMaiorOuMenor := VersaoResumida; // Se não há nenhum ponto (ex: "17"), a versão é a string completa
-  end;
-  VersaoMaiorOuMenor := StringReplace(VersaoMaiorOuMenor, '.', ',', [rfReplaceAll]); //Substitui o ponto pela vírgula
+      PVersaoCompleta := '';
 
-  Result := StrToCurrDef(VersaoMaiorOuMenor , 0); // Converte a string "Major.Minor" para o tipo Currency e retorna na função
-  RegistrarLogs('TFormDataManager.VerificaVersaoPostgres', 'Conectado ao banco de dados ' + PVersaoCompleta);
+    Query.Close;
+    Query.sql.Clear;
+    Query.sql.add('SHOW server_version');
+    Query.Open;
+    if not Query.IsEmpty then
+      VersaoResumida := Query.Fields[0].AsString
+    else
+      VersaoResumida := '';
+
+    VersaoMaiorOuMenor := VersaoResumida; // Inicializa com a VersaoResumida
+
+    PosicaoPonto := Pos('.', VersaoResumida); // Encontra o primeiro ponto
+    if PosicaoPonto > 0 then
+    begin
+      PosicaoPonto := Pos('.', VersaoResumida, PosicaoPonto + 1); // Encontra o segundo ponto, começando a busca APÓS o primeiro ponto
+      if PosicaoPonto > 0 then
+        VersaoMaiorOuMenor := Copy(VersaoResumida, 1, PosicaoPonto - 1) // Se encontrou o segundo ponto, copia a string até ele
+      else
+        VersaoMaiorOuMenor := VersaoResumida; // Se só tem um ponto ou nenhum, já foi inicializado acima
+    end
+    else
+    begin
+      VersaoMaiorOuMenor := VersaoResumida; // Se não há nenhum ponto (ex: "17"), a versão é a string completa
+    end;
+    VersaoMaiorOuMenor := StringReplace(VersaoMaiorOuMenor, '.', ',', [rfReplaceAll]); //Substitui o ponto pela vírgula
+
+    Result := StrToCurrDef(VersaoMaiorOuMenor , 0); // Converte a string "Major.Minor" para o tipo Currency e retorna na função
+    RegistrarLogs('TFormDataManager.VerificarVersaoPostgres', 'Conectado ao banco de dados ' + PVersaoCompleta);
+  except
+    On E: Exception do
+    begin
+      RegistrarLogs('TGerenciadorBackup.VerificarVersaoPostgres', E.ClassName + ' ' + E.Message);
+      raise;
+    end;
+  end;
 end;
 
 end.

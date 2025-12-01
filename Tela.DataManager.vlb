@@ -7,9 +7,6 @@ Coordinates=416,10,65,58
 [EdtHost]
 Coordinates=460,144,60,58
 
-[BtnConectaBD]
-Coordinates=413,212,99,58
-
 [LblUsuario]
 Coordinates=10,280,76,58
 
@@ -43,4 +40,7 @@ Coordinates=640,1,158,36
 
 [VimglstManager]
 Coordinates=836,1,158,36
+
+[BtnConectarBD]
+Coordinates=413,212,99,58
 

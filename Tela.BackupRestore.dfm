@@ -3,7 +3,7 @@ object FrmBackupRestore: TFrmBackupRestore
   Top = 0
   BorderIcons = []
   BorderStyle = bsSingle
-  Caption = 'FrmBackupRestore'
+  Caption = 'Tela de Backup/Restore'
   ClientHeight = 316
   ClientWidth = 422
   Color = clBtnFace
