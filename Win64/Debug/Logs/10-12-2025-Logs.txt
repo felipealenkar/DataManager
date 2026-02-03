@@ -1,0 +1,76 @@
+[10/12/2025 19:57:00] - [TFormDataManager.FormCreate] - -------------------------------------------------------------------------------
+[10/12/2025 19:57:00] - [Funcoes.RegistrarLogs] - Na abertura do sistema foi criado o arquivo "10-12-2025-Logs.txt", pois o mesmo não foi encontrado no diretório de logs. -
+[10/12/2025 19:57:00] - [TFormDataManager.FormCreate] - Aplicação iniciada. -
+[10/12/2025 19:57:00] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[10/12/2025 19:57:17] - [TGerenciadorBackup.DefinirParametros] - Parâmetros de conexão definidos. -
+[10/12/2025 19:57:18] - [TGerenciadorBackup.Conectar] - Banco de dados "PG" conectado. -
+[10/12/2025 19:57:18] - [TFormDataManager.VerificarVersaoPostgres] - Conectado ao banco de dados PostgreSQL 18.1 on x86_64-windows, compiled by msvc-19.44.35219, 64-bit -
+[10/12/2025 19:57:18] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[10/12/2025 19:57:18] - [TFrmDataManager.AtualizarListaBancos] - Lista de bancos de dados atualizada. -
+[10/12/2025 19:57:18] - [TFormDataManager.BtnConectarBDClick] - Conexão com o banco de dados "PG" feita com sucesso -
+[10/12/2025 19:57:19] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "PRODFAB_TESTE". -
+[10/12/2025 19:57:19] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[10/12/2025 19:57:20] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "TESTE". -
+[10/12/2025 19:57:20] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[10/12/2025 19:57:20] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "WSHOP". -
+[10/12/2025 19:57:20] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[10/12/2025 19:57:21] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "TESTE". -
+[10/12/2025 19:57:21] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[10/12/2025 19:57:21] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "PRODFAB_TESTE". -
+[10/12/2025 19:57:21] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[10/12/2025 19:57:21] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "TESTE". -
+[10/12/2025 19:57:21] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[10/12/2025 19:57:22] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "WSHOP". -
+[10/12/2025 19:57:22] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[10/12/2025 19:57:22] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "TESTE". -
+[10/12/2025 19:57:22] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[10/12/2025 19:57:22] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "PRODFAB_TESTE". -
+[10/12/2025 19:57:22] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[10/12/2025 19:57:23] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "TESTE". -
+[10/12/2025 19:57:23] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[10/12/2025 19:57:23] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "WSHOP". -
+[10/12/2025 19:57:23] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[10/12/2025 19:57:23] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "TESTE". -
+[10/12/2025 19:57:23] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[10/12/2025 19:57:24] - [TGerenciadorBackup.Desconectar] - Banco de dados "PG" desconectado. -
+[10/12/2025 19:57:24] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[10/12/2025 19:57:24] - [TFrmDataManager.AtualizarListaBancos] - Lista de bancos de dados atualizada. -
+[10/12/2025 19:57:24] - [TFormDataManager.BtnDesconectarClick] - Conexão com o banco de dados "PG" encerrada com sucesso -
+[10/12/2025 19:57:34] - [TGerenciadorBackup.DefinirParametros] - Parâmetros de conexão definidos. -
+[10/12/2025 19:57:34] - [TGerenciadorBackup.Conectar] - Banco de dados "PG" conectado. -
+[10/12/2025 19:57:34] - [TFormDataManager.VerificarVersaoPostgres] - Conectado ao banco de dados PostgreSQL 18.1 on x86_64-windows, compiled by msvc-19.44.35219, 64-bit -
+[10/12/2025 19:57:34] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[10/12/2025 19:57:34] - [TFrmDataManager.AtualizarListaBancos] - Lista de bancos de dados atualizada. -
+[10/12/2025 19:57:34] - [TFormDataManager.BtnConectarBDClick] - Conexão com o banco de dados "PG" feita com sucesso -
+[10/12/2025 19:57:36] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "WSHOP". -
+[10/12/2025 19:57:36] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[10/12/2025 19:57:39] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[10/12/2025 19:57:39] - [TGerenciadorBackup.Conectar] - Banco de dados "PG" conectado. -
+[10/12/2025 19:57:41] - [TFormDataManager.BtnFazerBackupDatabaseClick] - Usuário confirmou salvar o arquivo de backup". -
+[10/12/2025 19:57:41] - [TGerenciadorBackup.CriarComando] - Comando criado com sucesso:
+
+"C:\Program Files\PostgreSQL\18\bin\pg_dump.exe" -U postgres -h localhost -p 5433 -F c -b -v -f "C:\Program Files\ProdFab\Backup\WSHOP_[10.12.2025_19.57.39].postgresql" WSHOP -
+[10/12/2025 19:57:41] - [TFormDataManager.BtnFazerBackupDatabaseClick] - Comando recebido: "C:\Program Files\PostgreSQL\18\bin\pg_dump.exe" -U postgres -h localhost -p 5433 -F c -b -v -f "C:\Program Files\ProdFab\Backup\WSHOP_[10.12.2025_19.57.39].postgresql" WSHOP -
+[10/12/2025 19:57:41] - [TFormBackupRestore.FormShow] - Backup do banco de dados "WSHOP" Iniciado -
+[10/12/2025 19:57:46] - [TFormDataManager.BtnFazerBackupDatabaseClick] - Form "" foi fechado. -
+[10/12/2025 19:57:47] - [TGerenciadorBackup.Conectar] - Banco de dados "PG" conectado. -
+[10/12/2025 19:57:47] - [TFrmDataManager.AtualizarListaBancos] - Lista de bancos de dados atualizada. -
+[10/12/2025 19:57:47] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[10/12/2025 19:57:47] - [TFormDataManager.FormClose] - Aplicação Encerrada. -
+[10/12/2025 19:57:47] - [TFormDataManager.FormClose] - ------------------------------------------------------------------------------- -
+[10/12/2025 19:57:47] - [TFormDataManager.FormDestroy] - Form limpo da memória com sucesso -
+[10/12/2025 19:58:17] - [TFormDataManager.FormCreate] - ------------------------------------------------------------------------------- -
+[10/12/2025 19:58:17] - [TFormDataManager.FormCreate] - Aplicação iniciada. -
+[10/12/2025 19:58:17] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[10/12/2025 19:58:20] - [TGerenciadorBackup.DefinirParametros] - Parâmetros de conexão definidos. -
+[10/12/2025 19:58:20] - [TGerenciadorBackup.Conectar] - Banco de dados "PG" conectado. -
+[10/12/2025 19:58:20] - [TFormDataManager.VerificarVersaoPostgres] - Conectado ao banco de dados PostgreSQL 18.1 on x86_64-windows, compiled by msvc-19.44.35219, 64-bit -
+[10/12/2025 19:58:20] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[10/12/2025 19:58:20] - [TFrmDataManager.AtualizarListaBancos] - Lista de bancos de dados atualizada. -
+[10/12/2025 19:58:20] - [TFormDataManager.BtnConectarBDClick] - Conexão com o banco de dados "PG" feita com sucesso -
+[10/12/2025 19:58:21] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "WSHOP". -
+[10/12/2025 19:58:21] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[10/12/2025 19:58:24] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[10/12/2025 19:58:24] - [TFormDataManager.FormClose] - Aplicação Encerrada. -
+[10/12/2025 19:58:24] - [TFormDataManager.FormClose] - ------------------------------------------------------------------------------- -
+[10/12/2025 19:58:24] - [TFormDataManager.FormDestroy] - Form limpo da memória com sucesso -

@@ -1,0 +1,39 @@
+[06/01/2026 19:55:56] - [TFormDataManager.FormCreate] - -------------------------------------------------------------------------------
+[06/01/2026 19:55:56] - [Funcoes.RegistrarLogs] - Na abertura do sistema foi criado o arquivo "06-01-2026-Logs.txt", pois o mesmo não foi encontrado no diretório de logs. -
+[06/01/2026 19:55:56] - [TFormDataManager.FormCreate] - Aplicação iniciada. -
+[06/01/2026 19:55:56] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[06/01/2026 19:55:59] - [TFormDataManager.BtnConectaBDClick] - Usuário clicou no botão "BtnConectaBD". -
+[06/01/2026 19:55:59] - [TGerenciadorBackup.DefineParametros] - Parâmetros de conexão definidos.
+
+Versão: 18
+Diretório biblioteca: C:\Program Files\PostgreSQL\18\bin\libpq.dll
+Diretório dump: C:\Program Files\PostgreSQL\18\bin\pg_dump.exe
+Diretório restore: C:\Program Files\PostgreSQL\18\bin\pg_restore.exe
+Porta: 5433
+Usuário: postgres
+Senha: *******
+Owner do BD principal: PRODFAB_ADMIN
+Extensao dos backups: postgresql
+TipoQueryDlg: Backup PostgreSQL
+ -
+[06/01/2026 19:56:00] - [TGerenciadorBackup.ConectarDesconectar] - Banco de dados "PG" conectado. -
+[06/01/2026 19:56:00] - [TFormDataManager.VerificaVersaoPostgres] - Conectado ao banco de dados PostgreSQL 18.1 on x86_64-windows, compiled by msvc-19.44.35219, 64-bit -
+[06/01/2026 19:56:00] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[06/01/2026 19:56:00] - [TFrmDataManager.AtualizaListaBancos] - Lista de bancos de dados atualizada. -
+[06/01/2026 19:56:00] - [TFormDataManager.BtnConectaBDClick] - Conexão com o banco de dados "PG" feita com sucesso -
+[06/01/2026 19:56:01] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "SistemaVendas". -
+[06/01/2026 19:56:01] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[06/01/2026 19:56:03] - [TFormDataManager.BtnFazerBackupDatabaseClick] - Usuário clicou no botão "BtnFazerBackupDatabase". -
+[06/01/2026 19:56:03] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[06/01/2026 19:56:03] - [TGerenciadorBackup.ConectarDesconectar] - Banco de dados "PG" conectado. -
+[06/01/2026 19:56:07] - [TFormDataManager.BtnFazerBackupDatabaseClick] - Usuário confirmou salvar o arquivo de backup". -
+[06/01/2026 19:56:07] - [TGerenciadorBackup.CriarComando] - Comando "C:\Program Files\PostgreSQL\18\bin\pg_dump.exe" -U postgres -h localhost -p 5433 -F c -b -v -f "C:\Users\WINDOWS_10\Desktop\SistemaVendas_[06.01.2026_19.56.03].postgresql" SistemaVendas criado com sucesso. -
+[06/01/2026 19:56:07] - [TFormDataManager.BtnFazerBackupDatabaseClick] - Comando recebido: "C:\Program Files\PostgreSQL\18\bin\pg_dump.exe" -U postgres -h localhost -p 5433 -F c -b -v -f "C:\Users\WINDOWS_10\Desktop\SistemaVendas_[06.01.2026_19.56.03].postgresql" SistemaVendas -
+[06/01/2026 19:56:07] - [TFormBackupRestore.FormShow] - Backup do banco de dados "SistemaVendas" Iniciado -
+[06/01/2026 19:56:11] - [TFormDataManager.BtnFazerBackupDatabaseClick] - Form "" foi fechado. -
+[06/01/2026 19:56:11] - [TGerenciadorBackup.ConectarDesconectar] - Banco de dados "PG" conectado. -
+[06/01/2026 19:56:11] - [TFrmDataManager.AtualizaListaBancos] - Lista de bancos de dados atualizada. -
+[06/01/2026 19:56:13] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[06/01/2026 19:56:13] - [TFormDataManager.FormClose] - Aplicação Encerrada. -
+[06/01/2026 19:56:13] - [TFormDataManager.FormClose] - ------------------------------------------------------------------------------- -
+[06/01/2026 19:56:13] - [TFormDataManager.FormDestroy] - Form limpo da memória com sucesso -

@@ -1,0 +1,85 @@
+[26/01/2026 09:14:56] - [TFormDataManager.FormCreate] - -------------------------------------------------------------------------------
+[26/01/2026 09:14:56] - [Funcoes.RegistrarLogs] - Na abertura do sistema foi criado o arquivo "26-01-2026-Logs.txt", pois o mesmo não foi encontrado no diretório de logs. -
+[26/01/2026 09:14:56] - [TFormDataManager.FormCreate] - Aplicação iniciada. -
+[26/01/2026 09:14:56] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[26/01/2026 09:15:00] - [TFormDataManager.BtnConectaBDClick] - Usuário clicou no botão "BtnConectaBD". -
+[26/01/2026 09:15:00] - [TGerenciadorBackup.DefineParametros] - Parâmetros de conexão definidos.
+
+Versão: 18
+Diretório biblioteca: C:\Program Files\PostgreSQL\18\bin\libpq.dll
+Diretório dump: C:\Program Files\PostgreSQL\18\bin\pg_dump.exe
+Diretório restore: C:\Program Files\PostgreSQL\18\bin\pg_restore.exe
+Porta: 5433
+Usuário: postgres
+Senha: *******
+Owner do BD principal: PRODFAB_ADMIN
+Extensao dos backups: postgresql
+TipoQueryDlg: Backup PostgreSQL
+ -
+[26/01/2026 09:15:01] - [TGerenciadorBackup.ConectarDesconectar] - Banco de dados "PG" conectado. -
+[26/01/2026 09:15:01] - [TFormDataManager.VerificaVersaoPostgres] - Conectado ao banco de dados PostgreSQL 18.1 on x86_64-windows, compiled by msvc-19.44.35219, 64-bit -
+[26/01/2026 09:15:01] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[26/01/2026 09:15:01] - [TFrmDataManager.AtualizaListaBancos] - Lista de bancos de dados atualizada. -
+[26/01/2026 09:15:01] - [TFormDataManager.BtnConectaBDClick] - Conexão com o banco de dados "PG" feita com sucesso -
+[26/01/2026 09:15:04] - [TFormDataManager.VerificaVersaoPostgres] - Conectado ao banco de dados PostgreSQL 18.1 on x86_64-windows, compiled by msvc-19.44.35219, 64-bit -
+[26/01/2026 09:15:04] - [TFormDataManager.BtnAtualizarClick] - Usuário clicou no botão "BtnNovoDataBase". -
+[26/01/2026 09:15:04] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[26/01/2026 09:15:13] - [TFormDataManager.CapturarNomeDoDatabase] - Nome do database "UNIPLUS-FISCAL" capturado - Parâmetro Out foi "-1" -
+[26/01/2026 09:15:13] - [TFormDataManager.ValidaDatabaseExistente] - Database "UNIPLUS-FISCAL" não existe -
+[26/01/2026 09:15:13] - [TFormDataManager.BtnNovoDataBaseClick] - Usuário digitou o nome do banco de dados "UNIPLUS-FISCAL". -
+[26/01/2026 09:15:13] - [TFormDataManager.CriarDroparRoles] - Alguns usuários padrão do database não foram cadastrados, pois já existiam. -
+[26/01/2026 09:15:15] - [TGerenciadorBackup.CriarDroparDataBase] - Query de criação de database executada:
+
+CREATE DATABASE "UNIPLUS-FISCAL"
+WITH OWNER = "PRODFAB_ADMIN"
+ENCODING = 'UTF8'
+TABLESPACE = pg_default
+LC_COLLATE = 'Portuguese_Brazil.1252'
+LC_CTYPE = 'Portuguese_Brazil.1252'
+CONNECTION LIMIT = -1
+ -
+[26/01/2026 09:15:15] - [TGerenciadorBackup.CriarDroparDataBase] - Database "UNIPLUS-FISCAL" criado com sucesso. -
+[26/01/2026 09:15:15] - [TGerenciadorBackup.AdicionarOuRemoverPermissoesNosRoles] - Permissões adicionadas aos usuários do database "UNIPLUS-FISCAL". -
+[26/01/2026 09:15:16] - [TFrmDataManager.AtualizaListaBancos] - Lista de bancos de dados atualizada. -
+[26/01/2026 09:15:16] - [TFrmDataManager.AtualizaListaBancos] - Lista de bancos de dados atualizada. -
+[26/01/2026 09:15:21] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "UNIPLUS-592780-MEI-NAO-FISCAL". -
+[26/01/2026 09:15:21] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[26/01/2026 09:15:22] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "UNIPLUS-FISCAL". -
+[26/01/2026 09:15:22] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[26/01/2026 09:15:23] - [TFormDataManager.BtnFazerRestoreDatabaseClick] - Usuário clicou no botão "BtnFazerRestoreDatabase". -
+[26/01/2026 09:15:23] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[26/01/2026 09:15:23] - [TFormDataManager.VerificaVersaoPostgres] - Conectado ao banco de dados PostgreSQL 18.1 on x86_64-windows, compiled by msvc-19.44.35219, 64-bit -
+[26/01/2026 09:15:23] - [TGerenciadorBackup.ValidaOwnerDatabase] - O usuário é o proprietário do banco de dados -
+[26/01/2026 09:15:42] - [TFormDataManager.BtnFazerRestoreDatabaseClick] - Usuário abriu o arquivo de backup G:\Backup Alterdata\Suporte\CONVERSÃO\Clientes\592780-ALOISIO-SANTINI-FILHO\Banco de Dados Original\unico20260124170001bkp.backup. -
+[26/01/2026 09:15:42] - [TGerenciadorBackup.CriarComando] - Comando "C:\Program Files\PostgreSQL\18\bin\pg_restore.exe" -U postgres -h localhost -p 5433 -d UNIPLUS-FISCAL -v --no-owner --no-acl "G:\Backup Alterdata\Suporte\CONVERSÃO\Clientes\592780-ALOISIO-SANTINI-FILHO\Banco de Dados Original\unico20260124170001bkp.backup" criado com sucesso. -
+[26/01/2026 09:15:42] - [TFormDataManager.BtnFazerRestoreDatabaseClick] - Comando recebido: "C:\Program Files\PostgreSQL\18\bin\pg_restore.exe" -U postgres -h localhost -p 5433 -d UNIPLUS-FISCAL -v --no-owner --no-acl "G:\Backup Alterdata\Suporte\CONVERSÃO\Clientes\592780-ALOISIO-SANTINI-FILHO\Banco de Dados Original\unico20260124170001bkp.backup" -
+[26/01/2026 09:15:42] - [TGerenciadorBackup.AdicionarOuRemoverPermissoesNosRoles] - Permissões removidas dos usuários do database "UNIPLUS-FISCAL". -
+[26/01/2026 09:15:42] - [TFormDataManager.CriarDroparRoles] - Alguns usuários padrão do database não foram excluídos, pois já existiam. -
+[26/01/2026 09:15:42] - [TGerenciadorBackup.CriarDroparDataBase] - Query de exclusão de database executada:
+
+DROP DATABASE "UNIPLUS-FISCAL"
+ -
+[26/01/2026 09:15:42] - [TGerenciadorBackup.CriarDroparDataBase] - Database "UNIPLUS-FISCAL" excluído com sucesso. -
+[26/01/2026 09:15:42] - [TFormDataManager.BtnFazerRestoreDatabaseClick] - Excluído o banco de dados existente. -
+[26/01/2026 09:15:43] - [TGerenciadorBackup.CriarDroparDataBase] - Query de criação de database executada:
+
+CREATE DATABASE "UNIPLUS-FISCAL"
+WITH OWNER = "PRODFAB_ADMIN"
+ENCODING = 'UTF8'
+TABLESPACE = pg_default
+LC_COLLATE = 'Portuguese_Brazil.1252'
+LC_CTYPE = 'Portuguese_Brazil.1252'
+CONNECTION LIMIT = -1
+ -
+[26/01/2026 09:15:43] - [TGerenciadorBackup.CriarDroparDataBase] - Database "UNIPLUS-FISCAL" criado com sucesso. -
+[26/01/2026 09:15:43] - [TFormDataManager.CriarDroparRoles] - Alguns usuários padrão do database não foram cadastrados, pois já existiam. -
+[26/01/2026 09:15:43] - [TGerenciadorBackup.AdicionarOuRemoverPermissoesNosRoles] - Permissões adicionadas aos usuários do database "UNIPLUS-FISCAL". -
+[26/01/2026 09:15:43] - [TFormDataManager.BtnFazerRestoreDatabaseClick] - Recriado o banco de dados vazio. -
+[26/01/2026 09:15:43] - [TFormBackupRestore.FormShow] - Backup do banco de dados "UNIPLUS-FISCAL" Iniciado -
+[26/01/2026 09:21:32] - [TFormDataManager.BtnFazerRestoreDatabaseClick] - Form "" foi fechado. -
+[26/01/2026 09:21:32] - [TGerenciadorBackup.ConectarDesconectar] - Banco de dados "PG" conectado. -
+[26/01/2026 09:21:32] - [TFrmDataManager.AtualizaListaBancos] - Lista de bancos de dados atualizada. -
+[26/01/2026 09:21:34] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[26/01/2026 09:21:34] - [TFormDataManager.FormClose] - Aplicação Encerrada. -
+[26/01/2026 09:21:34] - [TFormDataManager.FormClose] - ------------------------------------------------------------------------------- -
+[26/01/2026 09:21:34] - [TFormDataManager.FormDestroy] - Form limpo da memória com sucesso -

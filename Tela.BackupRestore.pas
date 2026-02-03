@@ -117,9 +117,11 @@ type
 
     procedure FormShow(Sender: TObject);
     procedure PbarBackupRestoreChange(Sender: TObject);
-    procedure BtnCancelarClick(Sender: TObject); // Evento do botão cancelar
+    procedure BtnCancelarClick(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); // Evento do botão cancelar
 
   private
+    FHandle: THandle;
     FWorkerThread: TPostgreSQLWorkerThread; // Referência à thread de trabalho
     FIsOperationSuccessful: Boolean; // Indica se a operação terminou com sucesso
     FCommandString: string; // Armazena o comando completo para a thread
@@ -167,6 +169,13 @@ uses
 // ==============================================================================
 // TFormBackupRestore - Implementação
 // ==============================================================================
+
+procedure TFrmBackupRestore.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if (ssAlt in Shift) and (Key = VK_F4) then
+    Key := 0;
+end;
 
 procedure TFrmBackupRestore.FormShow(Sender: TObject);
 var
@@ -226,6 +235,7 @@ begin
     DumpRestorePath
   );
   FWorkerThread.OnTerminate := ThreadTerminated;
+  FHandle := FWorkerThread.Handle;
   FWorkerThread.Start; // Inicia a thread
 end;
 
@@ -244,8 +254,14 @@ begin
       LblProgresso.Caption := 'Cancelando operação...';
 
       // Solicita o término da thread
-      FWorkerThread.CancelOperation;
-      FWorkerThread.Terminate;
+      if WaitForSingleObject(FHandle, 100) = WAIT_TIMEOUT then
+      begin
+        if Assigned(FWorkerThread) then
+        begin
+          FWorkerThread.CancelOperation;
+          FWorkerThread.Terminate;
+        end;
+      end;
     end;
   end;
 end;

@@ -57,6 +57,8 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
+    procedure ConectarDatabase;
+    procedure DesconectarDatabase;
     procedure AtualizarListaBancos(PStatusConexao: Boolean);
     procedure ExcluirDatabase;
     procedure HabilitarDesabilitarElementos(PStatusConexao, PBancoSelecionado: Boolean);
@@ -97,6 +99,53 @@ begin
   Result:= PNomeDoDatabase;
   RegistrarLogs('TFormDataManager.CapturarNomeDoDatabase', 'Nome do database "' + PNomeDoDatabase +
                 '" capturado - Parâmetro Out foi "' + BoolToStr(PDigitou) + '"');
+end;
+
+procedure TFrmDataManager.ConectarDatabase;
+//Método que conecta ao banco de dados
+var
+  VersaoCompleta: String;
+begin
+  if (CbxVersao.ItemIndex = -1) then
+    MessageBox(Application.Handle, PChar('Selecione a versão do PostgreSQL.'), PChar('Versão do PostgrSQL.'), MB_OK or MB_ICONINFORMATION)
+  else
+  begin
+    try
+      GerenciadorBackup.DefinirParametros(EdtHost.text, EdtPorta.Text, EdtUsuario.Text, 'postgres', EdtSenha.Text,
+                                        StrToCurr(CbxVersao.Text));
+      GerenciadorBackup.Conectar;
+      GerenciadorBackup.VerificarVersaoPostgres(VersaoCompleta);
+      HabilitarDesabilitarElementos(True, False);
+      AtualizarListaBancos(True);
+      LblDriverConectado.Caption := VersaoCompleta;
+      LblDriverConectado.font.Color := ClBlue;
+      RegistrarLogs('TFormDataManager.BtnConectarBDClick',
+                        'Conexão com o banco de dados "' + GerenciadorBackup.Connection.DriverName + '" feita com sucesso');
+    Except
+      On E: Exception do
+      begin
+        RegistrarLogs('TFrmDataManager.BtnConectarBDClick', E.ClassName + ' ' + E.Message);
+        MessageBox(Application.Handle,
+                  PChar('Não foi possível conectar ao banco de dados.' + sLineBreak + sLineBreak +
+                    'Classe: ' + E.ClassName + sLineBreak + sLineBreak +
+                    'Detalhes do erro: ' + E.Message),
+                  PChar('Conexão com o PostgrSQL.'),
+                  MB_OK or MB_ICONERROR);
+      end;
+    end;
+  end;
+end;
+
+procedure TFrmDataManager.DesconectarDatabase;
+//Método que desconecta ao banco de dados
+begin
+  GerenciadorBackup.Desconectar;
+  HabilitarDesabilitarElementos(False, False);
+  AtualizarListaBancos(False);
+  LblDriverConectado.Caption := 'Nenhum banco de dados conectado';
+  LblDriverConectado.font.Color := ClRed;
+  RegistrarLogs('TFormDataManager.BtnDesconectarClick',
+                'Conexão com o banco de dados "' + GerenciadorBackup.Connection.DriverName + '" encerrada com sucesso');
 end;
 
 procedure TFrmDataManager.ExcluirDatabase;
@@ -198,49 +247,14 @@ end;
 
 procedure TFrmDataManager.BtnConectarBDClick(Sender: TObject);
 // Botão Conectar
-var
-  VersaoCompleta: String;
 begin
-  if (CbxVersao.ItemIndex = -1) then
-    MessageBox(Application.Handle, PChar('Selecione a versão do PostgreSQL.'), PChar('Versão do PostgrSQL.'), MB_OK or MB_ICONINFORMATION)
-  else
-  begin
-    try
-      GerenciadorBackup.DefinirParametros(EdtHost.text, EdtPorta.Text, EdtUsuario.Text, 'postgres', EdtSenha.Text,
-                                        StrToCurr(CbxVersao.Text));
-      GerenciadorBackup.Conectar;
-      GerenciadorBackup.VerificarVersaoPostgres(VersaoCompleta);
-      HabilitarDesabilitarElementos(True, False);
-      AtualizarListaBancos(True);
-      LblDriverConectado.Caption := VersaoCompleta;
-      LblDriverConectado.font.Color := ClBlue;
-      RegistrarLogs('TFormDataManager.BtnConectarBDClick',
-                        'Conexão com o banco de dados "' + GerenciadorBackup.Connection.DriverName + '" feita com sucesso');
-    Except
-      On E: Exception do
-      begin
-        RegistrarLogs('TFrmDataManager.BtnConectarBDClick', E.ClassName + ' ' + E.Message);
-        MessageBox(Application.Handle,
-                  PChar('Não foi possível conectar ao banco de dados.' + sLineBreak + sLineBreak +
-                    'Classe: ' + E.ClassName + sLineBreak + sLineBreak +
-                    'Detalhes do erro: ' + E.Message),
-                  PChar('Conexão com o PostgrSQL.'),
-                  MB_OK or MB_ICONERROR);
-      end;
-    end;
-  end;
+  ConectarDatabase;
 end;
 
 procedure TFrmDataManager.BtnDesconectarClick(Sender: TObject);
 // Botão Desconectar
 begin
-  GerenciadorBackup.Desconectar;
-  HabilitarDesabilitarElementos(False, False);
-  AtualizarListaBancos(False);
-  LblDriverConectado.Caption := 'Nenhum banco de dados conectado';
-  LblDriverConectado.font.Color := ClRed;
-  RegistrarLogs('TFormDataManager.BtnDesconectarClick',
-                'Conexão com o banco de dados "' + GerenciadorBackup.Connection.DriverName + '" encerrada com sucesso');
+  DesconectarDatabase;
 end;
 
 procedure TFrmDataManager.BtnAtualizarClick(Sender: TObject);
@@ -271,7 +285,7 @@ end;
 procedure TFrmDataManager.BtnFazerBackupDatabaseClick(Sender: TObject);
 //Boatão fazer Backup
 var
-  FrmBackupRestore : TFrmBackupRestore; // Declara uma variável para o seu formulário de progresso
+  FrmBackupRestore: TFrmBackupRestore; // Declara uma variável para o seu formulário de progresso
   OutputFile, Comando: string;
   LSvDlgBackup: TSaveDialog;
 begin

@@ -12,7 +12,9 @@ object FrmBackupRestore: TFrmBackupRestore
   Font.Height = -12
   Font.Name = 'Segoe UI'
   Font.Style = []
+  KeyPreview = True
   Position = poScreenCenter
+  OnKeyDown = FormKeyDown
   OnShow = FormShow
   TextHeight = 15
   object LblPorcentagem: TLabel

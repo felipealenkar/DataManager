@@ -1,0 +1,80 @@
+[13/01/2026 20:24:12] - [TFormDataManager.FormCreate] - -------------------------------------------------------------------------------
+[13/01/2026 20:24:12] - [Funcoes.RegistrarLogs] - Na abertura do sistema foi criado o arquivo "13-01-2026-Logs.txt", pois o mesmo não foi encontrado no diretório de logs. -
+[13/01/2026 20:24:12] - [TFormDataManager.FormCreate] - Aplicação iniciada. -
+[13/01/2026 20:24:12] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[13/01/2026 20:24:20] - [TGerenciadorBackup.DefinirParametros] - Parâmetros de conexão definidos. -
+[13/01/2026 20:24:21] - [TGerenciadorBackup.Conectar] - Banco de dados "PG" conectado. -
+[13/01/2026 20:24:21] - [TFormDataManager.VerificarVersaoPostgres] - Conectado ao banco de dados PostgreSQL 18.1 on x86_64-windows, compiled by msvc-19.44.35219, 64-bit -
+[13/01/2026 20:24:21] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[13/01/2026 20:24:21] - [TFrmDataManager.AtualizarListaBancos] - Lista de bancos de dados atualizada. -
+[13/01/2026 20:24:21] - [TFormDataManager.BtnConectarBDClick] - Conexão com o banco de dados "PG" feita com sucesso -
+[13/01/2026 20:24:22] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "PRODFAB_TESTE". -
+[13/01/2026 20:24:22] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[13/01/2026 20:24:23] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "PUTZ". -
+[13/01/2026 20:24:23] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[13/01/2026 20:24:23] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "SistemaVendas". -
+[13/01/2026 20:24:23] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[13/01/2026 20:24:23] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "TESTE". -
+[13/01/2026 20:24:23] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[13/01/2026 20:24:24] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "WSHOP". -
+[13/01/2026 20:24:24] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[13/01/2026 20:24:24] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "TESTE". -
+[13/01/2026 20:24:24] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[13/01/2026 20:24:24] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "SistemaVendas". -
+[13/01/2026 20:24:24] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[13/01/2026 20:24:25] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "PRODFAB_TESTE". -
+[13/01/2026 20:24:25] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[13/01/2026 20:24:34] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "PUTZ". -
+[13/01/2026 20:24:34] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[13/01/2026 20:24:35] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "PUTZ". -
+[13/01/2026 20:24:35] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[13/01/2026 20:24:36] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "PRODFAB_TESTE". -
+[13/01/2026 20:24:36] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[13/01/2026 20:24:38] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[13/01/2026 20:24:38] - [TGerenciadorBackup.Conectar] - Banco de dados "PG" conectado. -
+[13/01/2026 20:24:44] - [TFormDataManager.BtnFazerBackupDatabaseClick] - Usuário cancelou sem decidir salvar o backup". -
+[13/01/2026 20:24:44] - [TFrmDataManager.AtualizarListaBancos] - Lista de bancos de dados atualizada. -
+[13/01/2026 20:24:45] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "WSHOP". -
+[13/01/2026 20:24:45] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[13/01/2026 20:24:46] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[13/01/2026 20:24:46] - [TGerenciadorBackup.Conectar] - Banco de dados "PG" conectado. -
+[13/01/2026 20:24:48] - [TFormDataManager.BtnFazerBackupDatabaseClick] - Usuário confirmou salvar o arquivo de backup". -
+[13/01/2026 20:24:48] - [TGerenciadorBackup.CriarComando] - Comando criado com sucesso:
+
+"C:\Program Files\PostgreSQL\18\bin\pg_dump.exe" -U postgres -h localhost -p 5433 -F c -b -v -f "C:\Users\WINDOWS_10\Desktop\WSHOP_[13.01.2026_20.24.46].postgresql" WSHOP -
+[13/01/2026 20:24:48] - [TFormDataManager.BtnFazerBackupDatabaseClick] - Comando recebido: "C:\Program Files\PostgreSQL\18\bin\pg_dump.exe" -U postgres -h localhost -p 5433 -F c -b -v -f "C:\Users\WINDOWS_10\Desktop\WSHOP_[13.01.2026_20.24.46].postgresql" WSHOP -
+[13/01/2026 20:24:48] - [TFormBackupRestore.FormShow] - Backup do banco de dados "WSHOP" Iniciado -
+[13/01/2026 20:55:08] - [TFormDataManager.FormCreate] - ------------------------------------------------------------------------------- -
+[13/01/2026 20:55:08] - [TFormDataManager.FormCreate] - Aplicação iniciada. -
+[13/01/2026 20:55:08] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[13/01/2026 20:55:10] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[13/01/2026 20:55:10] - [TFormDataManager.FormClose] - Aplicação Encerrada. -
+[13/01/2026 20:55:10] - [TFormDataManager.FormClose] - ------------------------------------------------------------------------------- -
+[13/01/2026 20:55:10] - [TFormDataManager.FormDestroy] - Form limpo da memória com sucesso -
+[13/01/2026 21:45:05] - [TFormDataManager.FormCreate] - ------------------------------------------------------------------------------- -
+[13/01/2026 21:45:05] - [TFormDataManager.FormCreate] - Aplicação iniciada. -
+[13/01/2026 21:45:05] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[13/01/2026 21:45:08] - [TGerenciadorBackup.DefinirParametros] - Parâmetros de conexão definidos. -
+[13/01/2026 21:45:08] - [TGerenciadorBackup.Conectar] - Banco de dados "PG" conectado. -
+[13/01/2026 21:45:08] - [TFormDataManager.VerificarVersaoPostgres] - Conectado ao banco de dados PostgreSQL 18.1 on x86_64-windows, compiled by msvc-19.44.35219, 64-bit -
+[13/01/2026 21:45:08] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[13/01/2026 21:45:08] - [TFrmDataManager.AtualizarListaBancos] - Lista de bancos de dados atualizada. -
+[13/01/2026 21:45:08] - [TFormDataManager.BtnConectarBDClick] - Conexão com o banco de dados "PG" feita com sucesso -
+[13/01/2026 21:45:11] - [TFormDataManager.VerificarVersaoPostgres] - Conectado ao banco de dados PostgreSQL 18.1 on x86_64-windows, compiled by msvc-19.44.35219, 64-bit -
+[13/01/2026 21:45:11] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[13/01/2026 21:45:19] - [TFormDataManager.CapturarNomeDoDatabase] - Nome do database "TESTE0" capturado - Parâmetro Out foi "-1" -
+[13/01/2026 21:45:19] - [TFormDataManager.ValidarSeDatabaseExiste] - Database "TESTE0" não existe -
+[13/01/2026 21:45:19] - [TFormDataManager.BtnNovoDataBaseClick] - Usuário digitou o nome do banco de dados "TESTE0". -
+[13/01/2026 21:45:19] - [TGerenciadorBackup.CriarRoles] - Não foi possível criar o role "PRODFAB_ADMIN", pois já existia
+Não foi possível criar o role "PRODFAB_GROUP", pois já existia
+ -
+[13/01/2026 21:45:20] - [TGerenciadorBackup.CriarDataBase] - Database "TESTE0" criado com sucesso. -
+[13/01/2026 21:45:20] - [TGerenciadorBackup.AdicionarPermissoesNosRoles] - Permissões concedidas aos usuários do database "TESTE0". -
+[13/01/2026 21:45:21] - [TFrmDataManager.AtualizarListaBancos] - Lista de bancos de dados atualizada. -
+[13/01/2026 21:45:21] - [TFrmDataManager.AtualizarListaBancos] - Lista de bancos de dados atualizada. -
+[13/01/2026 21:45:22] - [TFormDataManager.LbxDatabasesClick] - Usuário selecionou o banco de dados "TESTE0". -
+[13/01/2026 21:45:22] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[13/01/2026 21:45:26] - [TFormDataManager.HabilitarDesabilitarElementos] - Função HabilitarDesabilitarElementos executada. -
+[13/01/2026 21:45:26] - [TFormDataManager.FormClose] - Aplicação Encerrada. -
+[13/01/2026 21:45:26] - [TFormDataManager.FormClose] - ------------------------------------------------------------------------------- -
+[13/01/2026 21:45:26] - [TFormDataManager.FormDestroy] - Form limpo da memória com sucesso -
