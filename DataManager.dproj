@@ -110,7 +110,7 @@
         <VerInfo_Locale>1033</VerInfo_Locale>
         <VerInfo_MinorVer>2</VerInfo_MinorVer>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.2.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.2;Comments=</VerInfo_Keys>
-        <DCC_UnitSearchPath>C:\Program Files\ProjetosDelphi\ProdFab\Units\Recursos;C:\Program Files\ProjetosDelphi\ProdFab\Units\Modelos;C:\Program Files\ProjetosDelphi\ProdFab\Units\Repositorios;C:\Users\felipealencar.olgon\Desktop\Projects\ProdFab\Units\Recursos;C:\Users\felipealencar.olgon\Desktop\Projects\ProdFab\Units\Modelos;C:\Users\felipealencar.olgon\Desktop\Projects\ProdFab\Units\Repositorios;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>C:\Projects\ProdFab\Src\Resource;C:\Projects\ProdFab\Src\Model;C:\Projects\ProdFab\Src\Repository;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
