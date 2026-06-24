@@ -136,14 +136,16 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
-        <DCCReference Include="Tela.DataManager.pas">
-            <Form>FrmDataManager</Form>
-        </DCCReference>
-        <DCCReference Include="Tela.BackupRestore.pas">
+        <DCCReference Include="src\Repository.GerenciadorBackup.pas"/>
+        <DCCReference Include="src\View.BackupRestore.pas">
             <Form>FrmBackupRestore</Form>
             <FormType>dfm</FormType>
         </DCCReference>
-        <DCCReference Include="Database.GerenciadorBackup.pas"/>
+        <DCCReference Include="src\View.DataManager.pas">
+            <Form>FrmDataManager</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="src\Utils.Funcoes.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -173,6 +175,18 @@
                 <DeployFile LocalName="Arquivos externos\Icones\BD.png" Configuration="Release" Class="UWP_DelphiLogo44"/>
                 <DeployFile LocalName="Win32\Debug\DataManager.exe" Configuration="Debug" Class="ProjectOutput"/>
                 <DeployFile LocalName="Win64\Debug\DataManager.exe" Configuration="Debug" Class="ProjectOutput"/>
+                <DeployFile LocalName="Win64\Debug\DataManager.exe" Configuration="Debug" Class="ProjectOutput">
+                    <Platform Name="Win64">
+                        <RemoteName>DataManager.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="Win64\Debug\DataManager.rsm" Configuration="Debug" Class="DebugSymbols">
+                    <Platform Name="Win64">
+                        <RemoteName>DataManager.rsm</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="Win64\Release\DataManager.exe" Configuration="Release" Class="ProjectOutput"/>
                 <DeployClass Name="AdditionalDebugSymbols">
                     <Platform Name="iOSSimulator">

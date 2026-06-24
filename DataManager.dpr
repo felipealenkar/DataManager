@@ -4,16 +4,18 @@ uses
   Vcl.Forms,
   Vcl.Themes,
   vcl.Styles,
-  Tela.DataManager in 'Tela.DataManager.pas' {FrmDataManager},
-  Tela.BackupRestore in 'Tela.BackupRestore.pas' {FrmBackupRestore},
   Vcl.Dialogs,
-  Database.GerenciadorBackup in 'Database.GerenciadorBackup.pas';
+  Repository.GerenciadorBackup in 'src\Repository.GerenciadorBackup.pas',
+  View.BackupRestore in 'src\View.BackupRestore.pas' {FrmBackupRestore},
+  View.DataManager in 'src\View.DataManager.pas' {FrmDataManager},
+  Utils.Funcoes in 'src\Utils.Funcoes.pas';
 
 //Para o Showmessage
 
 {$R *.res}
 
 begin
+  ReportMemoryLeaksOnShutdown := True;
   Try
     TStyleManager.LoadFromFile('PersonalizadoAzul.vsf');
     TStyleManager.TrySetStyle('PersonalizadoAzul');
