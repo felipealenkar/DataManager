@@ -63,6 +63,7 @@ type
     procedure ExcluirDatabase;
     procedure HabilitarDesabilitarElementos(PStatusConexao, PBancoSelecionado: Boolean);
     procedure NovoDatabase;
+    function ValidarNomeDatabase(PNomeDatabase: string): Boolean;
     procedure ValidarRenomearDatabase;
 
     function CapturarNomeDoDatabase(PNomeDoDatabase: string; OUT PDigitou: boolean):string;
@@ -85,17 +86,25 @@ uses
 
 function TFrmDataManager.CapturarNomeDoDatabase(PNomeDoDatabase: string; OUT PDigitou: boolean): string;
 // Colhe o nome do database digitado e o retorna
+var
+  NomeDoDatabaseValido: Boolean;
 begin
   repeat
     begin
       PDigitou := InputQuery('Nome do Database', 'Digite o nome do novo banco de dados', PNomeDoDatabase);
       if PDigitou and (PNomeDoDatabase = '') then
-      MessageBox(Application.Handle,
+      MessageBox(Self.Handle,
                 PChar('O nome do banco de dados não pode ser vazio.'),
                 PChar('Digitação de nome do database.'),
                 MB_OK or MB_ICONWARNING);
+      NomeDoDatabaseValido := ValidarNomeDatabase(PNomeDoDatabase);
+      if not NomeDoDatabaseValido then
+        MessageBox(Self.Handle,
+                PChar('Não é permitido banco de dados com o nome ' + PNomeDoDatabase + '.'),
+                'Digitação de nome do database.',
+                MB_OK or MB_ICONWARNING);
     end;
-  until (not PDigitou) or (PNomeDoDatabase <> '');
+  until (not PDigitou) or ((PNomeDoDatabase <> '') and (NomeDoDatabaseValido));
   Result:= PNomeDoDatabase;
   RegistrarLogs('TFormDataManager.CapturarNomeDoDatabase', 'Nome do database "' + PNomeDoDatabase +
                 '" capturado - Parâmetro Out foi "' + BoolToStr(PDigitou) + '"');
@@ -445,7 +454,7 @@ begin
     begin
       RegistrarLogs('TFormDataManager.BtnNovoDataBaseClick', 'Usuário cancelou a operação.');
       AtualizarListaBancos(True);
-      exit;
+      Exit;
     end
     else
     begin
@@ -498,6 +507,11 @@ begin
               MB_OK or MB_ICONWARNING);
   end;
   AtualizarListaBancos(True);
+end;
+
+function TFrmDataManager.ValidarNomeDatabase(PNomeDatabase: string): Boolean;
+begin
+  Result := Trim(PNomeDatabase.ToUpper) <> 'PRODFAB';
 end;
 
 procedure TFrmDataManager.ValidarRenomearDatabase;
